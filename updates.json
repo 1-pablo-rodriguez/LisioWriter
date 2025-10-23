@@ -1,8 +1,8 @@
 {
   "channel": "stable",
-  "version": "1.9.9",
+  "version": "1.0.7",
   "url": "http://localhost/TestUpdate/Installation_blindWriter_1.0.7.0.exe",
   "sha256": "00869A71628D92A7BF7009443A5DAD404AD9103E1DFDCE9DC3A165CE05F4BADC",
   "size": 260963844,
-  "releaseNotes": "Test local : version 1.9.9"
+  "releaseNotes": "Test local : version 1.0.7"
 }
