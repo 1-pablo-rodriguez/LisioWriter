@@ -1,2 +1,39 @@
-/bin/
-/target/
+﻿# --- Java / Maven ---
+target/
+*.class
+*.log
+hs_err_pid*
+replay_pid*
+# Maven Wrapper (on garde ces fichiers !)
+!.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+!.mvn/jvm.config
+mvnw
+mvnw.cmd
+# --- Eclipse / IntelliJ / VS Code ---
+.classpath
+.project
+.settings/
+.metadata/
+bin/
+out/
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+# --- OS temporaires ---
+Thumbs.db
+.DS_Store
+# --- Installeurs / artefacts locaux ---
+dist/
+release/
+build/
+*.exe
+*.msi
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.bak
+*.tmp
