@@ -30,7 +30,7 @@ import jakarta.json.JsonReader;
 public class AutoUpdater {
 
     private final String metadataUrl; // ex: https://updates.exemple.com/updates.json
-    @SuppressWarnings("unused")
+
 	private final String currentVersion; // ex: "1.0.6"
 
     public AutoUpdater(String metadataUrl, String currentVersion) {
@@ -218,38 +218,147 @@ public class AutoUpdater {
 //        }
 //    }
     
-    public Process runInstaller(Path installer) throws java.io.IOException {
+    /**
+     * Installeur silencieux (aucune fenêtre affichée).
+     * Utilisé pour les mises à jour automatiques.
+     */
+    public Process runInstallerSilent(Path installer) throws java.io.IOException {
         String exe = installer.toAbsolutePath().toString();
+        Path logDir = Path.of(System.getProperty("user.home"), "AppData", "Local", "blindWriter");
+        Files.createDirectories(logDir);
 
-        // détaché + compatible UAC/SmartScreen
         return new ProcessBuilder(
-            "cmd.exe", "/c", "start", "", // "" = titre de fenêtre
-            "\"" + exe + "\"",
-            "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART",
-            "/LOG=" + System.getProperty("user.home") + "\\AppData\\Local\\blindWriter\\install.log"
-            // Optionnel: forcer le dossier d'install sans UAC si tu installes sous %LOCALAPPDATA%
-            // , "/DIR=" + System.getenv("LOCALAPPDATA") + "\\blindWriter"
-        )
-        .directory(installer.getParent().toFile())
-        .inheritIO()
-        .start();
+                "cmd.exe", "/c", "start", "", // "" = titre de fenêtre
+                "\"" + exe + "\"",
+                "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART",
+                "/LOG=" + logDir.resolve("install.log")
+            )
+            .directory(installer.getParent().toFile())
+            .inheritIO()
+            .start();
     }
 
-    // simple semantic version comparator
+    /**
+     * Installeur visible (fenêtre Inno Setup affichée).
+     * Utilisé pour les mises à jour manuelles ou tests.
+     */
+    public Process runInstallerVisible(Path installer) throws java.io.IOException {
+        String exe = installer.toAbsolutePath().toString();
+
+        return new ProcessBuilder(
+                "cmd.exe", "/c", "start", "",
+                "\"" + exe + "\""   // aucune option : la fenêtre d'installation s'affiche
+            )
+            .directory(installer.getParent().toFile())
+            .inheritIO()
+            .start();
+    }
+
+    /**
+     * Alias pratique : bascule entre visible / silencieux selon ton choix.
+     */
+    public Process runInstaller(Path installer, boolean silent) throws java.io.IOException {
+        return silent ? runInstallerSilent(installer) : runInstallerVisible(installer);
+    }
+
+
+ // Remplace ta méthode par celle-ci
     public static int versionCompare(String v1, String v2) {
-        String[] a1 = v1.split("[.-]");
-        String[] a2 = v2.split("[.-]");
-        int n = Math.max(a1.length, a2.length);
+        v1 = normalize(v1);
+        v2 = normalize(v2);
+
+        // Sépare core et pre-release (build déjà retiré par normalize)
+        String[] p1 = splitCoreAndPre(v1);
+        String[] p2 = splitCoreAndPre(v2);
+
+        int coreCmp = compareCore(p1[0], p2[0]);
+        if (coreCmp != 0) return coreCmp;
+
+        // Core égal -> compare pré-release
+        return comparePre(p1[1], p2[1]);
+    }
+
+    private static String normalize(String v) {
+        if (v == null) return "";
+        v = v.trim();
+        if (v.startsWith("v") || v.startsWith("V")) v = v.substring(1);
+        // retire le +build metadata (ignoré dans SemVer)
+        int plus = v.indexOf('+');
+        if (plus >= 0) v = v.substring(0, plus);
+        return v;
+    }
+
+    private static String[] splitCoreAndPre(String v) {
+        int dash = v.indexOf('-');
+        if (dash < 0) return new String[] { v, null };
+        return new String[] { v.substring(0, dash), v.substring(dash + 1) };
+    }
+
+    private static int compareCore(String c1, String c2) {
+        String[] a = c1.split("\\.");
+        String[] b = c2.split("\\.");
+        int n = Math.max(a.length, b.length);
         for (int i = 0; i < n; i++) {
-            int x = i < a1.length ? parsePart(a1[i]) : 0;
-            int y = i < a2.length ? parsePart(a2[i]) : 0;
+            int x = (i < a.length) ? parseIntSafe(a[i]) : 0;
+            int y = (i < b.length) ? parseIntSafe(b[i]) : 0;
             if (x != y) return Integer.compare(x, y);
         }
         return 0;
     }
-    private static int parsePart(String s) {
-        try { return Integer.parseInt(s); } catch (Exception ex) { return 0; }
+
+    private static int comparePre(String pre1, String pre2) {
+        // Pas de pré-release => plus "grand" (GA) que n'importe quel pré-release
+        if (pre1 == null && pre2 == null) return 0;
+        if (pre1 == null) return 1;   // GA > pre
+        if (pre2 == null) return -1;  // pre < GA
+
+        String[] a = pre1.split("\\.");
+        String[] b = pre2.split("\\.");
+        int n = Math.min(a.length, b.length);
+        for (int i = 0; i < n; i++) {
+            String s1 = a[i], s2 = b[i];
+            boolean n1 = isNumeric(s1), n2 = isNumeric(s2);
+            if (n1 && n2) {
+                int x = parseIntSafe(s1);
+                int y = parseIntSafe(s2);
+                if (x != y) return Integer.compare(x, y);
+            } else if (n1 != n2) {
+                // numérique < alphanumérique
+                return n1 ? -1 : 1;
+            } else {
+                int cmp = s1.compareTo(s2); // ordre ASCII/lexicographique
+                if (cmp != 0) return cmp < 0 ? -1 : 1;
+            }
+        }
+        // Tous identifiants communs égaux → celui qui a PLUS d'identifiants est plus GRAND
+        // (ex: alpha < alpha.1)
+        if (a.length != b.length) return Integer.compare(a.length, b.length);
+        return 0;
     }
+
+    private static boolean isNumeric(String s) {
+        // pas d'espaces, pas de signe, pas de zéros à gauche traités spécialement (SemVer autorise "0")
+        if (s.isEmpty()) return false;
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if (ch < '0' || ch > '9') return false;
+        }
+        return true;
+    }
+
+    private static int parseIntSafe(String s) {
+        try {
+            // borne large, mais suffisant pour des versions raisonnables
+            long v = Long.parseLong(s);
+            if (v > Integer.MAX_VALUE) return Integer.MAX_VALUE;
+            if (v < Integer.MIN_VALUE) return Integer.MIN_VALUE;
+            return (int) v;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    
 
     /**
      * Data object public pour être utilisé par l'UI.
