@@ -14,7 +14,7 @@ Ces codes apparaissent dans le texte et sont affichés sur la barre braille ou l
 ## 📌 Exemple de code dans blindWriter
 
 - **#P. Mon titre** : Indique mon titre pincipale de niveau hiérarchique corps de texte.
-- **#S. Sous-Titre** : Indique un sous-titre  de niveau hiérarchique corps de texte.
+- **#S. Sous-titre** : Indique un sous-titre  de niveau hiérarchique corps de texte.
 - **#1. Un titre** : Indique un titre de chapitre de niveau hiérachique 1 (équivalent à **Titre 1** sous Writer , Word, ou bien la balise **\<H1\>** dans une page web).
 - etc.
 
@@ -127,6 +127,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
