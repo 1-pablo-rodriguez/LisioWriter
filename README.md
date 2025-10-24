@@ -21,8 +21,10 @@ Permettre à toute personne déficiente visuelle de rédiger, lire et mettre en 
   - Fichiers **.txt**
   - Exportation en **PDF**
 - **Vérification orthographique intégrée** (basée sur *LanguageTool*).  
-- **Surlignage des erreurs et correction vocale**.  
-- **Mode documentation blindWriter (.bwr)** : format simple et structuré pour la navigation par titres.  
+- **Surlignage et tag preffix °° des erreurs et suggestion des corrections**.  
+- **Mode documentation blindWriter** :ALT+A permet de basculer sur la documentation et ALT+B permet de basculer sur son fichier.
+- **Navigateur et navigation** : format simple et structuré pour la navigation par titres.
+- **Marque page** : intégration de marque page et de note.
 - **Système de mise à jour automatique** : télécharge et installe la dernière version en arrière-plan.  
 - **Accessibilité vocale (SAPI)** : le programme parle pendant l’installation et les mises à jour.  
 
@@ -95,4 +97,5 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
