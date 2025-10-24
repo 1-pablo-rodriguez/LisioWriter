@@ -36,7 +36,8 @@ Permettre à toute personne déficiente visuelle de rédiger, lire et mettre en 
 - **Ouverture et exportation** :
   - Fichiers **.docx** (Microsoft Word)
   - Fichiers **.odt** (LibreOffice Writer)
-  - Fichiers **.txt**
+  - Fichiers **.txt** (texte brut)
+  - Fichiers  **.html** (page web)
   - Exportation en **PDF**
 - **Vérification orthographique intégrée** (basée sur *LanguageTool*).  
 - **Surlignage et tag preffix °° des erreurs et suggestion des corrections**.  
@@ -116,6 +117,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
