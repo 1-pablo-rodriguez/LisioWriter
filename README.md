@@ -7,18 +7,20 @@
 Son interface est pensée pour être utilisée **entièrement au clavier** et reste compatible avec les lecteurs d’écran tels que **NVDA** ou **JAWS**.
 
 La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée de manière invisible, mais indiquée directement par de petits codes lisibles inspirés du **Markdown**.
+
 Par exemple :
 
-#P. Mon titre indique le titre de pincipale.
-#S. Sous-Titre
-#1. Un titre de chapitre de niveau 1 (Titre 1).
-etc...
+- #P. Mon titre indique le titre de pincipale.
+- #S. Sous-Titre
+- #1. Un titre de chapitre de niveau 1 (Titre 1).
 
-**mot** indique un mot en gras
-*^mot^* indique un mot en italique
-etc..
+- ...
 
-°°Erreur ortographique ou grammaticale
+- **mot** indique un mot en gras.
+- *^mot^* indique un mot en italique
+- ..
+
+- °°**Erreur ortographique ou grammaticale**.
 
 Ces codes apparaissent dans le texte et sont affichés sur la barre braille ou le lecteur d'écran, ce qui permet à l’utilisateur de savoir exactement quelle mise en forme est appliquée.
 
@@ -120,6 +122,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
