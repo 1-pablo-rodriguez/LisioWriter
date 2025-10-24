@@ -2,7 +2,7 @@
   "channel": "stable",
   "version": "1.0.7",
   "url": "https://github.com/1-pablo-rodriguez/blindWriter/releases/download/v1.0.7/Installation_blindWriter_1.0.7.0.exe",
- "sha256": "d559c7185f8afe4b9724704beec11b7ec5f7b5a72e4524b1f5e11f6eb4c07004",
+  "sha256": "d559c7185f8afe4b9724704beec11b7ec5f7b5a72e4524b1f5e11f6eb4c07004",
   "size": 262243173,
   "releaseNotes": "Test local : version 1.0.7"
 }
