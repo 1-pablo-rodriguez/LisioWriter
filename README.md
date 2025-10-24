@@ -71,10 +71,10 @@ Une version multiplateforme (Linux, macOS) pourra être envisagée plus tard.
 ## 🗣️ Utilisation
 
 - **F1** : Information sur la fenêtre encours ou générale.  
-- **F2** : Annonce de la partie du document en cours.  
+- **F2** : Annonce du titre du paragraphe et annonce du tritre suivant.  
 - **F3 / Maj + F3** : Aller au titre suivant ou précédent.  
 - **ALT+A** : Ouvrir la documentation intégrée.
-- **F6** : Navigateur.
+- **F6** : Navigateurde titre.
 - **Ctrl + F7** : Vérifier le document entier.  
 
 Toutes les fonctions du logiciel sont accessibles sans souris.  
@@ -127,6 +127,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
