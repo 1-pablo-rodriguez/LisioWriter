@@ -9,8 +9,6 @@ Son interface est pensée pour être utilisée **entièrement au clavier** et re
 La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée de manière invisible, mais indiquée directement par de petits codes lisibles inspirés du **Markdown**.
 Ces codes sont intégrés directement dans le texte. Ils sont ensuite lus par le lecteur d’écran et transmis à la barre braille, ce qui permet à l’utilisateur de savoir exactement quelle mise en forme est appliquée.
 
-Ce logiciel a été développé pour être utiliser par des étudiants non-voyant ou deficient visuel pour des enseignement post bac ou pour des adultes expériemnté aux usages du traitement de texte.
-
 ---
 
 ## 📌 Exemple de code dans blindWriter
@@ -18,18 +16,18 @@ Ce logiciel a été développé pour être utiliser par des étudiants non-voyan
 - **#P. Mon titre** : Indique mon titre pincipale de niveau hiérarchique corps de texte.
 - **#S. Sous-titre** : Indique un sous-titre  de niveau hiérarchique corps de texte.
 - **#1. Un titre** : Indique un titre de chapitre de niveau hiérachique 1 (équivalent à **Titre 1** sous Writer , Word, ou bien la balise **\<H1\>** dans une page web).
-- etc.
+- **etc.**
 
 - **\*\*mot en gras\*\*** : Indique des mots en gras.
 - **\*^mot en italique^\*** : Indique des mots en italique.
 - **__mots soulignés__** : Indique des mots soulignés.
 - **_\*mots gras soulignés\*_** : Indique des mots gras soulignés.
-- etc.
+- **etc.**
 
 - **@saut de page** indique un saut de page.
 - **@(note de bas de page)** indique une note de bas de page.
 - °°**Erreur ortographique ou grammaticale**.
-- etc.
+- **etc.**
 
 ---
 
@@ -77,17 +75,19 @@ Une version multiplateforme (Linux, macOS) pourra être envisagée plus tard.
 
 ---
 
-## 🗣️ Utilisation
+## 🗣️ Quelques utilisations pratiques
 
-- **F1** : Information sur la fenêtre encours ou générale.  
-- **F2** : Annonce du titre du paragraphe et annonce du tritre suivant.  
-- **F3 / Maj + F3** : Aller au titre suivant ou précédent.  
-- **ALT+A** : Ouvrir la documentation intégrée.
-- **F6** : Navigateurde titre.
-- **Ctrl + F7** : Vérifier le document entier.  
+- **F1** : Annonce d’informations sur la fenêtre en cours ou sur l’ensemble du document.  
+- **F2** : Lecture du titre du paragraphe en cours et annonce du titre suivant.  
+- **F3 / Maj + F3** : Navigation rapide vers le titre suivant ou précédent.  
+- **ALT+A** : Ouvrir la documentation intégrée.  
+- **F6** : Ouvrir le navigateur de titres.  
+- **Ctrl + F7** : Lancer la vérification orthographique et grammaticale de tout le document.  
+- **Ctrl + F2** : Ajouter un marque-page annoté.  
+- *etc.*  
 
-Toutes les fonctions du logiciel sont accessibles sans souris.  
-Les menus sont conçus pour être **entièrement vocalisés et compatibles braille**.
+Toutes les fonctions du logiciel sont accessibles **entièrement au clavier, sans souris**.  
+Les menus sont conçus pour être **vocalisés** et **compatibles avec les barres braille**, afin de garantir une accessibilité complète.
 
 ---
 
@@ -136,6 +136,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
