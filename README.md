@@ -44,7 +44,8 @@ Permettre à toute personne déficiente visuelle de rédiger, lire et mettre en 
 - **F1** : Obtenir une aide sur la fenêtre courante.  
 - **F2** : Annonce de la partie du document en cours.  
 - **F3 / Maj + F3** : Aller au titre suivant ou précédent.  
-- **F6** : Ouvrir la documentation intégrée.  
+- **ALT+A** : Ouvrir la documentation intégrée.
+- **F6** : Navigateur.
 - **Ctrl + F7** : Vérifier le document entier.  
 
 Toutes les fonctions du logiciel sont accessibles sans souris.  
@@ -97,5 +98,6 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
