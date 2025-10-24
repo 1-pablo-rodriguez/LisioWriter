@@ -76,19 +76,23 @@ Une version multiplateforme (Linux, macOS) pourra être envisagée plus tard.
 
 ---
 
-## 🗣️ Quelques utilisations pratiques
+## 🎹 Quelques raccourcis clavier juste pour découvrir quelques fonctions
+La table ci-dessous présente rapidement quelques fonctions pratiques de blindWriter.
 
-- **F1** : Annonce d’informations sur la fenêtre en cours ou sur l’ensemble du document.  
-- **F2** : Lecture du titre du paragraphe en cours et annonce du titre suivant.  
-- **F3 / Maj + F3** : Navigation rapide vers le titre suivant ou précédent.  
-- **ALT+A** : Ouvrir la documentation intégrée.  
-- **F6** : Ouvrir le navigateur de titres.  
-- **Ctrl + F7** : Lancer la vérification orthographique et grammaticale de tout le document.  
-- **Ctrl + F2** : Ajouter un marque-page annoté.  
-- *etc.*  
+| Raccourci      | Fonction                          | Description                                                                 |
+|----------------|----------------------------------|-----------------------------------------------------------------------------|
+| **F1**         | Informations                     | Annonce des informations sur la fenêtre en cours ou sur l’ensemble du document. |
+| **F2**         | Lecture de titre                 | Lit le titre du paragraphe en cours et annonce le titre suivant.            |
+| **F3 / Maj+F3**| Navigation par titres            | Passe rapidement au titre suivant ou au titre précédent.                    |
+| **ALT+A**      | Documentation intégrée           | Ouvre la documentation interne de blindWriter.                              |
+| **F6**         | Navigateur de titres             | Ouvre le navigateur pour parcourir la structure du document.                |
+| **Ctrl+F7**    | Vérification du document          | Lance la vérification orthographique et grammaticale de tout le document.   |
+| **Ctrl+F2**    | Marque-page                      | Ajoute un marque-page annoté dans le document.                              |
+
 
 Toutes les fonctions du logiciel sont accessibles **entièrement au clavier, sans souris**.  
 Les menus sont conçus pour être **vocalisés** et **compatibles avec les barres braille**, afin de garantir une accessibilité complète.
+
 
 ---
 
@@ -145,6 +149,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
