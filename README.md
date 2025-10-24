@@ -56,8 +56,8 @@ L’objectif est de fournir un outil qui favorise l’autonomie numérique, tout
   - Exportation en **PDF**
 - **Vérification orthographique intégrée** (basée sur *LanguageTool*).  
 - **Surlignage et tag preffix °° des erreurs et suggestion des corrections**.  
-- **Mode documentation blindWriter** :ALT+A permet de basculer sur la documentation et ALT+B permet de basculer sur son fichier.
-- **Navigateur et navigation** : format simple et structuré pour la navigation par titres.
+- **Mode documentation blindWriter** : **ALT+A** permet de basculer sur la documentation et **ALT+B** permet de basculer sur son fichier.
+- **Navigateur et navigation** : Fenêtre simple pour la navigation par les titres.
 - **Marque page** : intégration de marque page et de note.
 - **Système de mise à jour automatique** : télécharge et installe la dernière version en arrière-plan.  
 - **Accessibilité vocale (SAPI)** : le programme parle pendant l’installation et les mises à jour.  
@@ -136,6 +136,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
