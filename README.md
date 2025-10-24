@@ -1,5 +1,7 @@
 # blindWriter
 
+![Language: French](https://img.shields.io/badge/lang-French-blue?style=flat-square&logo=google-translate)
+
 **blindWriter** est un logiciel de traitement de texte conçu spécialement pour les **personnes non-voyantes ou malvoyantes**.  
 Son interface est optimisée pour être utilisée **entièrement au clavier** et compatible avec les lecteurs d’écran tels que **NVDA** ou **JAWS**.
 Les styles de paragraphe ou mise en formes sont indiquées par des **codes markdowns** directement placée dans le texte.
@@ -99,6 +101,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
