@@ -16,7 +16,7 @@ Par exemple :
 
 - ...
 
-- ****mot**** indique un mot en gras.
+- \**mot\** indique un mot en gras.
 - ***^mot^*** indique un mot en italique
 - ..
 
@@ -122,6 +122,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
