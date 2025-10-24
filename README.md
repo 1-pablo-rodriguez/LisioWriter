@@ -93,22 +93,24 @@ Les menus sont conçus pour être **vocalisés** et **compatibles avec les barre
 
 ## 🧱 Technologies utilisées
 
-- **Java 21** (Swing)  
+- **Java 19** (Swing)  
 - **LanguageTool** pour la correction grammaticale et orthographique  
 - **Apache POI** pour la lecture/écriture de fichiers Word  
 - **ODFDOM** pour le format LibreOffice  
 - **iText** pour l’exportation PDF  
 - **Inno Setup** pour le programme d’installation et la mise à jour  
 - **SAPI** (Microsoft Speech API) pour la synthèse vocale pendant l’installation
+- **etc.**
 
 ---
 
 ## 🔄 Mise à jour automatique
 
-blindWriter vérifie périodiquement les mises à jour via un fichier `updates.json` hébergé sur GitHub :  
+Après la première installation, il est possible à l'utilisateur non-voyante de réaliser des mise à jour automatique.
+Dans le menu **Préférence**, les mises à jour se font via un fichier `updates.json` hébergé sur GitHub :  
 > `https://raw.githubusercontent.com/1-pablo-rodriguez/blindWriter/main/updates.json`
 
-Les nouvelles versions sont téléchargées et installées automatiquement, silencieusement ou avec fenêtre visible selon le mode choisi.
+**Les nouvelles versions sont téléchargées et installées automatiquement en mode silencieusement.**
 
 ---
 
@@ -136,6 +138,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
