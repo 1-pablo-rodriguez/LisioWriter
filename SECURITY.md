@@ -43,5 +43,5 @@ Des parties importantes s’appuient sur des **bibliothèques tierces**.
 
 ## Merci ❤️
 
-Merci d’aider à rendre **blindWriter** plus sûr pour tous.  
+Merci d’aider à rendre **blindWriter** plus accessible et sûr pour tous.  
 Contribuer de façon responsable me permet de corriger rapidement et de documenter proprement chaque correctif.
