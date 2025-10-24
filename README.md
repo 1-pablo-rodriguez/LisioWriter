@@ -110,7 +110,7 @@ Après la première installation, il est possible à l'utilisateur non-voyante d
 Dans le menu **Préférence**, les mises à jour se font via un fichier `updates.json` hébergé sur GitHub :  
 > `https://raw.githubusercontent.com/1-pablo-rodriguez/blindWriter/main/updates.json`
 
-**Les nouvelles versions sont téléchargées et installées automatiquement en mode silencieusement.**
+**Les nouvelles versions sont téléchargées et installées automatiquement en mode silencieux** (aucune fenêtre s'affiche).
 
 ---
 
@@ -126,7 +126,13 @@ Vous pouvez :
 
 ## 👤 Auteur
 
-Développé par **Pablo Rodriguez**, pour favoriser l’autonomie numérique des personnes non-voyantes et malvoyantes.
+**blindWriter** a été développé par **Pablo Rodriguez** dans le cadre d’une démarche de recherche et d’innovation pédagogique visant à promouvoir l’autonomie numérique des personnes non-voyantes et malvoyantes.  
+
+Le logiciel a été expérimenté et validé auprès d’un étudiant en licence puis en master à l’Université d’Artois.  
+Cette phase de test a permis d’évaluer son accessibilité, son ergonomie et son adéquation avec les besoins réels des utilisateurs dans un contexte académique.  
+
+Ces validations confirment la pertinence de blindWriter comme outil d’inclusion numérique, adapté tant à l’enseignement supérieur qu’à un usage professionnel.
+
 
 ---
 
@@ -138,6 +144,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
