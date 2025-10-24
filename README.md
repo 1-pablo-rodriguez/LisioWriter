@@ -35,14 +35,14 @@ Ce logiciel a été développé pour être utiliser par des étudiants non-voyan
 
 ## 🎯 Objectifs
 
-Permettre à toute personne déficiente visuelle de rédiger, lire et mettre en forme des documents de manière fluide, rapide et indépendante, grâce à une interface accessible et simple d’utilisation.
+Permettre à toute personne non-voyante ou déficiente visuelle de rédiger, lire et mettre en forme des documents de manière fluide, rapide et indépendante, grâce à une interface accessible et simple d’utilisation.
 
 Le logiciel s’adresse en priorité :
 
-- aux étudiants non-voyants ou malvoyants engagés dans des cursus post-bac,
-- ainsi qu’aux adultes déjà expérimentés dans l’usage des traitements de texte.
+- aux **étudiants** non-voyants ou malvoyants engagés dans des **cursus post-bac**,
+- ainsi qu’aux **adultes** déjà expérimentés dans l’usage des **traitements de texte**.
 
-L’objectif est de fournir un outil qui favorise l’autonomie numérique, tout en restant proche des standards bureautiques connus (Word, Writer, Markdown), afin de faciliter l’apprentissage et l’intégration dans les environnements éducatifs ou professionnels.
+L’objectif est de fournir un outil qui favorise l’autonomie numérique, tout en restant proche des standards bureautiques connus (Word, Writer, Markdown), afin de faciliter l’apprentissage et **l’intégration dans les environnements éducatifs ou professionnels**.
 
 ---
 
@@ -136,6 +136,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
