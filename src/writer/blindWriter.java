@@ -1782,7 +1782,7 @@ public class blindWriter extends JFrame {
           
           JMenuItem majItem = createSimpleMenuItem("Mise à Jour", e -> {
         	  new SwingWorker<AutoUpdater.UpdateInfo, Void>() {
-        	    private final AutoUpdater updater = new AutoUpdater("http://localhost/testUpdate/updates.json", getAppVersion());
+        	    private final AutoUpdater updater = new AutoUpdater("https://raw.githubusercontent.com/1-pablo-rodriguez/blindWriter/main/updates.json", getAppVersion());
         	    @Override protected AutoUpdater.UpdateInfo doInBackground() throws Exception {
         	        return updater.fetchMetadata();
         	    }
