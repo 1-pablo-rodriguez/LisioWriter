@@ -1781,34 +1781,48 @@ public class blindWriter extends JFrame {
         	});
           
           JMenuItem majItem = createSimpleMenuItem("Mise à Jour", e -> {
-        	  new SwingWorker<AutoUpdater.UpdateInfo, Void>() {
-        	    private final AutoUpdater updater = new AutoUpdater("https://raw.githubusercontent.com/1-pablo-rodriguez/blindWriter/main/updates.json", getAppVersion());
-        	    @Override protected AutoUpdater.UpdateInfo doInBackground() throws Exception {
-        	        return updater.fetchMetadata();
-        	    }
-        	    @Override protected void done() {
-        	        try {
-        	            AutoUpdater.UpdateInfo info = get();
-        	            if (info == null) {
-        	            	 System.out.println("Impossible de vérifier les mises à jour.");
-        	                return;
-        	            }
-        	            int cmp = AutoUpdater.versionCompare(info.version, updater.getCurrentVersion());
-        	            if (cmp > 0) {
-        	                UpdateDialog dlg = new UpdateDialog(getInstance(), updater, info);
-        	                dlg.setVisible(true);
-        	            } else if (cmp == 0) {
-        	            	 System.out.println("Vous avez la dernière version installée : " + updater.getCurrentVersion());
-        	            } else {
-        	            	 System.out.println("Votre version (" + updater.getCurrentVersion() + ") est plus récente que celle du serveur (" + info.version + ").");
-        	            }
-        	        } catch (Exception ex) {
-        	            ex.printStackTrace();
-        	            System.out.println("Erreur lors de la vérification : " + ex.getMessage());
+        	    Toolkit.getDefaultToolkit().beep(); // feedback immédiat : début de la vérif
+        	    new SwingWorker<AutoUpdater.UpdateInfo, Void>() {
+        	        private final AutoUpdater updater =
+        	            new AutoUpdater("https://raw.githubusercontent.com/1-pablo-rodriguez/blindWriter/main/updates.json",
+        	                            getAppVersion());
+
+        	        @Override protected AutoUpdater.UpdateInfo doInBackground() throws Exception {
+        	            return updater.fetchMetadata();
         	        }
-        	    }
-        	  }.execute();
+
+        	        @Override protected void done() {
+        	            try {
+        	                AutoUpdater.UpdateInfo info = get();
+        	                if (info == null || info.version == null) {
+        	                	Toolkit.getDefaultToolkit().beep();
+        	                	//java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(editorPane);
+        	                	dia.InfoDialog.show(instance,  "Mise à jour", "Impossible de vérifier les mises à jour.");
+        	                    return;
+        	                }
+        	                // (facultatif) log de diagnostic
+        	                int cmp = AutoUpdater.versionCompare(info.version, updater.getCurrentVersion());
+        	                 if (cmp > 0) {
+        	                    UpdateDialog dlg = new UpdateDialog(getInstance(), updater, info);
+        	                    dlg.setVisible(true);
+        	                } else if (cmp == 0) {
+        	                    Toolkit.getDefaultToolkit().beep();
+        	                    dia.InfoDialog.show(instance,"Mise à jour", "Vous avez déjà la dernière version : " + updater.getCurrentVersion());
+        	                } else {
+        	                    Toolkit.getDefaultToolkit().beep();
+        	                    dia.InfoDialog.show(instance,"Mise à jour", "Votre version (" + updater.getCurrentVersion() 
+        	                    + ") est plus récente que celle du serveur (" + info.version + ")");
+        	                }
+
+        	            } catch (Exception ex) {
+        	                Toolkit.getDefaultToolkit().beep();
+        	                dia.InfoDialog.show(instance,  "Mise à jour", "Erreur lors de la vérification : " + ex.getMessage());
+        	                ex.printStackTrace();
+        	            }
+        	        }
+        	    }.execute();
         	});
+
 
           JMenu m = new JMenu("Affichage");
           m.setFont(new Font("Segoe UI", Font.PLAIN, 18));

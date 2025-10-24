@@ -1,28 +1,13 @@
 package maj;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.Frame;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.*;
+import java.awt.event.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
+import javax.swing.*;
 
-/**
- * Boîte de dialogue de mise à jour.
- * Appelle AutoUpdater pour télécharger / vérifier / lancer l'installateur.
- */
 @SuppressWarnings("serial")
 public class UpdateDialog extends JDialog {
 
@@ -30,25 +15,32 @@ public class UpdateDialog extends JDialog {
     private final JTextArea releaseNotes = new JTextArea(10, 40);
     private final JProgressBar progress = new JProgressBar(0, 100);
     private final JButton downloadBtn = new JButton("Télécharger et installer");
-    private final JButton cancelBtn = new JButton("Annuler");
+    private final JButton cancelBtn = new JButton("Fermer");
 
     private final AutoUpdater updater;
     private final AutoUpdater.UpdateInfo infoObj;
     private DownloadWorker worker;
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
-
+    private volatile int currentPct = 0;
+    private int lastBeepBucket = -1; // -1 pour forcer un premier bip
+    
+    
+    
     public UpdateDialog(Frame owner, AutoUpdater updater, AutoUpdater.UpdateInfo infoObj) {
-        super(owner, "Mise à jour disponible: " + infoObj.version, true);
+        super(owner, "Mise à jour blindWriter", true);
         this.updater = updater;
         this.infoObj = infoObj;
 
-        setLayout(new BorderLayout(8,8));
-        info.setText("Version disponible : " + infoObj.version + ". Voulez-vous télécharger ?");
-        releaseNotes.setText(infoObj.releaseNotes != null ? infoObj.releaseNotes : "");
+        setLayout(new BorderLayout(8, 8));
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+        info.setFocusable(true);
         releaseNotes.setEditable(false);
         releaseNotes.setLineWrap(true);
         releaseNotes.setWrapStyleWord(true);
         releaseNotes.setCaretPosition(0);
+        releaseNotes.setFocusable(true);
+        progress.setFocusable(false);
 
         JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         p.add(downloadBtn);
@@ -62,40 +54,76 @@ public class UpdateDialog extends JDialog {
         pack();
         setLocationRelativeTo(owner);
 
-        // Accessibilité : focus et annonce vocale
+        // Navigation clavier
+        getRootPane().registerKeyboardAction(e -> cancelAndClose(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+            JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+        // Gérer Entrée manuellement : active le bouton qui a le focus
+        getRootPane().setFocusTraversalKeysEnabled(true);
+        KeyAdapter enterHandler = new KeyAdapter() {
+            @Override public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    Object src = e.getSource();
+                    if (src == downloadBtn && downloadBtn.isEnabled()) startDownload();
+                    else if (src == cancelBtn) cancelAndClose();
+                }
+            }
+        };
+        downloadBtn.addKeyListener(enterHandler);
+        cancelBtn.addKeyListener(enterHandler);
+
         addWindowListener(new WindowAdapter() {
             public void windowOpened(WindowEvent e) {
                 downloadBtn.requestFocusInWindow();
-                speak("Nouvelle mise à jour disponible. Appuyez sur Télécharger pour lancer la mise à jour.");
-            }
-            public void windowClosing(WindowEvent e) {
-                cancelDownload();
             }
         });
 
-        cancelBtn.addActionListener(e -> {
-            cancelDownload();
-            setVisible(false);
-        });
+        // 🔍 Vérifie si version déjà à jour
+        String current = updater.getCurrentVersion();
+        if (current != null && infoObj.version != null &&
+            infoObj.version.trim().equalsIgnoreCase(current.trim())) {
 
-        downloadBtn.addActionListener(e -> {
-            System.out.println("[UPDATE] downloadBtn clicked");
+            speak("Aucune mise à jour disponible. Vous utilisez déjà la version " + current + ".");
+            setTitle("Aucune mise à jour disponible");
+            info.setText("Vous utilisez déjà la dernière version (" + current + ").");
+            releaseNotes.setText("Aucune nouvelle version n’est disponible pour le moment.");
             downloadBtn.setEnabled(false);
-            cancelBtn.setEnabled(true);
-            startDownload();
-        });
+            progress.setVisible(false);
 
+            // Fermer avec Entrée ou Échap
+            cancelBtn.requestFocusInWindow();
+            cancelBtn.setText("Fermer");
+            cancelBtn.addActionListener(e -> cancelAndClose());
+            return;
+        }
+
+        // Message normal si mise à jour disponible
+        info.setText("Nouvelle version " + infoObj.version + " disponible. Voulez-vous la télécharger ?");
+        releaseNotes.setText(infoObj.releaseNotes != null ? infoObj.releaseNotes : "Notes de version indisponibles.");
+
+        downloadBtn.addActionListener(e -> startDownload());
+        cancelBtn.addActionListener(e -> cancelAndClose());
+    }
+
+    private void cancelAndClose() {
+        cancelDownload();
+        setVisible(false);
+        dispose();
     }
 
     private void startDownload() {
-    	if (infoObj.size <= 0) {
-    	    progress.setIndeterminate(true);
-    	} else {
-    	    progress.setIndeterminate(false);
-    	    progress.setMaximum(100);
-    	}
-        System.out.println("[UPDATE] startDownload()");
+        if (!downloadBtn.isEnabled()) return;
+        downloadBtn.setEnabled(false);
+        cancelBtn.setEnabled(true);
+
+        progress.setIndeterminate(infoObj.size <= 0);
+        progress.setMaximum(100);
         cancelled.set(false);
+
+        Toolkit.getDefaultToolkit().beep(); // bip immédiat d’amorce
+        speak("Téléchargement en cours. Des bips indiqueront la progression.");
+
         worker = new DownloadWorker();
         worker.execute();
     }
@@ -107,34 +135,21 @@ public class UpdateDialog extends JDialog {
         speak("Téléchargement annulé.");
     }
 
-    public void setProgress(int pct) {
-        SwingUtilities.invokeLater(() -> {
-            progress.setValue(pct);
-        });
-    }
-
-    // Placeholder TTS — remplace par ton moteur NVDA / TTS
     private void speak(String text) {
-        // Ex: TtsManager.speak(text);
         System.out.println("[TTS] " + text);
     }
 
-    /**
-     * SwingWorker qui effectue le téléchargement, la vérification et le lancement de l'installateur.
-     */
+    /** Téléchargement + vérif + install */
     private class DownloadWorker extends SwingWorker<Path, Integer> {
-
         @Override
         protected Path doInBackground() throws Exception {
-            speak("Téléchargement en cours...");
-            System.out.println("[UPDATE] DownloadWorker.doInBackground() - url=" + infoObj.url + " size=" + infoObj.size);
-            // Appel au AutoUpdater.downloadWithProgress (doit être public / package-private)
+            
             Path installer = updater.downloadWithProgress(infoObj.url, infoObj.size, new ProgressListener() {
-            	@Override
+                @Override
                 public void onProgress(long bytesRead, long totalBytes) {
                     if (cancelled.get()) return;
-                    int pct = totalBytes > 0 ? (int)(bytesRead * 100 / totalBytes) : -1;
-                    if (pct >= 0) publish(pct);
+                    int pct = totalBytes > 0 ? (int)(bytesRead * 100 / totalBytes) : 0;
+                    publish(pct);
                 }
                 @Override
                 public void onStatus(String status) {
@@ -142,64 +157,64 @@ public class UpdateDialog extends JDialog {
                 }
             });
 
-            if (installer == null) {
-                speak("Erreur lors du téléchargement.");
-                return null;
-            }
-            if (cancelled.get()) {
-                // supprimer fichier temporaire si annulé
-                try { Files.deleteIfExists(installer); } catch (Exception ignored) {}
-                return null;
-            }
+            if (installer == null || cancelled.get()) return null;
 
-            speak("Vérification du fichier...");
+            speak("Vérification du fichier téléchargé.");
             boolean ok = updater.verifySha256(installer, infoObj.sha256);
             if (!ok) {
-                speak("La vérification du fichier a échoué. Le fichier sera supprimé.");
-                try { Files.deleteIfExists(installer); } catch (Exception ignored) {}
+                speak("Échec de la vérification. Fichier supprimé.");
+                Files.deleteIfExists(installer);
                 return null;
             }
-            speak("Vérification OK. L'installation va démarrer. L'application va se fermer.");
-           
-            // Lance l'installateur. runInstaller doit être public et gérer les flags
-            try {
-                updater.runInstaller(installer);
-            } catch (Exception ex) {
-                speak("Impossible de lancer l'installateur: " + ex.getMessage());
-                ex.printStackTrace();
-                return null;
-            }
-            
-            // Donne un petit délai pour que la TTS annonce avant de lancer
-            try { Thread.sleep(800); } catch (InterruptedException ignored) {}
 
+            Toolkit.getDefaultToolkit().beep();
+            Toolkit.getDefaultToolkit().beep();
+            Toolkit.getDefaultToolkit().beep();
+
+            speak("Téléchargement terminé. Installation en cours.");
+            Thread.sleep(1000);
+            updater.runInstaller(installer, true);
             return installer;
-        }
-
-        @Override
-        protected void process(java.util.List<Integer> chunks) {
-            if (chunks == null || chunks.isEmpty()) return;
-            int last = chunks.get(chunks.size() - 1);
-            if (last >= 0) setProgress(last);
         }
 
         @Override
         protected void done() {
             try {
-                Path result = get(); // récupère le path ou null
+                Path result = get();
                 if (result != null) {
-                    // on quitte l'appli pour laisser l'installateur remplacer les fichiers
-                    // Attention : si tu veux sauvegarder documents, le faire avant
-                	try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+                    speak("Installation terminée. L’application va se fermer.");
                     System.exit(0);
                 } else {
-                    // erreur ou annulation — réactive le bouton
                     downloadBtn.setEnabled(true);
+                    speak("Mise à jour annulée ou erreur.");
                 }
-            } catch (InterruptedException | java.util.concurrent.ExecutionException e) {
+            } catch (Exception e) {
+                speak("Erreur pendant la mise à jour : " + e.getMessage());
                 e.printStackTrace();
                 downloadBtn.setEnabled(true);
             }
         }
+
+
+        @Override
+        protected void process(java.util.List<Integer> chunks) {
+            if (chunks == null || chunks.isEmpty()) return;
+            currentPct = chunks.get(chunks.size() - 1);
+
+            // MAJ barre
+            progress.setIndeterminate(false);
+            progress.setValue(currentPct);
+
+            // Bip toutes les 5 %
+            int bucket = currentPct / 5;
+            if (bucket != lastBeepBucket) {
+                Toolkit.getDefaultToolkit().beep();
+                lastBeepBucket = bucket;
+            }
+        }
+
+        
+        
+
     }
 }
