@@ -2,18 +2,18 @@
 
 **blindWriter** est un logiciel de traitement de texte conçu spécialement pour les **personnes non-voyantes ou malvoyantes**.  
 Son interface est optimisée pour être utilisée **entièrement au clavier** et compatible avec les lecteurs d’écran tels que **NVDA** ou **JAWS**.
-
+Les styles de paragraphe ou mise en formes sont indiquées par des codes markdowns directement dans le texte.
 ---
 
 ## 🎯 Objectif
 
-Permettre à toute personne déficiente visuelle de rédiger, lire et mettre en forme des documents de manière fluide, rapide et indépendante, grâce à une interface accessible, vocale et simple d’utilisation.
+Permettre à toute personne déficiente visuelle de rédiger, lire et mettre en forme des documents de manière fluide, rapide et indépendante, grâce à une interface accessible et simple d’utilisation.
 
 ---
 
 ## ✨ Fonctionnalités principales
 
-- **Interface 100 % clavier** : navigation par raccourcis, menus parlants, annonces contextuelles.  
+- **Interface 100 % clavier** : navigation par raccourcis, annonces contextuelles.  
 - **Compatibilité NVDA / JAWS** : lecture vocale automatique des actions et des éléments de texte.  
 - **Ouverture et exportation** :
   - Fichiers **.docx** (Microsoft Word)
@@ -98,6 +98,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
