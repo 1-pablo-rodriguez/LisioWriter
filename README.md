@@ -1,6 +1,7 @@
 # blindWriter
 
 ![Language: French](https://img.shields.io/badge/lang-French-blue?style=flat-square&logo=google-translate)
+![Platform: Windows](https://img.shields.io/badge/platform-Windows-lightgrey?style=flat-square&logo=windows)
 
 **blindWriter** est un logiciel de traitement de texte conçu spécialement pour les personnes **non-voyantes ou malvoyantes**.
 Son interface est pensée pour être utilisée **entièrement au clavier** et reste compatible avec les lecteurs d’écran tels que **NVDA** ou **JAWS**.
@@ -50,6 +51,8 @@ Permettre à toute personne déficiente visuelle de rédiger, lire et mettre en 
 ---
 
 ## 🧩 Installation
+⚠️ **Actuellement, blindWriter est uniquement disponible pour Windows.**  
+Une version multiplateforme (Linux, macOS) pourra être envisagée plus tard.
 
 1. Téléchargez la dernière version depuis la page [**Releases**](https://github.com/1-pablo-rodriguez/blindWriter/releases).  
 2. Exécutez le fichier `Installation_blindWriter_x.x.x.exe`.  
@@ -117,6 +120,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
