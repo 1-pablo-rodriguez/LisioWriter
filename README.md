@@ -8,14 +8,14 @@ Son interface est pensée pour être utilisée **entièrement au clavier** et re
 
 La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée de manière invisible, mais indiquée directement par de petits codes lisibles inspirés du **Markdown**.
 
-Par exemple :
+## 📌 Exemple de code dans blindWriter
 
-- **#P. Mon titre** : Indique mon titre pincipale de niveau hiérarchique corps de texte.
-- **#S. Sous-Titre** : Indique un sous-titre  de niveau hiérarchique corps de texte.
-- **#1. Un titre** : Indique un titre de chapitre de niveau hiérachique 1 (équivalent à Titre 1 sous Writer , Word, ou bien la balise \<H1\> dans une page web).
+- **#P. Mon titre**  Indique mon titre pincipale de niveau hiérarchique corps de texte.
+- **#S. Sous-Titre**  Indique un sous-titre  de niveau hiérarchique corps de texte.
+- **#1. Un titre**  Indique un titre de chapitre de niveau hiérachique 1 (équivalent à **Titre 1** sous Writer , Word, ou bien la balise **\<H1\>** dans une page web).
 - etc.
 
-- \*\*mot en gras\*\* indique des mots en gras.
+- \*\*mot en gras\*\*  Indique des mots en gras.
 - \*^mot en italique^\* indique des mots en italique.
 - __mots soulignés__ indique des mots soulignés.
 - etc.
@@ -125,6 +125,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
