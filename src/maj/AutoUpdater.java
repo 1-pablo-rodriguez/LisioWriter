@@ -20,6 +20,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
 
+
 /**
  * AutoUpdater : fetch metadata, download with progress callback,
  * verify sha256 and run installer.
@@ -50,13 +51,27 @@ public class AutoUpdater {
                 .uri(URI.create(metadataUrl))
                 .GET()
                 .build();
+
         HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
-        if (resp.statusCode() != 200) return null;
+        if (resp.statusCode() != 200) {
+            System.err.println("Erreur HTTP : " + resp.statusCode());
+            return null;
+        }
 
-        JsonReader jr = Json.createReader(new StringReader(resp.body()));
-        JsonObject o = jr.readObject();
-        jr.close();
+        // Le contenu reçu (texte brut)
+        String raw = resp.body();
 
+        // Affiche le texte reçu dans la console
+        System.out.println("=== Contenu téléchargé depuis " + metadataUrl + " ===");
+        System.out.println(raw);
+        System.out.println("=====================================================");
+
+        // Parse le JSON à partir du texte
+        JsonReader reader = Json.createReader(new StringReader(raw));
+        JsonObject o = reader.readObject();
+        reader.close();
+
+        // Remplit ton objet UpdateInfo
         UpdateInfo info = new UpdateInfo();
         info.version = o.getString("version");
         info.url = o.getString("url");
@@ -65,6 +80,7 @@ public class AutoUpdater {
         info.releaseNotes = o.containsKey("releaseNotes") ? o.getString("releaseNotes") : "";
         return info;
     }
+
 
     /**
      * Wrapper rétro-compatible : version sans listener

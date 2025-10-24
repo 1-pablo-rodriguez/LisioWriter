@@ -160,9 +160,7 @@ public class UpdateDialog extends JDialog {
                 return null;
             }
             speak("Vérification OK. L'installation va démarrer. L'application va se fermer.");
-            // Donne un petit délai pour que la TTS annonce avant de lancer
-            try { Thread.sleep(800); } catch (InterruptedException ignored) {}
-
+           
             // Lance l'installateur. runInstaller doit être public et gérer les flags
             try {
                 updater.runInstaller(installer);
@@ -171,6 +169,9 @@ public class UpdateDialog extends JDialog {
                 ex.printStackTrace();
                 return null;
             }
+            
+            // Donne un petit délai pour que la TTS annonce avant de lancer
+            try { Thread.sleep(800); } catch (InterruptedException ignored) {}
 
             return installer;
         }
