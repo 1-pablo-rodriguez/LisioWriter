@@ -130,7 +130,7 @@ Vous pouvez :
 **blindWriter** a été développé par **Pablo Rodriguez** dans le cadre d’une démarche de recherche et d’innovation pédagogique visant à promouvoir l’autonomie numérique des personnes non-voyantes et malvoyantes.  
 
 Le logiciel a été expérimenté et validé auprès d’un étudiant en licence puis en master à **l’Université d’Artois**.  
-Cette phase de test a permis d’évaluer son accessibilité, son ergonomie et son adéquation avec les besoins réels des utilisateurs dans un contexte académique.  
+Cette phase de test a permis de mesurer l’accessibilité et l’ergonomie du logiciel, ainsi que sa capacité à répondre aux besoins effectifs des utilisateurs, tant dans le cadre **académique** que dans le milieu **professionnel** (stage de 2x4 mois sur les deux années de Master).
 
 Ces validations confirment la pertinence de blindWriter comme outil d’*inclusion numérique**, adapté tant à l’enseignement supérieur qu’à un **usage professionnel**.
 
@@ -145,6 +145,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
