@@ -7,7 +7,9 @@
 Son interface est pensée pour être utilisée **entièrement au clavier** et reste compatible avec les lecteurs d’écran tels que **NVDA** ou **JAWS**.
 
 La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée de manière invisible, mais indiquée directement par de petits codes lisibles inspirés du **Markdown**.
-Ces codes apparaissent dans le texte et sont affichés sur la barre braille ou le lecteur d'écran, ce qui permet à l’utilisateur de savoir exactement quelle mise en forme est appliquée.
+Ces codes sont intégrés directement dans le texte. Ils sont ensuite lus par le lecteur d’écran et transmis à la barre braille, ce qui permet à l’utilisateur de savoir exactement quelle mise en forme est appliquée.
+
+Ce logiciel a été développé pour être utiliser par des étudiants non-voyant ou deficient visuel pour des enseignement post bac ou pour des adultes expériemnté aux usages du traitement de texte.
 
 ---
 
@@ -31,9 +33,16 @@ Ces codes apparaissent dans le texte et sont affichés sur la barre braille ou l
 
 ---
 
-## 🎯 Objectif
+## 🎯 Objectifs
 
 Permettre à toute personne déficiente visuelle de rédiger, lire et mettre en forme des documents de manière fluide, rapide et indépendante, grâce à une interface accessible et simple d’utilisation.
+
+Le logiciel s’adresse en priorité :
+
+- aux étudiants non-voyants ou malvoyants engagés dans des cursus post-bac,
+- ainsi qu’aux adultes déjà expérimentés dans l’usage des traitements de texte.
+
+L’objectif est de fournir un outil qui favorise l’autonomie numérique, tout en restant proche des standards bureautiques connus (Word, Writer, Markdown), afin de faciliter l’apprentissage et l’intégration dans les environnements éducatifs ou professionnels.
 
 ---
 
@@ -127,6 +136,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
