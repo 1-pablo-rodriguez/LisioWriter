@@ -21,7 +21,7 @@ Ces codes apparaissent dans le texte et sont affichés sur la barre braille ou l
 - **\*\*mot en gras\*\*** : Indique des mots en gras.
 - **\*^mot en italique^\*** : Indique des mots en italique.
 - **__mots soulignés__** : Indique des mots soulignés.
-- ** _\*mots gras soulignés\*_** : Indique des mots gras soulignés.
+- **_\*mots gras soulignés\*_** : Indique des mots gras soulignés.
 - etc.
 
 - **@saut de page** indique un saut de page.
@@ -127,6 +127,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
