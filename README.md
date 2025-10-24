@@ -12,7 +12,7 @@ Par exemple :
 
 - **#P. Mon titre** : Indique mon titre pincipale de niveau hiérarchique corps de texte.
 - **#S. Sous-Titre** : Indique un sous-titre  de niveau hiérarchique corps de texte.
-- **#1. Un titre** : Indique un titre de chapitre de niveau hiérachique 1 (l équivalent de Titre 1 sous Writer , Word, ou de la balise <H1> dans une page web).
+- **#1. Un titre** : Indique un titre de chapitre de niveau hiérachique 1 (équivalent à Titre 1 sous Writer , Word, ou bien la balise \<H1\> dans une page web).
 - etc.
 
 - \*\*mot en gras\*\* indique des mots en gras.
@@ -125,6 +125,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 ---
 
 > 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+
 
 
 
