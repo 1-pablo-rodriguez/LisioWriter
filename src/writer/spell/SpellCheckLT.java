@@ -584,9 +584,7 @@ public final class SpellCheckLT {
 		    menu.add(none);
 	  }
 	
-	  
-	
-	  
+
 	  
 	// === AJOUTS DICTIONNAIRE UTILISATEUR ===
 	  menu.addSeparator();
@@ -903,66 +901,6 @@ public final class SpellCheckLT {
 
     		// garder visible depuis l’extérieur
     		public void clearHighlights() { clear(); }
-
-    		// vérifie tout le document à la demande
-//    		public void checkDocumentNow() {
-//    			  EventQueue.invokeLater(() -> {
-//    			    try {
-//    			      if (inMarkerRebuild) return;
-//    			      clearVisualsKeepMarkers();                 // ← au lieu de clear()
-//    			      String text = area.getDocument().getText(0, area.getDocument().getLength());
-//    			      if (text.isEmpty()) return;
-//
-//    			      navStart = 0; navEnd = area.getDocument().getLength();
-//    			      String clean = stripErrorMarkers(text);
-//    			      List<RuleMatch> found = tool.check(clean);
-//
-//    			      matches.addAll(found);
-//    			      matches.sort(java.util.Comparator.comparingInt(RuleMatch::getFromPos));
-//    			      int N = text.length();
-//    			      for (RuleMatch m : found) {
-//    			        int from = Math.max(0, Math.min(m.getFromPos(), N));
-//    			        int to   = Math.max(from, Math.min(m.getToPos(),   N));
-//    			        if (to <= from) continue;
-//    			        String token = text.substring(from, to);
-//    			        if (shouldIgnoreToken(token)) continue;
-//    			        ((LayeredHighlighter) highlighter).addHighlight(from, to, painter);
-//    			      }
-//    			    } catch (Exception ignore) {}
-//    			  });
-//    			}
-//
-//    		// vérifie la sélection (ou le paragraphe courant si rien n’est sélectionné)
-//    		public void checkSelectionOrParagraphNow() {
-//    		    EventQueue.invokeLater(() -> {
-//    		        try {
-//    		        	clearVisualsKeepMarkers();
-//    		            final javax.swing.text.Document doc = area.getDocument();
-//
-//    		            int start = area.getSelectionStart();
-//    		            int end   = area.getSelectionEnd();
-//    		            if (start == end) { // pas de sélection → paragraphe courant
-//    		                start = javax.swing.text.Utilities.getRowStart(area, area.getCaretPosition());
-//    		                end   = javax.swing.text.Utilities.getRowEnd(area,   area.getCaretPosition());
-//    		            }
-//    		            start = Math.max(0, Math.min(start, doc.getLength()));
-//    		            end   = Math.max(start, Math.min(end,   doc.getLength()));
-//    		            if (end <= start) return;
-//
-//    		            // 1) borne F7 à la fenêtre
-//    		            navStart = start;
-//    		            navEnd   = end;
-//
-//    		            // 2) (nouveau) poser les marqueurs °° uniquement dans la fenêtre
-//    		            rebuildErrorMarkersInWindow(start, end);
-//
-//    		            // 3) reconstruire les surlignages (si tu veux garder l’aide visuelle)
-//    		            rescanWindow(start, end);
-//
-//    		        } catch (Exception ignore) {}
-//    		    });
-//    		}
-
 
 
     		/** Re-scan only a window [start,end) after an edit, rebuild matches & highlights there. */

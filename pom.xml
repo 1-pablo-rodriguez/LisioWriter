@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>bw.com</groupId>
 	<artifactId>blindWriter</artifactId>
-	<version>1.0.8</version>
+	<version>1.0.9</version>
 	<properties>
     	<maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
     	<project.build.outputTimestamp>${maven.build.timestamp}</project.build.outputTimestamp>
@@ -173,20 +173,14 @@
 		</dependency>
 	</dependencies>
 	<build>
-				<sourceDirectory>src</sourceDirectory>
+		<sourceDirectory>src</sourceDirectory>
 		<resources>
 			<resource>
 				<directory>${project.basedir}/src/resources</directory>
+				<filtering>false</filtering>
 				<includes>
 					<include>**/*.dic</include>
 					<include>**/*.aff</include>
-					<include>**/*</include>
-				</includes>
-			</resource>
-			<resource>
-				<directory>${project.basedir}/src/resources</directory>
-				<filtering>true</filtering>
-				<includes>
 					<include>**/*</include>
 				</includes>
 			</resource>

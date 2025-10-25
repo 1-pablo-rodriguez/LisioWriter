@@ -83,7 +83,6 @@ public class blindWriter extends JFrame {
             try {
                 if (undoManager.canUndo()) {
                     undoManager.undo();
-                  //announceCaretLine(true, true, "Annulé");
                 }
             } finally { updateUndoRedoState(); }
         }
@@ -846,7 +845,6 @@ public class blindWriter extends JFrame {
                  		+ "\nDossier : " + commandes.currentDirectory);
             	dia.InfoDialog.show(owner, "Exportation", msg.toString());
 			} catch (Exception e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
  
@@ -1459,7 +1457,7 @@ public class blindWriter extends JFrame {
     private static JMenu menuFormatageTexte() {
     	JMenu fileFormatage = new JMenu("Formatage local texte");
     	fileFormatage.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-    	fileFormatage.setMnemonic('m'); // Utiliser ALT+F pour ouvrir le menu
+    	fileFormatage.setMnemonic(KeyEvent.VK_O); // Utiliser ALT+F pour ouvrir le menu
     	fileFormatage.getAccessibleContext().setAccessibleName("Formatage local texte");
     	fileFormatage.getAccessibleContext().setAccessibleDescription("Sélectionner votre texte, puis sélection un sous menu : Gras, Italic, Souligné");      
     	// Listener déclenché à l’ouverture du menu
@@ -1745,7 +1743,7 @@ public class blindWriter extends JFrame {
     private static JMenu menuPreference() {
     	  JMenu filepreference = new JMenu("Préférences");
           filepreference.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-          filepreference.setMnemonic(KeyEvent.VK_R);
+          filepreference.setMnemonic(KeyEvent.VK_T);
           //filepreference.setDisplayedMnemonicIndex(1); // 'r' est le 2e caractère de "Préférences"
           // Listener déclenché à l’ouverture du menu
           filepreference.addMenuListener(new MenuListener() {
