@@ -86,6 +86,7 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de blindWriter acces
 | **F1**         | Informations           | Annonce des informations sur la fenêtre en cours ou sur l’ensemble du document. |
 | **F2**         | Lecture de titre       | Lit le titre du paragraphe en cours et annonce le titre suivant.            |
 | **F3 / Maj+F3**| Navigation par titres  | Passe rapidement au titre suivant ou au titre précédent.                    |
+| **F4 / Maj+F4**| Navigation par marque-page  | Passe rapidement au marque-page suivant ou au marque-page précédent.   |
 | **ALT+A**      | Documentation intégrée | Ouvre la documentation interne de blindWriter.                              |
 | **F6**         | Navigateur de titres   | Ouvre le navigateur pour parcourir la structure du document.                |
 | **Ctrl+F7**    | Vérification du doc.   | Lance la vérification orthographique et grammaticale de tout le document.   |
