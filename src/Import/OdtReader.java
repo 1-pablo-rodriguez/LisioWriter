@@ -411,6 +411,23 @@ public class OdtReader {
                 result.append(wrapped);
                 break;
             }
+            case "note": { // text:note (footnote/endnote)
+                // Ignore le numéro (text:note-citation) et ne prend que le corps (text:note-body)
+                String noteText = extractNoteBodyText(element).trim();
+                if (!noteText.isEmpty()) {
+                    result.append("@(").append(noteText).append(")");
+                }
+                break;
+            }
+            case "note-citation": {
+                // On n’affiche jamais le numéro de note
+                break;
+            }
+            case "note-body": {
+                // Normalement non atteint (géré via "note"), on ne fait rien ici.
+                break;
+            }
+
             default: {
                 // descente par défaut
                 NodeList children = element.getChildNodes();
@@ -469,4 +486,23 @@ public class OdtReader {
         }
         return false;
     }
+    
+    /**
+     * Retourne le texte "brut" du <text:note-body> d’un <text:note>,
+     * sans le numéro de note. On se contente du textContent du note-body,
+     * qui exclut naturellement <text:note-citation>.
+     */
+    private static String extractNoteBodyText(Element noteElem) {
+        NodeList bodies = noteElem.getElementsByTagNameNS("*", "note-body");
+        if (bodies.getLength() == 0) return "";
+        Element body = (Element) bodies.item(0);
+
+        // Récupère le texte. Si tu veux conserver des sauts de ligne entre <text:p>,
+        // on peut nettoyer un peu (remplacer plusieurs blancs par un espace).
+        String raw = body.getTextContent();
+        if (raw == null) return "";
+        // Optionnel: compacter l’espace
+        return raw.replaceAll("\\s+", " ").trim();
+    }
+
 }

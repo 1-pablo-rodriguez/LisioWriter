@@ -1,10 +1,8 @@
 package exportPDF;
 
 import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -352,9 +350,10 @@ public class PdfExporter {
         } else {
             // essayer ressource embarquée DejaVu
             try {
-                String cssFromRes = makeFontFaceCssFromResource("/fonts/DejaVuSans.ttf", "DejaVu Sans");
-                htmlWithEmbed = html.replaceFirst("(?i)</head>", "<style>" + cssFromRes + "body{font-family:'DejaVu Sans', sans-serif;}</style></head>");
-                embedUsed = true;
+            	String cssFromRes = makeFontFaceCssFromResource("/fonts/DejaVuSans.ttf", "DejaVu Sans");
+            	htmlWithEmbed = html.replaceFirst("(?i)</head>",
+            	    "<style>" + cssFromRes + "body{font-family:'DejaVu Sans',sans-serif;}</style></head>");
+            	embedUsed = true;
                 System.out.println("Fallback: using embed CSS from embedded resource DejaVuSans.ttf");
             } catch (Throwable t) {
                 System.err.println("Impossible d'utiliser embed depuis resource embarquée: " + t.getMessage());
@@ -426,15 +425,22 @@ public class PdfExporter {
 
     
     private static String makeFontFaceCssFromResource(String resourcePath, String familyName) throws IOException {
-        // lit la ressource dans un tableau d'octets
-        InputStream is = PdfExporter.class.getResourceAsStream(resourcePath.startsWith("/") ? resourcePath : "/" + resourcePath);
-        if (is == null) throw new IOException("Resource not found: " + resourcePath);
+        InputStream is = openResourceFlex(
+            resourcePath,
+            resourcePath.toLowerCase(),
+            resourcePath.toUpperCase(),
+            // variantes usuelles pour DejaVu
+            "/fonts/DejaVuSans.ttf",
+            "/fonts/dejavusans.ttf",
+            "/fonts/DEJAVUSANS.TTF"
+        );
+        if (is == null) throw new IOException("Resource not found (any casing): " + resourcePath);
         byte[] all = is.readAllBytes();
         String b64 = Base64.getEncoder().encodeToString(all);
-        String mime = "font/ttf"; // ou "font/woff" si tu as woff
-        String css = "@font-face{font-family: '" + familyName + "'; src: url('data:" + mime + ";base64," + b64 + "') format('truetype'); font-weight: normal; font-style: normal;}\n";
-        return css;
+        String mime = "font/ttf";
+        return "@font-face{font-family:'" + familyName + "';src:url('data:" + mime + ";base64," + b64 + "') format('truetype');font-weight:normal;font-style:normal;}\n";
     }
+
 
     
         /**
@@ -444,13 +450,15 @@ public class PdfExporter {
      * resourcePath : ex "fonts/DejaVuSans.ttf" ou "/fonts/DejaVuSans.ttf"
      */
     private static File copyResourceToTempFile(String resourcePath, String prefix) throws IOException {
-        String normalized = resourcePath.startsWith("/") ? resourcePath : "/" + resourcePath;
-        InputStream is = PdfExporter.class.getResourceAsStream(normalized);
-        if (is == null) {
-            is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath.startsWith("/") ? resourcePath.substring(1) : resourcePath);
-        }
-        if (is == null) throw new IOException("Ressource police introuvable: " + normalized);
-
+    	String normalized = resourcePath.startsWith("/") ? resourcePath : "/" + resourcePath;
+    	InputStream is = openResourceFlex(
+    	    normalized,
+    	    normalized.toLowerCase(),
+    	    normalized.toUpperCase()
+    	);
+    	if (is == null) {
+    	    throw new IOException("Ressource police introuvable (any casing): " + normalized);
+    	}
         File tmp = File.createTempFile(prefix, ".ttf");
         //tmp.deleteOnExit();
         logInfo("Created temp font file: " + tmp.getAbsolutePath() + " size=" + tmp.length());
@@ -495,7 +503,7 @@ public class PdfExporter {
      */
     private static void registerBundledFonts(PdfRendererBuilder builder) throws IOException {
         // chemins dans src/main/resources
-        File fNormal = copyResourceToTempFile("/fonts/DejaVuSans.ttf", "dejavu-normal");
+        File fNormal = copyResourceToTempFile("/fonts/DEJAVUSANS.ttf", "dejavu-normal");
         
         System.out.println(">>> LANCEMENT VALIDATION POLICE EMBARQUEE <<<");
         try {
@@ -506,12 +514,11 @@ public class PdfExporter {
         }
 
         
-        File fBold   = copyResourceToTempFile("/fonts/DejaVuSans-Bold.ttf", "dejavu-bold");
-        File fItalic = copyResourceToTempFile("/fonts/DejaVuSans-Oblique.ttf", "dejavu-italic");
-
+        File fBold   = copyResourceToTempFile("/fonts/DEJAVUSANS-BOLD.ttf", "dejavu-bold");
+        File fItalic = copyResourceToTempFile("/fonts/DEJAVUSANS-OBLIQUE.ttf", "dejavu-italic");
         
         try {
-			debugFontResource("/fonts/DejaVuSans.ttf");
+			debugFontResource("/fonts/DEJAVUSANS.ttf");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -530,9 +537,9 @@ public class PdfExporter {
         }
        
         // Enregistrer sous le même family name ; le renderer gère les variantes.
-        builder.useFont(fNormal, "DejaVu Sans");
-        builder.useFont(fBold,   "DejaVu Sans");
-        builder.useFont(fItalic, "DejaVu Sans");
+        builder.useFont(fNormal, "DejaVu-Sans");
+        builder.useFont(fBold,   "DejaVu-Sans");
+        builder.useFont(fItalic, "DejaVu-Sans");
     }
 
     
@@ -670,25 +677,6 @@ public class PdfExporter {
         return "@font-face{font-family: '" + familyName + "'; src: url('data:" + mime + ";base64," + b64 + "') format('truetype'); font-weight: normal; font-style: normal;}\n";
     }
 
-    private static void openLogFor(Path outPath) {
-        synchronized (LOG_LOCK) {
-            try {
-                if (LOG != null) return; // déjà ouvert
-                Path logPath = outPath.resolveSibling(outPath.getFileName().toString() + ".log").toAbsolutePath();
-                Files.createDirectories(logPath.getParent());
-                LOG = new PrintWriter(new BufferedWriter(new FileWriter(logPath.toFile(), true)), true);
-                LOG.println("=== PdfExporter log opened: " +
-                    DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now(ZoneId.systemDefault())));
-                LOG.println("java.version=" + System.getProperty("java.version") + " os.name=" + System.getProperty("os.name"));
-                LOG.println("user.dir=" + System.getProperty("user.dir"));
-                LOG.println("outPath=" + outPath.toAbsolutePath());
-                LOG.println("------------------------------------------------------------");
-            } catch (Throwable t) {
-                t.printStackTrace(); // fallback console si log impossible
-            }
-        }
-    }
-
     private static void closeLog() {
         synchronized (LOG_LOCK) {
             if (LOG != null) {
@@ -714,7 +702,6 @@ public class PdfExporter {
         synchronized (LOG_LOCK) {
             if (LOG != null) LOG.println("[W] " + DateTimeFormatter.ISO_LOCAL_TIME.format(ZonedDateTime.now()) + " " + s);
             System.err.println(s);
-            logWarn("Erreur [W] "  + s);
         }
     }
 
@@ -728,5 +715,21 @@ public class PdfExporter {
             t.printStackTrace();
         }
     }
+    
+ // Essaie plusieurs chemins/majuscules/minuscules sur le classpath
+    private static InputStream openResourceFlex(String... candidates) {
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        for (String p : candidates) {
+            String abs = p.startsWith("/") ? p : "/" + p;
+            InputStream is = PdfExporter.class.getResourceAsStream(abs);
+            if (is != null) return is;
+            // version sans "/" pour le context classloader
+            String rel = abs.startsWith("/") ? abs.substring(1) : abs;
+            is = (cl != null) ? cl.getResourceAsStream(rel) : null;
+            if (is != null) return is;
+        }
+        return null;
+    }
+
 
 }
