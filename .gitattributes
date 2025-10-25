@@ -1,6 +1,20 @@
-# Normaliser le texte en LF dans le repo
+# Par défaut, normaliser le texte en LF dans le repo
 * text=auto eol=lf
 
-# Hunspell : surtout ne rien toucher
+# Hunspell : ne jamais modifier
 *.aff -text
 *.dic -text
+
+# Binaires / documents : pas de conversion EOL
+*.ico -text
+*.png -text
+*.jpg -text
+*.gif -text
+*.odt -text
+*.pdf -text
+*.zip -text
+*.jar -text
+*.ttf -text
+*.otf -text
+*.woff -text
+*.woff2 -text
