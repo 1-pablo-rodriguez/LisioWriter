@@ -16,7 +16,7 @@ La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée
 
 - **#P. Mon titre** : Indique mon titre pincipale de niveau hiérarchique corps de texte.
 - **#S. Sous-titre** : Indique un sous-titre  de niveau hiérarchique corps de texte.
-- **#1. Un titre** : Indique un titre de chapitre de niveau hiérachique 1 (équivalent à **Titre 1** sous Writer , Word, ou bien la balise **\<H1\>Titre_<\H1\>** dans une page web).
+- **#1. Un titre** : Indique un titre de chapitre de niveau hiérachique 1 (équivalent à **Titre 1** sous Writer , Word, ou bien la balise **\<H1\>Titre<\H1\>** dans une page web).
 - **etc.**
 
 - **\*\*mot en gras\*\*** : Indique des mots en gras.
