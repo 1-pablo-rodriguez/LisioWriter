@@ -22,8 +22,8 @@ La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée
 
 - **\*\*mot en gras\*\*** : Indique des mots en gras.
 - **\*^mot en italique^\*** : Indique des mots en italique.
-- **\__mots soulignés\__** : Indique des mots soulignés.
-- **_\*mots gras soulignés\*_** : Indique des mots gras soulignés.
+- **\_\_mots soulignés\_\_** : Indique des mots soulignés.
+- **\_\*mots gras soulignés\*\_** : Indique des mots gras soulignés.
 - **etc.**
 
 - **@saut de page** : Indique un saut de page.
