@@ -51,12 +51,19 @@ public class DocxReader {
         return sb.toString();
     }
 
-    private static void handleParagraph(XWPFParagraph p, XWPFDocument doc, StringBuilder sb) {
+    @SuppressWarnings("unused")
+	private static void handleParagraph(XWPFParagraph p, XWPFDocument doc, StringBuilder sb) {
         // 1) détecter niveau de titre : d'abord outline-level dans pPr, sinon via style id/name
         int headingLevel = -1;
 
         // a) outline-level dans la structure XML (si présent)
         org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPPr ppr = p.getCTP().getPPr();
+        
+        // Paragraphe forcé à commencer sur une nouvelle page
+        if (ppr != null && ppr.isSetPageBreakBefore()) {
+            appendPageBreakLine(sb);
+        }
+        
         if (ppr != null && ppr.getOutlineLvl() != null) {
             try {
                 java.math.BigInteger val = ppr.getOutlineLvl().getVal();
@@ -183,6 +190,9 @@ public class DocxReader {
         // 5) parcourir les runs
         java.util.List<org.apache.poi.xwpf.usermodel.XWPFRun> runs = null;
         try { runs = p.getRuns(); } catch (Exception ignored) { runs = null; }
+        
+        boolean wrotePageBreakInThisPara = false;
+        
         if (runs != null) {
             for (org.apache.poi.xwpf.usermodel.XWPFRun run : runs) {
                 // 5.a) texte du run + styles
@@ -197,6 +207,26 @@ public class DocxReader {
                 if (text != null && !text.isEmpty()) {
                     sb.append(wrapWithMarkers(text, ts));
                 }
+                
+                // Détection des sauts de page manuels dans CE run (<w:br w:type="page"/>)
+                try {
+                    org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR ctr = run.getCTR();
+                    int n = ctr.sizeOfBrArray();
+                    for (int i = 0; i < n; i++) {
+                        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBr br = ctr.getBrArray(i);
+                        if (br != null && br.isSetType()) {
+                            // t vaut LINE, PAGE, COLUMN, etc.
+                            org.openxmlformats.schemas.wordprocessingml.x2006.main.STBrType.Enum t = br.getType();
+                            if (t == org.openxmlformats.schemas.wordprocessingml.x2006.main.STBrType.PAGE) {
+                                appendPageBreakLine(sb); // -> écrit "@saut de page\n" proprement
+                                wrotePageBreakInThisPara = true;
+                            }
+                        }
+                        // Si tu voulais traiter d'autres cas :
+                        // else if (t == STBrType.COLUMN) { /* colonne: ignorer ou gérer */ }
+                        // else { /* simple saut de ligne: sb.append('\n'); */ }
+                    }
+                } catch (Exception ignored) {}
 
                 // 5.b) références de notes de bas de page dans CE run
                 // (les runs qui portent une note n'ont souvent pas de texte, d'où l'étape 5.a indépendante)
@@ -217,6 +247,26 @@ public class DocxReader {
                     // ne jamais casser l'import sur cas exotique
                 }
             }
+        }
+         
+        boolean sectionForcesNextPage = false;
+        try {
+            if (ppr != null && ppr.getSectPr() != null && ppr.getSectPr().isSetType()) {
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr sect = ppr.getSectPr();
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.STSectionMark.Enum st = sect.getType().getVal();
+                // Ces types provoquent un saut de page après le paragraphe courant
+                sectionForcesNextPage =
+                    st == org.openxmlformats.schemas.wordprocessingml.x2006.main.STSectionMark.NEXT_PAGE ||
+                    st == org.openxmlformats.schemas.wordprocessingml.x2006.main.STSectionMark.EVEN_PAGE ||
+                    st == org.openxmlformats.schemas.wordprocessingml.x2006.main.STSectionMark.ODD_PAGE;
+            }
+        } catch (Exception ignored) {}
+
+        if (sectionForcesNextPage) {
+            // finir la ligne du paragraphe courant
+            if (sb.length() == 0 || sb.charAt(sb.length() - 1) != '\n') sb.append('\n');
+            // insérer la ligne de saut de page
+            appendPageBreakLine(sb);
         }
 
         // 6) fin de paragraphe
@@ -339,6 +389,11 @@ public class DocxReader {
         return sb.toString();
     }
 
+    private static void appendPageBreakLine(StringBuilder sb) {
+        int len = sb.length();
+        if (len > 0 && sb.charAt(len - 1) != '\n') sb.append('\n');
+        sb.append("@saut de page\n");
+    }
 
 
     private static String wrapWithMarkers(String text, TextStyle ts) {

@@ -18,3 +18,7 @@
 *.otf -text
 *.woff -text
 *.woff2 -text
+
+* text=auto eol=lf
+*.bat eol=crlf
+*.cmd eol=crlf
