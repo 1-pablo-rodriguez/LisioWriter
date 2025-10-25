@@ -89,7 +89,7 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de blindWriter acces
 | **F4 / Maj+F4**| Navigation par marque-page  | Passe rapidement au marque-page suivant ou au marque-page précédent.   |
 | **ALT+A**      | Documentation intégrée | Ouvre la documentation interne de blindWriter.                              |
 | **F6**         | Navigateur de titres   | Ouvre le navigateur pour parcourir la structure du document.                |
-| **Ctrl+F7**    | Vérification du doc.   | Lance la vérification orthographique et grammaticale de tout le document.   |
+| **Ctrl+F7**    | Vérification du document   | Lance la vérification orthographique et grammaticale de tout le document.   |
 | **Ctrl+F2**    | Marque-page            | Ajoute un marque-page annoté dans le document.                              |
 
 Toutes les fonctions du logiciel sont accessibles **entièrement au clavier, sans souris**.  
