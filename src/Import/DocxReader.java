@@ -36,23 +36,22 @@ public class DocxReader {
         try (InputStream in = new FileInputStream(docxPath);
              XWPFDocument doc = new XWPFDocument(in)) {
 
-            for (IBodyElement be : doc.getBodyElements()) {
-                if (be.getElementType() == BodyElementType.PARAGRAPH) {
-                    XWPFParagraph p = (XWPFParagraph) be;
-                    handleParagraph(p, sb);
-                } else if (be.getElementType() == BodyElementType.TABLE) {
-                    // optionnel : gérer tables plus tard
-                    @SuppressWarnings("unused")
+        	for (IBodyElement be : doc.getBodyElements()) {
+        	    if (be.getElementType() == BodyElementType.PARAGRAPH) {
+        	        XWPFParagraph p = (XWPFParagraph) be;
+        	        // ⬇️ on passe 'doc' à handleParagraph pour gérer les notes
+        	        handleParagraph(p, doc, sb);
+        	    } else if (be.getElementType() == BodyElementType.TABLE) {
+        	        @SuppressWarnings("unused")
 					XWPFTable t = (XWPFTable) be;
-                    // simple fallback : ajouter une ligne séparatrice
-                    sb.append("@table\n");
-                }
-            }
+        	        sb.append("@table\n");
+        	    }
+        	}
         }
         return sb.toString();
     }
 
-    private static void handleParagraph(org.apache.poi.xwpf.usermodel.XWPFParagraph p, StringBuilder sb) {
+    private static void handleParagraph(XWPFParagraph p, XWPFDocument doc, StringBuilder sb) {
         // 1) détecter niveau de titre : d'abord outline-level dans pPr, sinon via style id/name
         int headingLevel = -1;
 
@@ -181,13 +180,13 @@ public class DocxReader {
             }
         }
 
-        // 5) parcourir runs pour appliquer styles inline (Word utilise runs, pas spans)
+        // 5) parcourir les runs
         java.util.List<org.apache.poi.xwpf.usermodel.XWPFRun> runs = null;
         try { runs = p.getRuns(); } catch (Exception ignored) { runs = null; }
         if (runs != null) {
             for (org.apache.poi.xwpf.usermodel.XWPFRun run : runs) {
-                String text = run.toString();
-                if (text == null || text.isEmpty()) continue;
+                // 5.a) texte du run + styles
+            	String text = getRunVisibleText(run);  // n’inclut pas [footnoteRef:1]
                 TextStyle ts = new TextStyle();
                 try { ts.bold = run.isBold(); } catch (Exception ignored) {}
                 try { ts.italic = run.isItalic(); } catch (Exception ignored) {}
@@ -195,12 +194,32 @@ public class DocxReader {
                     org.apache.poi.xwpf.usermodel.UnderlinePatterns u = run.getUnderline();
                     ts.underline = (u != null && u != org.apache.poi.xwpf.usermodel.UnderlinePatterns.NONE);
                 } catch (Exception ignored) {}
+                if (text != null && !text.isEmpty()) {
+                    sb.append(wrapWithMarkers(text, ts));
+                }
 
-                sb.append(wrapWithMarkers(text, ts));
+                // 5.b) références de notes de bas de page dans CE run
+                // (les runs qui portent une note n'ont souvent pas de texte, d'où l'étape 5.a indépendante)
+                try {
+                    org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR ctr = run.getCTR();
+                    java.util.List<org.openxmlformats.schemas.wordprocessingml.x2006.main.CTFtnEdnRef> refs =
+                            ctr.getFootnoteReferenceList();
+                    if (refs != null && !refs.isEmpty()) {
+                        for (org.openxmlformats.schemas.wordprocessingml.x2006.main.CTFtnEdnRef r : refs) {
+                            java.math.BigInteger id = r.getId();
+                            String note = extractFootnoteInlineText(doc, id);
+                            if (!note.isBlank()) {
+                                sb.append("@(").append(note).append(")");
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {
+                    // ne jamais casser l'import sur cas exotique
+                }
             }
         }
 
-        // 6) saut de ligne
+        // 6) fin de paragraphe
         sb.append("\n");
     }
 
@@ -275,6 +294,49 @@ public class DocxReader {
         }
 
         return cur;
+    }
+
+    private static String extractFootnoteInlineText(XWPFDocument doc, java.math.BigInteger id) {
+        if (doc == null || id == null) return "";
+        try {
+            org.apache.poi.xwpf.usermodel.XWPFFootnote fn = doc.getFootnoteByID(id.intValue());
+            if (fn == null) return "";
+            StringBuilder out = new StringBuilder();
+            for (org.apache.poi.xwpf.usermodel.XWPFParagraph pp : fn.getParagraphs()) {
+                // Option simple : texte brut du paragraphe
+                String t = pp.getText();
+                if (t != null && !t.isEmpty()) {
+                    if (out.length() > 0) out.append(" ");
+                    out.append(t);
+                }
+            }
+            return normalizeSpaces(out.toString());
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private static String normalizeSpaces(String s) {
+        if (s == null) return "";
+        return s.replace('\r',' ')
+                .replace('\n',' ')
+                .replaceAll("\\s+", " ")
+                .trim();
+    }
+
+    private static String getRunVisibleText(org.apache.poi.xwpf.usermodel.XWPFRun run) {
+        if (run == null) return "";
+        StringBuilder sb = new StringBuilder();
+        // Ne lit QUE les <w:t> (texte visible), pas les footnoteReference.
+        int tCount = run.getCTR().sizeOfTArray();
+        for (int i = 0; i < tCount; i++) {
+            String part = run.getText(i);
+            if (part != null && !part.isEmpty()) sb.append(part);
+        }
+        // (facultatif) gérer les tabulations et retours ligne du run :
+        // for (int i = 0; i < run.getCTR().sizeOfTabArray(); i++) sb.append("\t");
+        // for (int i = 0; i < run.getCTR().sizeOfBrArray();  i++) sb.append("\n");
+        return sb.toString();
     }
 
 
