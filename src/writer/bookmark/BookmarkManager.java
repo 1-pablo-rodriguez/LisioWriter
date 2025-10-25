@@ -16,7 +16,6 @@ import javax.swing.text.Element;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 
-import writer.blindWriter;
 import xml.node;
 
 public final class BookmarkManager {
@@ -159,76 +158,73 @@ public final class BookmarkManager {
 		}
 
 
- public void loadSidecar(java.nio.file.Path mainFile) throws java.io.IOException, javax.swing.text.BadLocationException {
-	    map.clear();
-	    order.clear();
-	    cursor = -1;
+	 public void loadSidecar(Path mainFile) throws IOException, BadLocationException {
+		    map.clear(); order.clear(); cursor = -1;
+		    if (mainFile == null || area == null) return;
+		    Path marks = sidecarPath(mainFile);
+		    if (!Files.exists(marks)) return;
 
-	    if (mainFile == null || area == null) return;
-	    java.nio.file.Path marks = sidecarPath(mainFile);
-	    if (!java.nio.file.Files.exists(marks)) return;
+		    final Document doc = area.getDocument();
+		    if (doc == null) return;
 
-	    final javax.swing.text.Document doc = area.getDocument();
-	    if (doc == null) return;
+		    final java.nio.charset.Charset CS = StandardCharsets.UTF_8;
+		    final java.util.HashSet<String> seen = new java.util.HashSet<>();
 
-	    final java.nio.charset.Charset CS = java.nio.charset.StandardCharsets.UTF_8;
-	    final java.util.HashSet<String> seen = new java.util.HashSet<>();
+		    for (String raw : Files.readAllLines(marks, CS)) {
+		        if (raw == null) continue;
+		        String line = raw;
+		        if (!line.isEmpty() && line.charAt(0) == '\uFEFF') line = line.substring(1);
+		        if (line.isBlank()) continue;
 
-	    for (String raw : java.nio.file.Files.readAllLines(marks, CS)) {
-	        if (raw == null) continue;
-	        String line = raw;
-	        // retire un éventuel BOM au tout début
-	        if (!line.isEmpty() && line.charAt(0) == '\uFEFF') line = line.substring(1);
-	        if (line.isBlank()) continue;
+		        String[] t = line.split("\t", -1);
+		        // attendu: id, off, createdAt, note, label  (5 colonnes)
+		        if (t.length < 4) continue;
 
-	        String[] t = line.split("\t", -1);
-	        if (t.length < 4) continue;
+		        final String id = (t[0] == null || t[0].isBlank()) ? UUID.randomUUID().toString() : t[0];
+		        if (seen.contains(id)) continue; seen.add(id);
 
-	        final String id = (t[0] == null || t[0].isBlank()) ? java.util.UUID.randomUUID().toString() : t[0];
+		        final int off = clamp(parseInt(t[1], 0), 0, doc.getLength());
+		        final long ts  = parseLong(t[2], System.currentTimeMillis());
 
-	        // évite les doublons d'ID dans 'order'
-	        if (seen.contains(id)) continue;
-	        seen.add(id);
+		        String note  = null;
+		        String label = "Marque-page";
 
-	        final int off = clamp(parseInt(t[1], 0), 0, doc.getLength());
-	        final long ts = parseLong(t[2], System.currentTimeMillis());
-	        final String label = unescape(t[3]);
+		        if (t.length >= 5) {
+		            note  = unescape(t[3]);
+		            label = unescape(t[4]);
+		        } else { 
+		            // compat ancien format (4 colonnes: pas de note, t[3] = label)
+		            label = unescape(t[3]);
+		        }
 
-	        final javax.swing.text.Position p = doc.createPosition(off);
-	        final Bookmark b = new Bookmark(id, p, label, ts);
+		        final Position p = doc.createPosition(off);
+		        final Bookmark b = new Bookmark(id, p, note, label, ts);
+		        map.put(id, b);
+		        order.add(id);
+		    }
 
-	        map.put(id, b);
-	        order.add(id);
-	    }
+		    compact();
+		    if (!order.isEmpty()) cursor = 0; else cursor = -1;
+		}
 
-	    compact(); // nettoie toute entrée orpheline restante (sécurité)
+	 private static Path sidecarPath(Path main) {
+	     String fn = main.getFileName().toString();
+	     return main.resolveSibling(fn + ".marks"); // ex: monfichier.bwr.marks
+	 }
 
-	    if (!order.isEmpty()) {
-	        // place le curseur sur le premier bookmark par défaut
-	        cursor = 0;
-	    } else {
-	        cursor = -1;
-	    }
-	}
+	 @SuppressWarnings("deprecation")
+	private Bookmark moveCaretTo(String id) {
+	     Bookmark b = map.get(id);
+	     if (b == null) return null;
+	     int off = b.pos.getOffset();
+	     area.setCaretPosition(off);
+	     try {
+	         java.awt.Rectangle r = area.modelToView(off);
+	         if (r != null) area.scrollRectToVisible(r);
+	     } catch (BadLocationException ignore) {}
+	     return b;
+	 }
 
-
- private static Path sidecarPath(Path main) {
-     String fn = main.getFileName().toString();
-     return main.resolveSibling(fn + ".marks"); // ex: monfichier.bwr.marks
- }
-
- @SuppressWarnings("deprecation")
-private Bookmark moveCaretTo(String id) {
-     Bookmark b = map.get(id);
-     if (b == null) return null;
-     int off = b.pos.getOffset();
-     area.setCaretPosition(off);
-     try {
-         java.awt.Rectangle r = area.modelToView(off);
-         if (r != null) area.scrollRectToVisible(r);
-     } catch (BadLocationException ignore) {}
-     return b;
- }
 
  private Bookmark nearestOnSameLine() {
      try {
@@ -334,39 +330,36 @@ private Bookmark moveCaretTo(String id) {
 	    return bookmarks;
 	 }
 
-	 public void loadFromXml(node bookmarksEl) throws javax.swing.text.BadLocationException {
-	     map.clear(); order.clear(); cursor = -1;
-	     if (bookmarksEl == null) return;
-	     javax.swing.text.Document doc = blindWriter.editorPane.getDocument();
-	
-	     //org.w3c.dom.NodeList nodes = bookmarksEl.getElementsByTagName("bm");
-	     
-	     ArrayList<node> nodes = bookmarksEl.getEnfants();
-	     for (int i = 0; i < nodes.size(); i++) {
-	         node e =  nodes.get(i);
-	         String id =  optAttr(e, "id", "null") ;
-	         int off = clamp(parseInt(optAttr(e, "off","0"), 0), 0, doc.getLength());
-	         String label = optAttr(e, "label", "Marque-page");
-	         long ts = System.currentTimeMillis();
-	         try {
-	             String created = e.getAttributs("created");
-	             if (created != null && !created.isBlank()) {
-	                 java.time.LocalDateTime ldt = java.time.LocalDateTime.parse(created);
-	                 ts = ldt.toEpochSecond(java.time.ZoneOffset.UTC) * 1000L;
-	             }   
-	         } catch (Exception ignore) {}
-	         String note = optAttr(e, "note", "Note du marque-page");
-	         
-	         javax.swing.text.Position p = doc.createPosition(off);
-	         
-	         Bookmark b = new Bookmark(id, p, note, label, ts);
-	         map.put(id, b); order.add(id);
-	     }
-	     
-	     if (!order.isEmpty()) cursor = Math.min(cursor < 0 ? 0 : cursor, order.size() - 1);
-	     compact();
-	     rebuildOrderByOffset();
-	 }
+	 public void loadFromXml(node bookmarksEl) throws BadLocationException {
+		    map.clear(); order.clear(); cursor = -1;
+		    if (bookmarksEl == null) return;
+
+		    javax.swing.text.Document doc = this.area.getDocument(); // ← au lieu de blindWriter.editorPane
+		    ArrayList<node> nodes = bookmarksEl.getEnfants();
+		    for (int i = 0; i < nodes.size(); i++) {
+		        node e = nodes.get(i);
+		        String id = optAttr(e, "id", UUID.randomUUID().toString());
+		        int off = clamp(parseInt(optAttr(e, "off","0"), 0), 0, doc.getLength());
+		        String label = optAttr(e, "label", "Marque-page");
+		        long ts = System.currentTimeMillis();
+		        try {
+		            String created = e.getAttributs("created");
+		            if (created != null && !created.isBlank()) {
+		                java.time.LocalDateTime ldt = java.time.LocalDateTime.parse(created);
+		                ts = ldt.toEpochSecond(java.time.ZoneOffset.UTC) * 1000L;
+		            }
+		        } catch (Exception ignore) {}
+		        String note = optAttr(e, "note", null);
+
+		        javax.swing.text.Position p = doc.createPosition(off);
+		        Bookmark b = new Bookmark(id, p, note, label, ts);
+		        map.put(id, b); order.add(id);
+		    }
+		    if (!order.isEmpty()) cursor = Math.min(cursor < 0 ? 0 : cursor, order.size() - 1);
+		    compact();
+		    rebuildOrderByOffset();
+		}
+
 	
 	 private static String optAttr(node e, String name, String def) {
 	     String v = e.getAttributs(name);
@@ -620,11 +613,21 @@ private Bookmark moveCaretTo(String id) {
 
 	     // --- Focus initial dans la zone + sélection
 	     dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-	         @Override public void windowOpened(java.awt.event.WindowEvent e) {
-	             areaNote.requestFocusInWindow();
-	             areaNote.selectAll();
-	         }
-	     });
+	    	    @SuppressWarnings("deprecation")
+				@Override public void windowOpened(java.awt.event.WindowEvent e) {
+	    	        areaNote.requestFocusInWindow();
+	    	        // Ne pas sélectionner tout : place juste le caret au début de la note
+	    	        javax.swing.SwingUtilities.invokeLater(() -> {
+	    	            areaNote.setSelectionStart(0);
+	    	            areaNote.setSelectionEnd(0);
+	    	            areaNote.setCaretPosition(0);
+	    	            try {
+	    	                java.awt.Rectangle r = areaNote.modelToView(0);
+	    	                if (r != null) areaNote.scrollRectToVisible(r);
+	    	            } catch (javax.swing.text.BadLocationException ignore) {}
+	    	        });
+	    	    }
+	    	});
 
 	     dialog.pack();
 	     dialog.setLocationRelativeTo(owner);
