@@ -1,8 +1,8 @@
 {
   "channel": "stable",
-  "version": "1.0.8",
-  "url": "https://github.com/1-pablo-rodriguez/blindWriter/releases/download/v1.0.8/Installation_blindWriter_1.0.8.0.exe",
-  "sha256": "c8936dac894bba5ad3809d45051d6bec7721727d309d63bdcfd03163d5cec549",
-  "size": 262247257,
-  "releaseNotes": "Version 1.0.8"
+  "version": "1.0.9",
+  "url": "https://github.com/1-pablo-rodriguez/blindWriter/releases/download/v1.0.9/Installation_blindWriter_1.0.9.0.exe",
+  "sha256": "83934b99f93b3f3f5443cdbde430ab4ac2a600cf06aa449f5c04cd6ecc0cb579",
+  "size": 261347190,
+  "releaseNotes": "Version 1.0.9"
 }
