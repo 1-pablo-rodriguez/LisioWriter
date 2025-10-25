@@ -25,9 +25,9 @@ La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée
 - **_\*mots gras soulignés\*_** : Indique des mots gras soulignés.
 - **etc.**
 
-- **@saut de page** indique un saut de page.
-- **@(note de bas de page)** indique une note de bas de page.
-- °°**Erreur ortographique ou grammaticale**.
+- **@saut de page** : Indique un saut de page.
+- **@(note de bas de page)** : Indique une note de bas de page.
+- °°**Faute** : Indique une erreur orthographique ou grammaticale.
 - **etc.**
 
 ---
