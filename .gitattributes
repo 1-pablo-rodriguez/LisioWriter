@@ -1,0 +1,6 @@
+# Normaliser le texte en LF dans le repo
+* text=auto eol=lf
+
+# Hunspell : surtout ne rien toucher
+*.aff -text
+*.dic -text
