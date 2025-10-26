@@ -1,9 +1,17 @@
 package writer;
 
+import javax.swing.JTextArea;
+
+import writer.ui.EditorFrame;
+import writer.util.AppInfo;
+
 public class bienvenueAffichage {
-	public bienvenueAffichage() {
+
+	// Constructeur
+	public bienvenueAffichage(EditorFrame frame) {
         StringBuilder message = new StringBuilder(128);
 
+        JTextArea editorPane = frame.getEditor();
         try {
 
                 String fileName = (commandes.nameFile != null && !commandes.nameFile.isBlank())
@@ -11,11 +19,11 @@ public class bienvenueAffichage {
                 String folder   = (commandes.currentDirectory != null)
                                   ? commandes.currentDirectory.getName() : "Dossier inconnu";
 
-                boolean editable = blindWriter.editorPane != null && blindWriter.editorPane.isEditable();
+                boolean editable = editorPane != null && editorPane.isEditable();
                 boolean liveSpell = commandes.verificationOrthoGr; // ta variable existante
 
                 message.append("BIENVENUE sur blindWriter (BWR) ↓");
-                message.append("\nVersion : ").append(blindWriter.getAppVersion()).append(" ↓");
+                message.append("\nVersion : ").append(AppInfo.getAppVersion()).append(" ↓");
                 message.append("\nFichier ouvert : ").append(fileName).append(" ↓");
                 message.append("\nDossier de travail : ").append(folder).append(" ↓");
                 message.append(editable ? "\nMode éditable. ↓" : "Mode en lecture seule. ↓");
@@ -26,7 +34,7 @@ public class bienvenueAffichage {
             message = new StringBuilder("Informations indisponibles pour le moment.");
         }
         
-        java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(blindWriter.editorPane);
+        java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(editorPane);
         dia.InfoDialog.show(owner, "Bienvenue", message.toString());
 
         //blindWriter.announceCaretLine(false, true, message.toString());

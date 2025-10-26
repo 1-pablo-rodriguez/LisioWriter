@@ -1,14 +1,24 @@
 package formatage;
 
+import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Utilities;
-import writer.blindWriter;
+
+import writer.ui.EditorApi;
 
 public class SoulignerGras {
-    public SoulignerGras() {
-        final JTextComponent area = blindWriter.editorPane;
+	private final EditorApi ctx;
+
+    public SoulignerGras(EditorApi ctx) {
+        this.ctx = ctx;
+    }
+    
+    public void appliquer() {
+    	JTextArea editor = ctx.getEditor();
+    	
+        final JTextComponent area = editor;
         if (area == null) return;
 
         try {

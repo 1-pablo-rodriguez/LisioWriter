@@ -3,27 +3,30 @@ package act;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
+import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
-
-import writer.blindWriter;
 
 public class VersHaut extends AbstractAction{
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+	private final JTextArea editorPane;
+
+	// Constructeur
+	public VersHaut(JTextArea editorPane) {
+	    super("VersHaut");
+	    this.editorPane = editorPane;
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		try {
             // Récupérer la position actuelle du curseur
-            int caretPosition = blindWriter.editorPane.getCaretPosition();
+            int caretPosition = this.editorPane.getCaretPosition();
             // Obtenir l'index de la ligne actuelle du curseur
-            int currentLine = blindWriter.editorPane.getLineOfOffset(caretPosition);
+            int currentLine = this.editorPane.getLineOfOffset(caretPosition);
 
             // Récupérer le texte complet
-            String text = blindWriter.editorPane.getText();
+            String text = this.editorPane.getText();
             // Diviser le texte en lignes
             String[] lines = text.split("\n");
             int cursorPosition = 0;
@@ -32,13 +35,13 @@ public class VersHaut extends AbstractAction{
             for (int i = currentLine-1; i >= 0; i--) {
                 if (lines[i].trim().startsWith("#")) {
                     // Récupérer la position du curseur au début de cette ligne
-                    cursorPosition = blindWriter.editorPane.getLineStartOffset(i);
+                    cursorPosition = this.editorPane.getLineStartOffset(i);
                     break;
                 }
             }
 
             // Si aucune ligne ne commence par un #, placer le curseur au début du texte
-            blindWriter.editorPane.setCaretPosition(cursorPosition);
+            this.editorPane.setCaretPosition(cursorPosition);
         } catch (BadLocationException e1) {
             e1.printStackTrace();
         }
