@@ -1,224 +1,334 @@
 package dia;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
+import java.awt.Color;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.List;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.lang.reflect.Field;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRootPane;
+import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
+import javax.swing.border.LineBorder;
 
 import writer.blindWriter;
-
+import writer.enregistre;
 
 public class BoiteQuitter {
 
-	private static JDialog dialog = new JDialog((Frame) null, "Quitter", true);
-	
-	@SuppressWarnings("serial")
+    private static JDialog dialog;
+
+    @SuppressWarnings("serial")
 	public BoiteQuitter() {
-		
-		//String text = blindWriter.editorPane.getText();
-        //int newHash = text.hashCode();
-        String message = "Voulez-vous quitter blinWriter ?";
-        blindWriter.announceCaretLine(true, true, message);
-        
-		
-		
- 		dialog = new JDialog((Frame) null, "Quitter", true);
-		dialog.setLayout(new BorderLayout());
-		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		
-		JPanel panel = new JPanel();
-		JLabel label = new JLabel("<html>" + message +"</html>");
-		label.getAccessibleContext().setAccessibleDescription(message);
-		
-		panel.add(label);
-	    dialog.add(panel, BorderLayout.CENTER);
-		 
-        JPanel buttonPanel = new JPanel();
-        
-        JButton okButton = new JButton("Quitter");
-        okButton.getAccessibleContext().setAccessibleName("Quitter");
-        
-        
-        JButton cancelButton = new JButton("Annuler");
-        cancelButton.getAccessibleContext().setAccessibleName("Annuler");
-        
-        buttonPanel.add(okButton);
-        buttonPanel.add(cancelButton);
-       
-        
-        // Action pour le bouton OK
-        okButton.addActionListener(e -> {
-        	fermeture();
-        });
-        
-        // Entrée sur le bouton OK
-        okButton.addKeyListener(new KeyAdapter() {
-        	@Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    // Valide la saisie lorsque la touche "Entrée" est appuyée
-                    fermeture();
-                }
-        	}
-        });
-        okButton.addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                System.out.println("🔵 Le bouton 'Quitter' a le focus.");
-                blindWriter.announceCaretLine(true, true, "Bouton : Quitter");
-            }
 
-            @Override
-            public void focusLost(FocusEvent e) {
-                System.out.println("⚪ Le bouton 'Quitter' a perdu le focus.");
-            }
-        });
+        final boolean modified = hasUnsavedChanges();
+        final String title = "Quitter";
+        final String baseMessage = modified
+                ? "Des modifications non enregistrées ont été détectées."
+                : "Voulez-vous quitter blindWriter ?";
+        final String detail = modified
+                ? "\nChoisissez : Enregistrer, Quitter sans enregistrer, ou Annuler.\n"
+                : "\nDeux choix : Quitter ou Annuler.\n";
+        final String fullMessage = modified ? (baseMessage + " " + detail) : baseMessage;
 
+        // Annonce immédiate pour le lecteur d’écran
+        blindWriter.announceCaretLine(true, true, fullMessage);
 
-        // Action pour le bouton Annuler
-        cancelButton.addActionListener(e -> Annuler());
-        
-     // Entrée sur le bouton OK
-        cancelButton.addKeyListener(new KeyAdapter() {
-        	@Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                	Annuler();  // Ferme la boîte de dialogue
-                }
-        	}
-        });
-        cancelButton.addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                System.out.println("🔵 Le bouton 'Annuler' a le focus.");
-                blindWriter.announceCaretLine(true, true, "Bouton : Annuler");
-            }
+        dialog = new JDialog((Frame) null, title, true);
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        dialog.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setLayout(new BorderLayout(12, 12));
 
-            @Override
-            public void focusLost(FocusEvent e) {
-                System.out.println("⚪ Le bouton 'Annuler' a perdu le focus.");
-            }
-        });
-       
-        // Ajoute les boutons à la boîte de dialogue
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        // ---------- Style accessible ----------
+        final int basePt = 18;
+        Font big = new Font("Segoe UI", Font.PLAIN, basePt);
+        Font bigBold = big.deriveFont(Font.BOLD);
+        Color bg = Color.WHITE;
+        Color fg = Color.BLACK;
+        Color accent = new Color(0, 95, 204);
 
-        // Configure et affiche la boîte de dialogue
-        dialog.pack();
-        dialog.setLocationRelativeTo(null);
-      
-        SwingUtilities.invokeLater(() -> {
-            // configurer les flèches après affichage
-            setupFocusNavigation(okButton, cancelButton);
-            okButton.requestFocusInWindow(); // focus initial
-        });
-        
-        
-        dialog.setVisible(true);
-        dialog.setAlwaysOnTop(true);
-        dialog.toFront();
-        
+     // ---------- Message ----------
+        JTextArea label = new JTextArea(fullMessage);
+
+        // accessibilité & rendu
+        label.setFont(bigBold);
+        label.setForeground(fg);
+        label.setBackground(bg);
+        label.setLineWrap(true);
+        label.setWrapStyleWord(true);
+
+        // IMPORTANT : non éditable + focusable (pour lecture par lecteur d'écran)
+        label.setEditable(false);
         label.setFocusable(true);
-        
-     // Créer la liste des composants navigables
-    	List<Component> focusables = List.of(okButton, cancelButton);
-    	
-    	for (Component comp : focusables) {
-    	    if (comp instanceof JComponent jc) {
-    	        final JComponent target = jc; // ✅ capture correcte
 
-    	        target.setFocusable(true);
-    	        target.setFocusTraversalKeysEnabled(false);
+        // éviter caret/selection visibles (confort basse vision)
+        label.setHighlighter(null);
+        label.setCaretPosition(0);
 
-    	        target.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("RIGHT"), "nextFocus");
-    	        target.getActionMap().put("nextFocus", new AbstractAction() {
-    	            @Override
-    	            public void actionPerformed(ActionEvent e) {
-    	                int i = focusables.indexOf(target);
-    	                int next = (i + 1) % focusables.size();
-    	                focusables.get(next).requestFocusInWindow();
-    	            }
-    	        });
+        // Focus visuel
+        label.setBorder(new LineBorder(bg, 0)); // neutre
+        label.addFocusListener(new FocusAdapter() {
+            @Override public void focusGained(FocusEvent e) {
+                label.setBorder(new LineBorder(accent, 3, true));
+                // annonce explicite du contenu
+                blindWriter.announceCaretLine(true, true, fullMessage);
+            }
+            @Override public void focusLost(FocusEvent e) {
+                label.setBorder(new LineBorder(bg, 0));
+            }
+        });
 
-    	        target.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("LEFT"), "prevFocus");
-    	        target.getActionMap().put("prevFocus", new AbstractAction() {
-    	            @Override
-    	            public void actionPerformed(ActionEvent e) {
-    	                int i = focusables.indexOf(target);
-    	                int prev = (i - 1 + focusables.size()) % focusables.size();
-    	                focusables.get(prev).requestFocusInWindow();
-    	            }
-    	        });
-    	    }
-    	}  
-	}
-	
-	
-	/** 
-	 * fermeture de la dialog
-	 */
-	private void Annuler() {
-		blindWriter.announceCaretLine(true, true, "Retour sur blindWriter.");
-		blindWriter.getInstance();
-		dialog.dispose();
-	}
-	
-	/** 
-	 * fermeture de la dialog
-	 * @throws InterruptedException 
-	 */
-	private void fermeture(){
-		blindWriter.announceCaretLine(true, true, "Fermeture de blindWriter.");
-        dialog.setVisible(false);  // S'assurer qu'elle est invisible
-        dialog.dispose();
+        // ALT+M : donner le focus au label
+        KeyStroke toMsg = KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.ALT_DOWN_MASK);
+        dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+              .put(toMsg, "focus-message");
+        dialog.getRootPane().getActionMap().put("focus-message", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                label.requestFocusInWindow();
+            }
+        });
+
+        // TAB/SHIFT+TAB : transférer le focus (ne pas insérer de tab dans le texte)
+        bindTabToFocusTraversal(label);
+
+
+
+        JPanel center = new JPanel(new BorderLayout());
+        center.setBorder(BorderFactory.createEmptyBorder(20, 24, 8, 24));
+        center.setBackground(bg);
+        center.add(label, BorderLayout.CENTER);
+        dialog.add(center, BorderLayout.CENTER);
+
+        // ---------- Boutons ----------
+        JButton primaryBtn; // par défaut variable selon cas
+        JPanel south = new JPanel();
+        south.setBorder(BorderFactory.createEmptyBorder(0, 24, 20, 24));
+        south.setBackground(bg);
+
+        if (modified) {
+            JButton saveBtn = new JButton("Enregistrer & Quitter");
+            JButton discardBtn = new JButton("Quitter sans enregistrer");
+            JButton cancelBtn = new JButton("Annuler");
+
+            styleButton(saveBtn, bigBold, fg, accent);
+            styleButton(discardBtn, big, fg, accent);
+            styleButton(cancelBtn, big, fg, accent);
+
+            // Mnémos
+            saveBtn.setMnemonic(KeyEvent.VK_E);
+            discardBtn.setMnemonic(KeyEvent.VK_S); // Sans enregistrer
+            cancelBtn.setMnemonic(KeyEvent.VK_A);
+
+            // Accessibles
+            saveBtn.getAccessibleContext().setAccessibleName("Enregistrer et quitter");
+            saveBtn.getAccessibleContext().setAccessibleDescription("Enregistrer le document avant de quitter");
+            discardBtn.getAccessibleContext().setAccessibleName("Quitter sans enregistrer");
+            discardBtn.getAccessibleContext().setAccessibleDescription("Fermer l'application sans sauvegarder");
+            cancelBtn.getAccessibleContext().setAccessibleName("Annuler");
+            cancelBtn.getAccessibleContext().setAccessibleDescription("Revenir à l'éditeur");
+
+            // Actions
+            saveBtn.addActionListener(e ->  doSaveAndQuit());
+            discardBtn.addActionListener(e -> fermeture());
+            cancelBtn.addActionListener(e -> annuler());
+
+            addEnterKeyClicks(saveBtn, discardBtn, cancelBtn);
+
+            south.add(saveBtn);
+            south.add(discardBtn);
+            south.add(cancelBtn);
+
+            primaryBtn = saveBtn; // défaut = Enregistrer
+            //setupArrowNavigation(label, saveBtn, discardBtn, cancelBtn);
+
+        } else {
+            JButton quitBtn = new JButton("Quitter");
+            JButton cancelBtn = new JButton("Annuler");
+
+            styleButton(quitBtn, bigBold, fg, accent);
+            styleButton(cancelBtn, big, fg, accent);
+
+            quitBtn.setMnemonic(KeyEvent.VK_Q);
+            cancelBtn.setMnemonic(KeyEvent.VK_A);
+
+            quitBtn.getAccessibleContext().setAccessibleName("Quitter l'application");
+            quitBtn.getAccessibleContext().setAccessibleDescription("Fermer blindWriter");
+            cancelBtn.getAccessibleContext().setAccessibleName("Annuler");
+            cancelBtn.getAccessibleContext().setAccessibleDescription("Revenir à l'éditeur");
+
+            quitBtn.addActionListener(e -> fermeture());
+            cancelBtn.addActionListener(e -> annuler());
+
+            addEnterKeyClicks(quitBtn, cancelBtn);
+
+            south.add(quitBtn);
+            south.add(cancelBtn);
+
+            primaryBtn = quitBtn;
+            //setupArrowNavigation(label, quitBtn, cancelBtn);
+
+        }
+
+        dialog.add(south, BorderLayout.SOUTH);
+
+        // Entrée = bouton par défaut ; Échap = Annuler
+        dialog.getRootPane().setDefaultButton(primaryBtn);
+        bindEscapeTo(dialog.getRootPane(), this::annuler);
+
+        dialog.addWindowListener(new WindowAdapter() {
+            @Override public void windowOpened(WindowEvent e) {
+            	 label.requestFocusInWindow();
+            }
+            @Override public void windowClosing(WindowEvent e) {
+                annuler();
+            }
+        });
+
+        dialog.pack();
+        dialog.setMinimumSize(new Dimension(520, dialog.getHeight()));
+        dialog.setLocationRelativeTo(null);
+        dialog.setVisible(true);
+    }
+
+    // ---------- Détection des modifications ----------
+    private boolean hasUnsavedChanges() {
+        try {
+            // 1) champ public static ?
+            Field fStatic = blindWriter.class.getField("isModified");
+            if (java.lang.reflect.Modifier.isStatic(fStatic.getModifiers())) {
+                return fStatic.getBoolean(null);
+            }
+        } catch (NoSuchFieldException ignore) {
+            // passe au cas instance
+        } catch (Exception e) {
+            // problème d'accès → on tente l'instance
+        }
+        try {
+            Object inst = blindWriter.getInstance();
+            Field fInstance = inst.getClass().getField("isModified");
+            return fInstance.getBoolean(inst);
+        } catch (Exception e) {
+            // Si on ne peut pas lire, par prudence considérer non modifié (sinon on bloquerait à tort)
+            return false;
+        }
+    }
+
+
+    // ---------- Utilitaires UI / A11y ----------
+    private void styleButton(JButton b, Font f, Color fg, Color accent) {
+        b.setFont(f);
+        b.setPreferredSize(new Dimension(200, 44));
+        b.setFocusPainted(true);
+        b.setBackground(Color.WHITE);
+        b.setForeground(fg);
+        b.setBorder(new LineBorder(fg, 2, true));
+        b.addFocusListener(new FocusAdapter() {
+            @Override public void focusGained(FocusEvent e) {
+                b.setBorder(new LineBorder(accent, 3, true));
+            }
+            @Override public void focusLost(FocusEvent e) {
+                b.setBorder(new LineBorder(fg, 2, true));
+            }
+        });
+    }
+
+    private void addEnterKeyClicks(JButton... buttons) {
+        KeyAdapter enter = new KeyAdapter() {
+            @Override public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    ((JButton) e.getSource()).doClick();
+                }
+            }
+        };
+        for (JButton b : buttons) b.addKeyListener(enter);
+    }
+
+    @SuppressWarnings("serial")
+	private void bindEscapeTo(JRootPane root, Runnable action) {
+        KeyStroke esc = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(esc, "esc-cancel");
+        root.getActionMap().put("esc-cancel", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                action.run();
+            }
+        });
+    }
+
+
+    // ---------- Actions ----------
+    private void annuler() {
+        if (dialog != null) dialog.dispose();
         blindWriter.getInstance();
-		System.exit(0); // Quitter l'application
-	}
-	
-	
-	@SuppressWarnings("serial")
-	private void setupFocusNavigation(JComponent... components) {
-	    List<JComponent> focusables = List.of(components);
+    }
 
-	    for (int index = 0; index < focusables.size(); index++) {
-	        JComponent jc = focusables.get(index);
-	        final int currentIndex = index;
+    private void fermeture() {
+        blindWriter.getInstance();
+        System.exit(0);
+    }
+    
+    
+    /** Enregistre, marque le doc comme non modifié, met à jour le titre, puis quitte. */
+    private void doSaveAndQuit() {
+        try {
+            // 1) lancer l'enregistrement (ta classe/commande existante)
+            new enregistre(); 
 
-	        //jc.setFocusTraversalKeysEnabled(false);
-	        jc.setFocusable(true);
+            // 2) indiquer qu'il n'y a plus de modifications et MAJ du titre
+            blindWriter.setModified(false);
 
-	        jc.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("RIGHT"), "nextFocus");
-	        jc.getActionMap().put("nextFocus", new AbstractAction() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                int next = (currentIndex + 1) % focusables.size();
-	                focusables.get(next).requestFocusInWindow();
-	            }
-	        });
+            // 3) fermer l'application
+            fermeture();
 
-	        jc.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("LEFT"), "prevFocus");
-	        jc.getActionMap().put("prevFocus", new AbstractAction() {
-	            @Override
-	            public void actionPerformed(ActionEvent e) {
-	                int prev = (currentIndex - 1 + focusables.size()) % focusables.size();
-	                focusables.get(prev).requestFocusInWindow();
-	            }
-	        });
-	    }
-	}
-	
+        } catch (Throwable ex) {
+            // Si quelque chose échoue, on prévient et on reste dans l'éditeur
+        	dia.InfoDialog.show(blindWriter.getInstance(), "Erreur", "Erreur pendant l'enregistrement. L'application reste ouverte.");
+            ex.printStackTrace();
+            annuler();
+        }
+    }
+    
+    /** Sur un composant focusable (ici le label), Tab et Shift+Tab transfèrent le focus. */
+    @SuppressWarnings("serial")
+    private void bindTabToFocusTraversal(JComponent c) {
+        final KeyStroke TAB      = KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0);
+        final KeyStroke SHIFT_TAB = KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK);
+
+        // on écrase les bindings par défaut du JTextArea
+        InputMap im = c.getInputMap(JComponent.WHEN_FOCUSED);
+        ActionMap am = c.getActionMap();
+
+        im.put(TAB, "focusForward");
+        im.put(SHIFT_TAB, "focusBackward");
+
+        am.put("focusForward", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                c.transferFocus();
+            }
+        });
+        am.put("focusBackward", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                c.transferFocusBackward();
+            }
+        });
+    }
+
+
 }
