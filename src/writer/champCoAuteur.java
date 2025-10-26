@@ -1,16 +1,17 @@
 package writer;
 
+import javax.swing.JTextArea;
+
 public class champCoAuteur {
-	public champCoAuteur() {
-//		outils.removeCarriageReturns(blindWriter.editorPane.getText());
-		int positionCurseur = blindWriter.editorPane.getCaretPosition();
-		String selectedText = blindWriter.editorPane.getSelectedText();
+	
+	public champCoAuteur(JTextArea editorPane) {
+		int positionCurseur = editorPane.getCaretPosition();
+		String selectedText = editorPane.getSelectedText();
         
 		if(selectedText==null) {
 			 String newText = "@Coauteur";
-             blindWriter.editorPane.replaceRange(newText, positionCurseur, positionCurseur);
-             blindWriter.editorPane.setCaretPosition(positionCurseur);
-             //"Le champs co-auteur est inséré."
+             editorPane.replaceRange(newText, positionCurseur, positionCurseur);
+             editorPane.setCaretPosition(positionCurseur);
 		}else {
 			
 		}

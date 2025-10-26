@@ -18,6 +18,7 @@ import org.xml.sax.SAXException;
 import Import.OdtReader;
 import writer.blindWriter;
 import writer.commandes;
+import writer.ui.EditorFrame;
 
 public class boiteOuvrir3 extends JDialog{
 
@@ -27,6 +28,7 @@ public class boiteOuvrir3 extends JDialog{
     private String typedText = "";  // Pour gérer la recherche par texte
     private long lastKeyPressTime = 0; // Pour gérer les délais de recherche par texte
     private final int KEY_TYPING_DELAY = 1000; // 1 seconde pour la recherche par lettre
+    private EditorFrame parent;
 
     public boiteOuvrir3() {
         // Sauvegarde du répertoire courant

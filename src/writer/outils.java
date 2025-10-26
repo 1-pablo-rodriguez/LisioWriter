@@ -1,19 +1,22 @@
 package writer;
 
-public class outils {
+import javax.swing.JTextArea;
 
-	// Supprime les retour chariot
-	public static String  removeCarriageReturns(String text) {
+public class outils {
+	
+
+	// Supprime les retours chariot
+	public static String  removeCarriageReturns(JTextArea editorPane) {
 	    // Remplacer tous les '\r' par une chaîne vide
-	    String cleanedText = text.replace("\r", "\n");
-	    cleanedText = text.replace("\n\n", "\n");
+	    String cleanedText = editorPane.getText().replace("\r", "\n");
+	    cleanedText = editorPane.getText().replace("\n\n", "\n");
 	    return cleanedText;
 	}
 	
-	public static void  afficheReturns() {
-	    String text = blindWriter.editorPane.getText();
+	public static void  afficheReturns(JTextArea editorPane) {
+	    String text = editorPane.getText();
 	    String cleanedText = text.replace("\r", "R\r").replace("\r\n","R\n").replace("\n","R\n");
-	    blindWriter.editorPane.setText(cleanedText);
+	    editorPane.setText(cleanedText);
 	}
 	
 	
