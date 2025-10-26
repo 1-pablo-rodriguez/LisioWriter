@@ -1,6 +1,5 @@
 package writer;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Rectangle;
@@ -46,7 +45,6 @@ import javax.swing.text.Utilities;
 
 import dia.BoiteNewDocument;
 import dia.BoiteNonVoyant;
-import dia.BoiteQuitter;
 import dia.BoiteRenameFile;
 import dia.BoiteSaveAs;
 import dia.BoiteVersionNV;
@@ -62,46 +60,47 @@ import maj.AutoUpdater;
 import maj.UpdateDialog;
 
 
-public class blindWriter extends JFrame {
+
+public class blindWriter extends writer.ui.EditorFrame {
 
     private static final long serialVersionUID = 1L;
- // état "modifié" (non sauvegardé)
-    private static boolean isModified = false;
-    public static JTextArea editorPane;
+    // état "modifié" (non sauvegardé)
+//    public static boolean isModified = false;
+//    public static JTextArea editorPane;
     public static int positionCurseurSauv = 0;
     public static Affiche affichage = null;
-    public static JScrollPane scrollPane = new JScrollPane();
-    public static blindWriter instance ;
+//    public static JScrollPane scrollPane = new JScrollPane();
+//    public static blindWriter instance ;
     public static boolean isDispose = true;
     private static JMenuItem dernierMenuUtilise = null;
     public static JMenu cachedMenuPages = null;
-    // Historique d'annulation/refaçon
-    private final static javax.swing.undo.UndoManager undoManager = new javax.swing.undo.UndoManager();
-    @SuppressWarnings("serial")
-	private final static Action undoAction = new AbstractAction("Annuler") {
-        @Override public void actionPerformed(ActionEvent e) {
-            try {
-                if (undoManager.canUndo()) {
-                    undoManager.undo();
-                }
-            } finally { updateUndoRedoState(); }
-        }
-    };
-    @SuppressWarnings("serial")
-	private final static Action redoAction = new AbstractAction("Rétablir") {
-        @Override public void actionPerformed(ActionEvent e) {
-            try {
-                if (undoManager.canRedo()) {
-                    undoManager.redo();
-                    //announceCaretLine(true, true, "Rétabli");
-                }
-            } finally { updateUndoRedoState(); }
-        }
-    };
-    private static void updateUndoRedoState() {
-        undoAction.setEnabled(undoManager.canUndo());
-        redoAction.setEnabled(undoManager.canRedo());
-    }
+//    // Historique d'annulation/refaçon
+//    private final static javax.swing.undo.UndoManager undoManager = new javax.swing.undo.UndoManager();
+//    @SuppressWarnings("serial")
+//	private final static Action undoAction = new AbstractAction("Annuler") {
+//        @Override public void actionPerformed(ActionEvent e) {
+//            try {
+//                if (undoManager.canUndo()) {
+//                    undoManager.undo();
+//                }
+//            } finally { updateUndoRedoState(); }
+//        }
+//    };
+//    @SuppressWarnings("serial")
+//	private final static Action redoAction = new AbstractAction("Rétablir") {
+//        @Override public void actionPerformed(ActionEvent e) {
+//            try {
+//                if (undoManager.canRedo()) {
+//                    undoManager.redo();
+//                    //announceCaretLine(true, true, "Rétabli");
+//                }
+//            } finally { updateUndoRedoState(); }
+//        }
+//    };
+//    private static void updateUndoRedoState() {
+//        undoAction.setEnabled(undoManager.canUndo());
+//        redoAction.setEnabled(undoManager.canRedo());
+//    }
     
 	// --- Announce SR/Braille (1px, focussable) ---
 	private static final SRAnnouncerArea srAnnounce = new SRAnnouncerArea();
@@ -128,7 +127,7 @@ public class blindWriter extends JFrame {
  	ImageIcon appIcon = loadIcon("/blindWriter.png");
  	
  	// correcteur
- 	private static writer.spell.SpellCheckLT spell;
+ 	public static writer.spell.SpellCheckLT spell;
 
     public enum Affiche {
         TEXTE,
@@ -147,66 +146,53 @@ public class blindWriter extends JFrame {
   	}
     
     public blindWriter() {
-    	init();
+    	super();
+    	 initAfterUi();
     	new bienvenueAffichage();	
     }
-
+    
     @SuppressWarnings("serial")
-	private void init() {
- 
-    	affichage=Affiche.TEXTE;
-    	
-        // Initialiser la fenêtre principale
-    	setTitle("blindWriter");
-        editorPane = new JTextArea();
+    private void initAfterUi() {
 
-        // Configurer la fermeture de la fenêtre
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1104, 623);
+        // ====== GARDE ces parties utiles après que l’UI existe déjà ======
+        affichage = Affiche.TEXTE;
 
-        // fenêtre qui n'est pas redimensionnable
-        setResizable(true);
-        
-        // Icone de la fenêtre
-		 setIconImage(appIcon.getImage());
-        
-        // Passer en mode plein écran
+        // Icône, plein écran et autres préférences si tu en as besoin encore ici
+        setIconImage(appIcon.getImage());
         setFullScreenMode();
 
-        // Assurer que le JTextArea a le focus quand la fenêtre est visible
+        // Le JTextArea existe déjà (créé par EditorUI).
         SwingUtilities.invokeLater(editorPane::requestFocusInWindow);
+        setupEditorPane();  // méthode configure polices, wrap, etc.
+
         
-        // Configurer le JTextArea
-        setupEditorPane();
+        // --- Apparence & confort de saisie (on GARDE) ---
+        editorPane.setForeground(Color.WHITE);
+        editorPane.setBackground(new Color(45, 45, 45));
+
+        // Surlignage de paragraphe, style du caret, sélection par mot
+        ParagraphHighlighter.install(editorPane);
+        CaretStyler.install(editorPane, new Color(255, 120, 120), 2, 500);
+        WordSelectOnShiftRight.install(editorPane);
         
-        try {   
+    	// Mise à jour du titre de la fenêtre si modifier * nom
+    	updateWindowTitle();
+        
+        try {
             blindWriter.spell = writer.spell.SpellCheckLT.attach(editorPane);
-            blindWriter.spell.setRealtime(commandes.verificationOrthoGr);   // ← démarre sans vérif pendant la frappe
+            blindWriter.spell.setRealtime(commandes.verificationOrthoGr);
         } catch (Throwable t) {
-            t.printStackTrace(); // si un JAR manque, on ne casse pas l'appli
+            t.printStackTrace();
         }
-        
+
         editorPane.addMouseWheelListener(e -> {
             if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) != 0) {
                 if (e.getWheelRotation() < 0) zoomIn(); else zoomOut();
                 e.consume();
             }
         });
-        
-        // Ajouter une barre de défilement
-        scrollPane = new JScrollPane(editorPane);
-        //frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
-        getContentPane().add(scrollPane, BorderLayout.CENTER);
-        
-        // Configurer les raccourcis clavier
-        configureKeyboardShortcuts();
-        
-        // Créer et ajouter la barre de menu
-        setJMenuBar(createMenuBar());
-        applyMenuFontTree(getJMenuBar());
-        
-        
-        // Échap : si un menu est ouvert → on le ferme, sinon on laisse ton ESC habituel
+
+        // Mappage ESC (fermer menus) : OK de le garder ici si tu l’utilises
         getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
             .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "closeMenusOrStop");
 
@@ -214,71 +200,61 @@ public class blindWriter extends JFrame {
             @Override public void actionPerformed(ActionEvent e) {
                 MenuElement[] path = MenuSelectionManager.defaultManager().getSelectedPath();
                 if (path != null && path.length > 0) {
-                    // Ferme tous les menus ouverts et rend le focus à l’éditeur
                     MenuSelectionManager.defaultManager().clearSelectedPath();
-                    editorPane.requestFocusInWindow();
                 } else {
-                    // Pas de menu ouvert : déclencher ton action ESC existante si tu en as une
-                    Action a = editorPane.getActionMap().get("echappe"); // tu l'as déjà déclarée
-                    if (a != null) a.actionPerformed(
-                        new ActionEvent(editorPane, ActionEvent.ACTION_PERFORMED, "esc"));
+                    
                 }
             }
         });
         
-        // Définir la couleur du texte (blanc)
-        editorPane.setForeground(Color.WHITE);
-        
-        // Définir la couleur de fond (noir)
-        editorPane.setBackground(new Color(45, 45, 45));
-        
-        // surlignage du paragraphe actif
-        ParagraphHighlighter.install(editorPane);
-        
-        // Caret rouge clair, épaisseur 2 px, clignote toutes les 500 ms
-        CaretStyler.install(editorPane, new Color(255, 120, 120), 2, 500);
-        
-        // Shift + Flèche droite : sélectionner/étendre par mot
-        WordSelectOnShiftRight.install(editorPane);
+        // préférences, thème, plein écran, icône :
+        setIconImage(appIcon.getImage());
+        setFullScreenMode();  // si tu as une méthode pour ça
 
-        // Announcer SR (1px, focussable)
-        srAnnounce.setFocusable(true);
-        srAnnounce.setOpaque(false);
-        srAnnounce.setBorder(null);
-        srAnnounce.setPreferredSize(new java.awt.Dimension(1,1));
-        getContentPane().add(srAnnounce, BorderLayout.NORTH);
-        
-        
-        // Afficher la fenêtre
-        setVisible(true);
-        
-        // initialiser le titre (au démarrage)
-        updateWindowTitle();
-        
-        // Garde une marge autour du caret à chaque mouvement
-        editorPane.addCaretListener(ev ->
-            SwingUtilities.invokeLater(() -> ensureCaretHorizontalMargins(108, 108)) // 48 px gauche/droite
-        );
+        // réglages de l’éditeur (police, wrap, marges, curseur…) :
+        setupEditorPane();    
 
-        
-        // fermeture avec l'icon de la fenêtre
-		addWindowListener(new java.awt.event.WindowAdapter() {
-		    @Override
-		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-		    	 new BoiteQuitter();
-		    }
-		    @Override
-            public void windowOpened(java.awt.event.WindowEvent e) {
-                // Donner le focus à la JList dès que la fenêtre est visible
-                editorPane.requestFocusInWindow();
+        // orthographe :
+        try {
+            blindWriter.spell = writer.spell.SpellCheckLT.attach(editorPane);
+            blindWriter.spell.setRealtime(commandes.verificationOrthoGr);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+
+        // focus initial :
+        SwingUtilities.invokeLater(editorPane::requestFocusInWindow);
+
+        // zoom au CTRL+molette :
+        editorPane.addMouseWheelListener(e -> {
+            if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) != 0) {
+                if (e.getWheelRotation() < 0) zoomIn(); else zoomOut();
+                e.consume();
             }
-		});
-		
-		// Création des marques pages
-		bookmarks = new writer.bookmark.BookmarkManager(editorPane);
+        });
 
-		
+        // raccourci ESC pour fermer le menu :
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "closeMenusOrStop");
+        getRootPane().getActionMap().put("closeMenusOrStop", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                MenuElement[] path = MenuSelectionManager.defaultManager().getSelectedPath();
+                if (path != null && path.length > 0) {
+                    MenuSelectionManager.defaultManager().clearSelectedPath();
+                }
+            }
+        });
+        
+
+    	editorPane.addCaretListener(ev ->
+    	    SwingUtilities.invokeLater(() -> ensureCaretHorizontalMargins(108, 108))
+    	);
+        
+    	
+    	setVisible(true);
+
     }
+
 
     private void setFullScreenMode() {
        // Maximiser la fenêtre pour qu'elle occupe tout l'écran sans cacher la barre des tâches
@@ -286,7 +262,7 @@ public class blindWriter extends JFrame {
     }
     
     // Configuration d'editorPane
- 	private void setupEditorPane() {
+ 	public void setupEditorPane() {
  		// Autorise ou n'autorise pas les retour à la ligne
  	    editorPane.setLineWrap(true);
  	    // Autorise les retour à la ligne mais ne coupe pas les mots
@@ -387,7 +363,7 @@ public class blindWriter extends JFrame {
  		};
     
 	@SuppressWarnings("serial")
-	private void configureKeyboardShortcuts() {
+	public void configureKeyboardShortcuts() {
         // Conserver uniquement les raccourcis spécifiques à l'éditeur, sans conflit avec le menu
         addKeyBinding(KeyEvent.VK_0, InputEvent.CTRL_DOWN_MASK, "paragraphe", new act.textBody());
         addKeyBinding(KeyEvent.VK_1, InputEvent.CTRL_DOWN_MASK, "T1", new act.T1());
@@ -465,12 +441,14 @@ public class blindWriter extends JFrame {
     	    	var m = bm();
     	        if (m == null) { java.awt.Toolkit.getDefaultToolkit().beep(); return; }
     	        boolean added = bookmarks.toggleHere();
+    	        setModified(true);
     	        if (added) {
-    	        	// Boîte modale, lisible par la barre braille, fermeture avec Échap
-    	 		    //dia.InfoDialog.show(javax.swing.SwingUtilities.getWindowAncestor(editorPane), "Marque-page", "Marque-page ajouté.");
-    	        	 m.editNoteForNearest(javax.swing.SwingUtilities.getWindowAncestor(editorPane));
-    	        }else {
-    	        	dia.InfoDialog.show(javax.swing.SwingUtilities.getWindowAncestor(editorPane), "Marque-page", "Marque-page supprimé.");
+    	            m.editNoteForNearest(javax.swing.SwingUtilities.getWindowAncestor(editorPane));
+    			    String message = (added ? "Marque-page ajouté." : "Marque-page supprimé.");
+    			    dia.InfoDialog.show(instance, "Information", message);
+    			    setModified(true);
+    	        } else {
+    	            dia.InfoDialog.show(javax.swing.SwingUtilities.getWindowAncestor(editorPane), "Marque-page", "Marque-page supprimé.");
     	        }
     	    }
     	});
@@ -565,7 +543,7 @@ public class blindWriter extends JFrame {
     }
 
     //Création de la barre des menus
-    public static JMenuBar createMenuBar() {
+    public JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(menuFichier());
         menuBar.add(menuEdition());
@@ -586,116 +564,116 @@ public class blindWriter extends JFrame {
         return menuBar;
     }
 
-    //Menu Fichier
-    private static JMenu menuFichier() {
-    	
-    	JMenu fileMenu = new JMenu("Fichier");
-        fileMenu.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        fileMenu.setMnemonic(KeyEvent.VK_F); // Utiliser ALT+F pour ouvrir le menu
-        fileMenu.getAccessibleContext().setAccessibleName("Fichier");
-        // Listener déclenché à l’ouverture du menu
-        fileMenu.addMenuListener(new MenuListener() {
-            @Override public void menuSelected(MenuEvent e) {
-                // Laisse Swing ouvrir le menu, puis enlève l’item armé
-                SwingUtilities.invokeLater(() -> {
-                    JMenu m = (JMenu) e.getSource();
-                    MenuSelectionManager msm = MenuSelectionManager.defaultManager();
-                    MenuElement[] path = msm.getSelectedPath();
-
-                    // Cas typique: [JMenuBar, JMenu(Fichier), JPopupMenu, JMenuItem(premier)]
-                    if (path.length >= 4 && path[path.length - 1] instanceof JMenuItem) {
-                        JMenuBar bar = (JMenuBar) m.getParent(); // parent immédiat d’un JMenu = JMenuBar
-                        msm.setSelectedPath(new MenuElement[] {
-                            bar, m, m.getPopupMenu()   // <-- aucun item armé
-                        });
-                    }
-                });
-            }
-            @Override public void menuDeselected(MenuEvent e) {}
-            @Override public void menuCanceled(MenuEvent e) {}
-        });
-
-        
-        JMenuItem createItem = createMenuItem("Nouveau", KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK, e -> {
-            System.out.println("Nouveau"); // Debugger
-            new BoiteNewDocument();
-            setModified(false);
-            updateWindowTitle();
-
-        });
-
-        JMenuItem openItem = createMenuItem("Ouvrir", KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK, e -> {
-            System.out.println("Ouvrir"); // Debugger
-            new dia.boiteOuvrir2();
-            setModified(false);
-            updateWindowTitle();
-        });
-        
-        
-        JMenuItem saveItem = createMenuItem("Enregistrer", KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK, e -> {
-            System.out.println("Enregistrer"); // Debugger
-            if (spell != null) { spell.clearHighlights(); editorPane.requestFocusInWindow(); }
-            new enregistre();
-            setModified(false);
-            updateWindowTitle();
-            StringBuilder message = new StringBuilder(128);
-            message.append("Fichier enregistré").append(" ↓");
-            message.append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓");
-            message.append("\n•Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
-            dia.InfoDialog.show(javax.swing.SwingUtilities.getWindowAncestor(editorPane),"Information", message.toString());
-        });
-        
-        JMenuItem saveAsItem = createMenuItem("Enregistrer sous", KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK|InputEvent.SHIFT_DOWN_MASK, e -> {
-            System.out.println("Enregistrement sous"); // Debugger
-            if (spell != null) { spell.clearHighlights(); editorPane.requestFocusInWindow(); }
-            new BoiteSaveAs();
-            setModified(false);
-            updateWindowTitle();
-            StringBuilder message = new StringBuilder(128);
-            message.append("Fichier enregistré").append(" ↓");
-            message.append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓");
-            message.append("\n•Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
-            dia.InfoDialog.show(javax.swing.SwingUtilities.getWindowAncestor(editorPane),"Information", message.toString());
-        });
-        
-        JMenuItem renameItem = createMenuItem("Renommer le fichier", KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK, e -> {
-            System.out.println("Renommer"); // Debugger
-            if (spell != null) { spell.clearHighlights(); editorPane.requestFocusInWindow(); }
-            new BoiteRenameFile();
-            setModified(false);
-            updateWindowTitle();
-        });
-        
-        JMenuItem metaItem = createMenuItem("Meta-données", KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK, e -> {
-            System.out.println("Menu Méta-données"); // Debugger
-            if (spell != null) { spell.clearHighlights(); editorPane.requestFocusInWindow(); }
-            new boiteMeta();
-        });
-      
-        JMenuItem quitItem = createMenuItem("Quitter", KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK, e -> {
-            System.out.println("Quitter"); // Debugger
-            new dia.BoiteQuitter();
-        });
-
-        // Ajouter des ChangeListeners pour les JMenuItem
-        addItemChangeListener(createItem);
-        addItemChangeListener(openItem);
-        addItemChangeListener(saveItem);
-        addItemChangeListener(saveAsItem);
-        addItemChangeListener(renameItem);
-        addItemChangeListener(metaItem);
-        addItemChangeListener(quitItem);
-        
-        fileMenu.add(createItem);
-        fileMenu.add(openItem);
-        fileMenu.add(saveItem);
-        fileMenu.add(saveAsItem);
-        fileMenu.add(renameItem);
-        fileMenu.add(metaItem);
-        fileMenu.add(quitItem);
-        
-        return fileMenu;
-    }
+//    //Menu Fichier
+//    private static JMenu menuFichier() {
+//    	
+//    	JMenu fileMenu = new JMenu("Fichier");
+//        fileMenu.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+//        fileMenu.setMnemonic(KeyEvent.VK_F); // Utiliser ALT+F pour ouvrir le menu
+//        fileMenu.getAccessibleContext().setAccessibleName("Fichier");
+//        // Listener déclenché à l’ouverture du menu
+//        fileMenu.addMenuListener(new MenuListener() {
+//            @Override public void menuSelected(MenuEvent e) {
+//                // Laisse Swing ouvrir le menu, puis enlève l’item armé
+//                SwingUtilities.invokeLater(() -> {
+//                    JMenu m = (JMenu) e.getSource();
+//                    MenuSelectionManager msm = MenuSelectionManager.defaultManager();
+//                    MenuElement[] path = msm.getSelectedPath();
+//
+//                    // Cas typique: [JMenuBar, JMenu(Fichier), JPopupMenu, JMenuItem(premier)]
+//                    if (path.length >= 4 && path[path.length - 1] instanceof JMenuItem) {
+//                        JMenuBar bar = (JMenuBar) m.getParent(); // parent immédiat d’un JMenu = JMenuBar
+//                        msm.setSelectedPath(new MenuElement[] {
+//                            bar, m, m.getPopupMenu()   // <-- aucun item armé
+//                        });
+//                    }
+//                });
+//            }
+//            @Override public void menuDeselected(MenuEvent e) {}
+//            @Override public void menuCanceled(MenuEvent e) {}
+//        });
+//
+//        
+//        JMenuItem createItem = createMenuItem("Nouveau", KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK, e -> {
+//            System.out.println("Nouveau"); // Debugger
+//            new BoiteNewDocument();
+//            setModified(false);
+//            updateWindowTitle();
+//
+//        });
+//
+//        JMenuItem openItem = createMenuItem("Ouvrir", KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK, e -> {
+//            System.out.println("Ouvrir"); // Debugger
+//            new dia.boiteOuvrir2();
+//            setModified(false);
+//            updateWindowTitle();
+//        });
+//        
+//        
+//        JMenuItem saveItem = createMenuItem("Enregistrer", KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK, e -> {
+//            System.out.println("Enregistrer"); // Debugger
+//            if (spell != null) { spell.clearHighlights(); editorPane.requestFocusInWindow(); }
+//            new enregistre();
+//            setModified(false);
+//            updateWindowTitle();
+//            StringBuilder message = new StringBuilder(128);
+//            message.append("Fichier enregistré").append(" ↓");
+//            message.append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓");
+//            message.append("\n•Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
+//            dia.InfoDialog.show(instance,"Information", message.toString());
+//        });
+//        
+//        JMenuItem saveAsItem = createMenuItem("Enregistrer sous", KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK|InputEvent.SHIFT_DOWN_MASK, e -> {
+//            System.out.println("Enregistrement sous"); // Debugger
+//            if (spell != null) { spell.clearHighlights(); editorPane.requestFocusInWindow(); }
+//            new BoiteSaveAs();
+//            setModified(false);
+//            updateWindowTitle();
+//            StringBuilder message = new StringBuilder(128);
+//            message.append("Fichier enregistré").append(" ↓");
+//            message.append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓");
+//            message.append("\n•Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
+//            dia.InfoDialog.show(javax.swing.SwingUtilities.getWindowAncestor(editorPane),"Information", message.toString());
+//        });
+//        
+//        JMenuItem renameItem = createMenuItem("Renommer le fichier", KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK, e -> {
+//            System.out.println("Renommer"); // Debugger
+//            if (spell != null) { spell.clearHighlights(); editorPane.requestFocusInWindow(); }
+//            new BoiteRenameFile();
+//            setModified(false);
+//            updateWindowTitle();
+//        });
+//        
+//        JMenuItem metaItem = createMenuItem("Meta-données", KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK, e -> {
+//            System.out.println("Menu Méta-données"); // Debugger
+//            if (spell != null) { spell.clearHighlights(); editorPane.requestFocusInWindow(); }
+//            new boiteMeta();
+//        });
+//      
+//        JMenuItem quitItem = createMenuItem("Quitter", KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK, e -> {
+//            System.out.println("Quitter"); // Debugger
+//            new dia.BoiteQuitter();
+//        });
+//
+//        // Ajouter des ChangeListeners pour les JMenuItem
+//        addItemChangeListener(createItem);
+//        addItemChangeListener(openItem);
+//        addItemChangeListener(saveItem);
+//        addItemChangeListener(saveAsItem);
+//        addItemChangeListener(renameItem);
+//        addItemChangeListener(metaItem);
+//        addItemChangeListener(quitItem);
+//        
+//        fileMenu.add(createItem);
+//        fileMenu.add(openItem);
+//        fileMenu.add(saveItem);
+//        fileMenu.add(saveAsItem);
+//        fileMenu.add(renameItem);
+//        fileMenu.add(metaItem);
+//        fileMenu.add(quitItem);
+//        
+//        return fileMenu;
+//    }
     
     
     private static JMenu menuImport() {
@@ -992,133 +970,135 @@ public class blindWriter extends JFrame {
     }
     
     
-    private static JMenu menuNaviguer() {
-    	JMenu naviguerMenu = new JMenu("Naviguer");
-    	naviguerMenu.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-    	naviguerMenu.setMnemonic(KeyEvent.VK_N); // Utiliser ALT+n pour ouvrir le menu
-    	naviguerMenu.getAccessibleContext().setAccessibleName("Naviguer");
-        // Listener déclenché à l’ouverture du menu
-    	naviguerMenu.addMenuListener(new MenuListener() {
-            @Override public void menuSelected(MenuEvent e) {
-                // Laisse Swing ouvrir le menu, puis enlève l’item armé
-                SwingUtilities.invokeLater(() -> {
-                    JMenu m = (JMenu) e.getSource();
-                    MenuSelectionManager msm = MenuSelectionManager.defaultManager();
-                    MenuElement[] path = msm.getSelectedPath();
-
-                    // Cas typique: [JMenuBar, JMenu(Fichier), JPopupMenu, JMenuItem(premier)]
-                    if (path.length >= 4 && path[path.length - 1] instanceof JMenuItem) {
-                        JMenuBar bar = (JMenuBar) m.getParent(); // parent immédiat d’un JMenu = JMenuBar
-                        msm.setSelectedPath(new MenuElement[] {
-                            bar, m, m.getPopupMenu()   // <-- aucun item armé
-                        });
-                    }
-                });
-            }
-            @Override public void menuDeselected(MenuEvent e) {}
-            @Override public void menuCanceled(MenuEvent e) {}
-        });
+	    private static JMenu menuNaviguer() {
+	    	JMenu naviguerMenu = new JMenu("Naviguer");
+	    	naviguerMenu.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+	    	naviguerMenu.setMnemonic(KeyEvent.VK_N); // Utiliser ALT+n pour ouvrir le menu
+	    	naviguerMenu.getAccessibleContext().setAccessibleName("Naviguer");
+	        // Listener déclenché à l’ouverture du menu
+	    	naviguerMenu.addMenuListener(new MenuListener() {
+	            @Override public void menuSelected(MenuEvent e) {
+	                // Laisse Swing ouvrir le menu, puis enlève l’item armé
+	                SwingUtilities.invokeLater(() -> {
+	                    JMenu m = (JMenu) e.getSource();
+	                    MenuSelectionManager msm = MenuSelectionManager.defaultManager();
+	                    MenuElement[] path = msm.getSelectedPath();
+	
+	                    // Cas typique: [JMenuBar, JMenu(Fichier), JPopupMenu, JMenuItem(premier)]
+	                    if (path.length >= 4 && path[path.length - 1] instanceof JMenuItem) {
+	                        JMenuBar bar = (JMenuBar) m.getParent(); // parent immédiat d’un JMenu = JMenuBar
+	                        msm.setSelectedPath(new MenuElement[] {
+	                            bar, m, m.getPopupMenu()   // <-- aucun item armé
+	                        });
+	                    }
+	                });
+	            }
+	            @Override public void menuDeselected(MenuEvent e) {}
+	            @Override public void menuCanceled(MenuEvent e) {}
+	        });
+	    	
+	    	
+	    	JMenuItem navigateurItem = createMenuItem("Navigateur", KeyEvent.VK_F6, 0, e -> {
+	    		if (spell != null) { spell.clearHighlights(); editorPane.requestFocusInWindow(); }
+	            new navigateurT1();
+	        });
+	    	
+	    	JMenuItem rechercher = createMenuItem("Rechercher texte", KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK, e -> {
+	    		if (spell != null) { spell.clearHighlights(); editorPane.requestFocusInWindow(); }
+	            new writer.openSearchDialog();
+	        });
     	
-    	
-    	JMenuItem navigateurItem = createMenuItem("Navigateur", KeyEvent.VK_F6, 0, e -> {
-    		if (spell != null) { spell.clearHighlights(); editorPane.requestFocusInWindow(); }
-            new navigateurT1();
-        });
-    	
-    	JMenuItem rechercher = createMenuItem("Rechercher texte", KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK, e -> {
-    		if (spell != null) { spell.clearHighlights(); editorPane.requestFocusInWindow(); }
-            new writer.openSearchDialog();
-        });
-    	
-    	//-------------- Marque page ----------------
+	    	//-------------- Marque page ----------------
 		
-    			JMenuItem bmToggle = createSimpleMenuItem("Marque-page (basculer)", e -> {
-    			    var m = bm();                      // récupère/initialise le manager
-    			    if (m == null) {                   // pas d’editorPane dispo
-    			        java.awt.Toolkit.getDefaultToolkit().beep();
-    			        return;
-    			    }
-    			    boolean added = m.toggleHere();
-    			    announceCaretLine(false, true, added ? "Marque-page ajouté." : "Marque-page supprimé.");
-    			});
-    			bmToggle.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, InputEvent.CTRL_DOWN_MASK));
-    			bmToggle.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-    			
+			JMenuItem bmToggle = createSimpleMenuItem("Marque-page (basculer)", e -> {
+			    var m = bm();
+			    if (m == null) {
+			        java.awt.Toolkit.getDefaultToolkit().beep();
+			        return;
+			    }
+			    boolean added = m.toggleHere();
+			    String message = (added ? "Marque-page ajouté." : "Marque-page supprimé.");
+			    dia.InfoDialog.show(instance, "Information", message);
+			    setModified(true);
+			});
+			bmToggle.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, InputEvent.CTRL_DOWN_MASK));
+			bmToggle.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+			
 
-    			JMenuItem bmNote = createSimpleMenuItem("Marque-page note", e -> { 
-    				var m = bm();                      
-    			    if (m == null) {                   
-    			        java.awt.Toolkit.getDefaultToolkit().beep();
-    			        return;
-    			    }
-    			    m.editNoteForNearest(javax.swing.SwingUtilities.getWindowAncestor(editorPane));
-    				});
-    			bmNote.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2,InputEvent.CTRL_DOWN_MASK | InputEvent.ALT_DOWN_MASK));
-    			bmNote.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-    			
-    			
-    			JMenuItem bmNext = createSimpleMenuItem("Marque-page suivant", e -> { 
-    				var m = bm();                      
-    			    if (m == null) {                   
-    			        java.awt.Toolkit.getDefaultToolkit().beep();
-    			        return;
-    			    }
-    				bookmarks.goNext(); 
-    				});
-    			bmNext.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0));
-    			bmNext.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+			JMenuItem bmNote = createSimpleMenuItem("Marque-page note", e -> { 
+				var m = bm();                      
+			    if (m == null) {                   
+			        java.awt.Toolkit.getDefaultToolkit().beep();
+			        return;
+			    }
+			    m.editNoteForNearest(javax.swing.SwingUtilities.getWindowAncestor(editorPane));
+				});
+			bmNote.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2,InputEvent.CTRL_DOWN_MASK | InputEvent.ALT_DOWN_MASK));
+			bmNote.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+			
+			
+			JMenuItem bmNext = createSimpleMenuItem("Marque-page suivant", e -> { 
+				var m = bm();                      
+			    if (m == null) {                   
+			        java.awt.Toolkit.getDefaultToolkit().beep();
+			        return;
+			    }
+				bookmarks.goNext(); 
+				});
+			bmNext.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0));
+			bmNext.setFont(new Font("Segoe UI", Font.PLAIN, 18));
 
-    			JMenuItem bmPrev = createSimpleMenuItem("Marque-page précédent", e -> { 
-    				var m = bm();                      
-    			    if (m == null) {                   
-    			        java.awt.Toolkit.getDefaultToolkit().beep();
-    			        return;
-    			    }
-    				bookmarks.goPrev(); 
-    				});
-    			bmPrev.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.SHIFT_DOWN_MASK));
-    			bmPrev.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-    			
-    			// -------- Position dans texte (F2) --------
-    			JMenuItem posItem = new JMenuItem(actAnnouncePosition);
-    			posItem.setText("Titre avant & après");
-    			posItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
-    			posItem.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-    			
-    			// -------- Titre suivant (F3) --------
-    			JMenuItem nextHeadingItem = new JMenuItem(actGotoNextHeading);
-    			nextHeadingItem.setText("Titre suivant");
-    			nextHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
-    			nextHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+			JMenuItem bmPrev = createSimpleMenuItem("Marque-page précédent", e -> { 
+				var m = bm();                      
+			    if (m == null) {                   
+			        java.awt.Toolkit.getDefaultToolkit().beep();
+			        return;
+			    }
+				bookmarks.goPrev(); 
+				});
+			bmPrev.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.SHIFT_DOWN_MASK));
+			bmPrev.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+			
+			// -------- Position dans texte (F2) --------
+			JMenuItem posItem = new JMenuItem(actAnnouncePosition);
+			posItem.setText("Titre avant & après");
+			posItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
+			posItem.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+			
+			// -------- Titre suivant (F3) --------
+			JMenuItem nextHeadingItem = new JMenuItem(actGotoNextHeading);
+			nextHeadingItem.setText("Titre suivant");
+			nextHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
+			nextHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, 18));
 
-    			// -------- Titre précédent (Shift+F3) --------
-    			JMenuItem prevHeadingItem = new JMenuItem(actGotoPrevHeading);
-    			prevHeadingItem.setText("Titre précédent");
-    			prevHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, InputEvent.SHIFT_DOWN_MASK));
-    			prevHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-    	
-    			addItemChangeListener(navigateurItem);
-    			addItemChangeListener(rechercher);
-    			addItemChangeListener(bmToggle);
-    			addItemChangeListener(bmNote);
-		        addItemChangeListener(bmNext);
-		        addItemChangeListener(bmPrev);
-		        addItemChangeListener(posItem);
-		        addItemChangeListener(nextHeadingItem);
-		        addItemChangeListener(prevHeadingItem);
-		        
-		        naviguerMenu.add(navigateurItem);
-		        naviguerMenu.addSeparator();
-		        naviguerMenu.add(rechercher);
-		        naviguerMenu.addSeparator();
-		        naviguerMenu.add(bmToggle);
-		        naviguerMenu.add(bmNote);
-		        naviguerMenu.add(bmNext);
-		        naviguerMenu.add(bmPrev);
-		        naviguerMenu.addSeparator();
-		        naviguerMenu.add(posItem);
-		        naviguerMenu.add(nextHeadingItem);
-		        naviguerMenu.add(prevHeadingItem);
+			// -------- Titre précédent (Shift+F3) --------
+			JMenuItem prevHeadingItem = new JMenuItem(actGotoPrevHeading);
+			prevHeadingItem.setText("Titre précédent");
+			prevHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, InputEvent.SHIFT_DOWN_MASK));
+			prevHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+	
+			addItemChangeListener(navigateurItem);
+			addItemChangeListener(rechercher);
+			addItemChangeListener(bmToggle);
+			addItemChangeListener(bmNote);
+	        addItemChangeListener(bmNext);
+	        addItemChangeListener(bmPrev);
+	        addItemChangeListener(posItem);
+	        addItemChangeListener(nextHeadingItem);
+	        addItemChangeListener(prevHeadingItem);
+	        
+	        naviguerMenu.add(navigateurItem);
+	        naviguerMenu.addSeparator();
+	        naviguerMenu.add(rechercher);
+	        naviguerMenu.addSeparator();
+	        naviguerMenu.add(bmToggle);
+	        naviguerMenu.add(bmNote);
+	        naviguerMenu.add(bmNext);
+	        naviguerMenu.add(bmPrev);
+	        naviguerMenu.addSeparator();
+	        naviguerMenu.add(posItem);
+	        naviguerMenu.add(nextHeadingItem);
+	        naviguerMenu.add(prevHeadingItem);
 
     	
     	return naviguerMenu;
@@ -2085,42 +2065,21 @@ public class blindWriter extends JFrame {
 
         // Fait défiler la vue
         editorPane.scrollRectToVisible(padded);
-
-        // Optionnel : si la marge est plus “intelligente” (ex. placer ~1/3 de la vue),
-        // on peut ajuster avec le viewport :
-        // JViewport vp = scrollPane.getViewport();
-        // Rectangle view = vp.getViewRect();
-        // ... (ajustements fins si besoin)
     }
 
-
-
-    // Permet de lire les accesibleName des JMenuItem
-    public static void addItemChangeListener(JMenuItem menuItem) {
-        menuItem.addChangeListener(e -> {
-            // Vérifier si le menu est actuellement armé (surligné)
-            if (menuItem.isArmed()) {
-                // Ne s'exécute que si le menu actuel est différent du dernier utilisé
-                if (menuItem != dernierMenuUtilise) {
-                	
-                    String accessibleName = new TraitementSonPourTTS(menuItem.getAccessibleContext().getAccessibleName()).returnTexte;
-                    if(menuItem.getAccessibleContext().getAccessibleDescription()!=null) {
-                    	accessibleName = new TraitementSonPourTTS(accessibleName + " " + menuItem.getAccessibleContext().getAccessibleDescription()).returnTexte;
-                    }
-                    
-                    
-                    if (accessibleName != null) {
-                        System.out.println(accessibleName);  // Affiche dans la console
-                        
-
-                        // Mettre à jour le dernier menu utilisé
-                        dernierMenuUtilise = menuItem;
-                    }
-                }
-            }
-        });
-    }
-    
+//    // Permet de lire les accesibleName des JMenuItem
+//    public void addItemChangeListener(JMenuItem menuItem) {
+//        menuItem.addChangeListener(e -> {
+//            // Vérifier si le menu est actuellement armé (surligné)
+//            if (menuItem.isArmed()) {
+//                // Ne s'exécute que si le menu actuel est différent du dernier utilisé
+//                if (menuItem != dernierMenuUtilise) {
+//                        // Mettre à jour le dernier menu utilisé
+//                        dernierMenuUtilise = menuItem;
+//                    }
+//                }
+//        });
+//    }
     
  // Auto-continuer les listes : "-. " inchangé, "n. " incrémenté
  // + renumérotation des paragraphes suivants quand on insère au milieu
@@ -2513,7 +2472,6 @@ public class blindWriter extends JFrame {
  	        setCaretPosition(0);
 
  	        // ⚠️ Ne PAS forcer ACCESSIBLE_NAME_PROPERTY ici, ça double l'annonce.
- 	        // Si tu tiens à garder un nom, fais-le sans firePropertyChange :
  	        javax.accessibility.AccessibleContext ac = getAccessibleContext();
  	        if (ac != null) {
  	            ac.setAccessibleName("Annonce"); // optionnel, générique
@@ -2653,7 +2611,7 @@ public class blindWriter extends JFrame {
  	}
 
 
- // Renvoie le premier titre AU-DESSUS du caret (inchangé)
+ 	// Renvoie le premier titre AU-DESSUS du caret (inchangé)
  	private static HeadingFound findEnclosingHeading() {
  	    try {
  	        final javax.swing.text.Document doc = editorPane.getDocument();
@@ -2725,17 +2683,17 @@ public class blindWriter extends JFrame {
  	}
 
 
- 	@SuppressWarnings("serial")
- 	private static final class ToggleEditAction extends AbstractAction {
- 	    @Override
- 	    public void actionPerformed(ActionEvent e) {
- 	       boolean editable = editorPane.isEditable();
- 	       editorPane.setEditable(!editable);
- 	       String msg = editable ? "Édition bloquée." : "Édition activée.";
- 	       java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(editorPane);
-           dia.InfoDialog.show(owner, "Mode édition", msg);
- 	    }
- 	}
+// 	@SuppressWarnings("serial")
+// 	private static final class ToggleEditAction extends AbstractAction {
+// 	    @Override
+// 	    public void actionPerformed(ActionEvent e) {
+// 	       boolean editable = editorPane.isEditable();
+// 	       editorPane.setEditable(!editable);
+// 	       String msg = editable ? "Édition bloquée." : "Édition activée.";
+// 	       java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(editorPane);
+//           dia.InfoDialog.show(owner, "Mode édition", msg);
+// 	    }
+// 	}
 
 
  	/** Force une marge horizontale minimale autour du caret dans le viewport. */
@@ -2798,7 +2756,7 @@ public class blindWriter extends JFrame {
  	}
  	
  	/** Applique la police à la barre de menus et à tout son contenu (récursif). */
- 	private static void applyMenuFontTree(JMenuBar bar) {
+ 	public static void applyMenuFontTree(JMenuBar bar) {
  	    if (bar == null) return;
  	    Font f = getMenuFont();
  	    setFontRecursively(bar, f);
@@ -2990,33 +2948,35 @@ public class blindWriter extends JFrame {
 	     return true;
 	 }
 	 
-	 /** Met à jour le titre de la fenêtre selon commandes.nameFile / currentDirectory / état modifié. */
-	 public static void updateWindowTitle() {
-	     if (instance == null) return;
-	     String base = "blindWriter";
-	     String name = (commandes.nameFile != null && !commandes.nameFile.isBlank())
-	         ? commandes.nameFile
-	         : "Nouveau";
-	     // si tu veux afficher l'extension .bwr systématiquement, décommente la ligne suivante :
-	     // if (!name.endsWith(".bwr")) name = name + ".bwr";
+//	 /** Met à jour le titre de la fenêtre selon commandes.nameFile / currentDirectory / état modifié. */
+//	 public void updateWindowTitle() {
+//	     if (instance == null) return;
+//	     String base = "blindWriter";
+//	     String name = (commandes.nameFile != null && !commandes.nameFile.isBlank())
+//	         ? commandes.nameFile
+//	         : "Nouveau";
+//	     // si tu veux afficher l'extension .bwr systématiquement, décommente la ligne suivante :
+//	     // if (!name.endsWith(".bwr")) name = name + ".bwr";
+//
+//	     StringBuilder title = new StringBuilder(base).append(" — ").append(name);
+//
+//	     if (commandes.currentDirectory != null) {
+//	         // n'affiche que le nom du dossier parent pour ne pas surcharger
+//	         java.io.File dir = new java.io.File(commandes.currentDirectory.toString());
+//	         String folder = dir.getName().isBlank() ? dir.getPath() : dir.getName();
+//	         title.append(" (").append(folder).append(")");
+//	     }
+//	     if (isModified) title.insert(0, "*"); // préfixe * quand non sauvegardé
+//	     instance.setTitle(title.toString());
+//	 }
 
-	     StringBuilder title = new StringBuilder(base).append(" — ").append(name);
-
-	     if (commandes.currentDirectory != null) {
-	         // n'affiche que le nom du dossier parent pour ne pas surcharger
-	         java.io.File dir = new java.io.File(commandes.currentDirectory.toString());
-	         String folder = dir.getName().isBlank() ? dir.getPath() : dir.getName();
-	         title.append(" (").append(folder).append(")");
-	     }
-	     if (isModified) title.insert(0, "*"); // préfixe * quand non sauvegardé
-	     instance.setTitle(title.toString());
-	 }
-
-	 /** Définit l'état modifié et met à jour le titre. */
-	 public static void setModified(boolean modified) {
-	     isModified = modified;
-	     updateWindowTitle();
-	 }
+//	 /** Définit l'état modifié et met à jour le titre. */
+//	 public void setModified(boolean modified) {
+//	     isModified = modified;
+//	     updateWindowTitle();
+//	 }
+	 
+	 
 	// Ajoute cette méthode dans blindWriter (ou une utilité)
 	 public static String findUrlAtCaret() {
 	     try {
