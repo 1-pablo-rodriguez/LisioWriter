@@ -1,40 +1,48 @@
 package styles;
 
+import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 
-import writer.blindWriter;
+import writer.ui.EditorApi;
 
 public class titrePrincipale {
+	private final EditorApi ctx;
+
+    public titrePrincipale(EditorApi ctx) {
+        this.ctx = ctx;
+    }
 	
-	public titrePrincipale() {
+    public void appliquer() {
 		try {
-			 // Obtenez la position du curseur
-	        int caretPosition = blindWriter.editorPane.getCaretPosition();
-	
-	        // Trouvez la ligne actuelle
-	        int line = blindWriter.editorPane.getLineOfOffset(caretPosition);
-	
-	        // Obtenez les offsets de début et de fin de la ligne
-	        int lineStart = blindWriter.editorPane.getLineStartOffset(line);
-	        int lineEnd = blindWriter.editorPane.getLineEndOffset(line);
-	
-	        // Extraire le texte de la ligne
-	        String lineText = blindWriter.editorPane.getText(lineStart, lineEnd - lineStart);
+			 	JTextArea editor = ctx.getEditor();
+
+	            // Obtenez la position du curseur
+	            int caretPosition = editor.getCaretPosition();
+
+	            // Trouvez la ligne actuelle
+	            int line = editor.getLineOfOffset(caretPosition);
+
+	            // Obtenez les offsets de début et de fin de la ligne
+	            int lineStart = editor.getLineStartOffset(line);
+	            int lineEnd = editor.getLineEndOffset(line);
+
+	            // Extraire le texte de la ligne
+	            String lineText = editor.getText(lineStart, lineEnd - lineStart);
 	        
 	     // Utilisation d'une expression régulière pour gérer les différents cas
 	        if (lineText.trim().matches("^#[1-9]\\..*")) {
 	            // Remplacer tous les # excédentaires en ne gardant que le premier
 	            String newText = lineText.replaceFirst("^#[0-9]\\.\\s*", "#P. ");
-	            blindWriter.editorPane.replaceRange(newText, lineStart, lineEnd);
-          	 	blindWriter.editorPane.setCaretPosition(caretPosition);
+	            editor.replaceRange(newText, lineStart, lineEnd);
+	            editor.setCaretPosition(caretPosition);
 	            sound();
 	            return;
 	        }
 	        if (lineText.trim().matches("^#S\\..*")) {
 	            // Remplacer tous les # excédentaires en ne gardant que le premier
 	            String newText = lineText.replaceFirst("^#S\\.\\s*", "#P. ");
-	            blindWriter.editorPane.replaceRange(newText, lineStart, lineEnd);
-          	 	blindWriter.editorPane.setCaretPosition(caretPosition);
+	            editor.replaceRange(newText, lineStart, lineEnd);
+	            editor.setCaretPosition(caretPosition);
 	            sound();
 	            return;
 	        }
@@ -42,8 +50,8 @@ public class titrePrincipale {
 	        if (lineText.trim().matches("^-\\..*")) {
 	            // Remplacer tous les # excédentaires en ne gardant que le premier
 	            String newText = lineText.replaceFirst("^-\\.\\s*", "#P. ");
-	            blindWriter.editorPane.replaceRange(newText, lineStart, lineEnd);
-          	 	blindWriter.editorPane.setCaretPosition(caretPosition);
+	            editor.replaceRange(newText, lineStart, lineEnd);
+	            editor.setCaretPosition(caretPosition);
 	            sound();
 	            return;
 	        }
@@ -54,16 +62,16 @@ public class titrePrincipale {
 	        }
  
 	        if (lineText.trim().matches("^[^#].*")) {
-	        	 blindWriter.editorPane.insert("#P. ", lineStart);
-       		 blindWriter.editorPane.setCaretPosition(caretPosition);
-		       	 sound();
-		       	 return;
+	        	editor.insert("#P. ", lineStart);
+	        	editor.setCaretPosition(caretPosition);
+		       	sound();
+		       	return;
 	        }
 	    } catch (BadLocationException ex) {
 	        ex.printStackTrace();
 	    }
 	}
 	private void sound() {
-		blindWriter.announceCaretLine(false, true,"Paragraphe en titre principal.");
+		ctx.showInfo("Titre Principal", "Paragraphe en titre principal.");
 	}
 }

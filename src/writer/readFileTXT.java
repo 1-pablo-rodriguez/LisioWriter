@@ -12,20 +12,26 @@ import java.nio.file.Path;
 
 import javax.swing.SwingUtilities;
 
+import writer.ui.EditorFrame;
+
 public final class readFileTXT {
 
+	EditorFrame parent;
+	
     @SuppressWarnings("unused")
-	public readFileTXT(File f) {
+	public readFileTXT(File f, EditorFrame parent) {
         if (f == null || !f.isFile()) {
-            announceError("Fichier introuvable.");
+        	System.out.println("Fichier introuvable.");
             return;
         }
 
         final String texte;
+        this.parent = parent;
+        
         try {
             texte = readTextSmart(f);
         } catch (IOException ex) {
-            announceError("Erreur de lecture : " + ex.getMessage());
+        	System.out.println("Erreur de lecture : " + ex.getMessage());
             return;
         }
 
@@ -54,27 +60,26 @@ public final class readFileTXT {
             }
 
             // Afficher dans l’éditeur
-            blindWriter.editorPane.setText(texte != null ? texte : "");
+            parent.getEditor().setText(texte != null ? texte : "");
             
             // initialisation des bookmarks
-            blindWriter.bookmarks =  new writer.bookmark.BookmarkManager(blindWriter.editorPane);
+            parent.createNewBookmarkManager();
             
             // Recupération du nom du fichier
-            File parent = f.getAbsoluteFile().getParentFile(); // dossier contenant f
+            File nameFolder = f.getAbsoluteFile().getParentFile(); // dossier contenant f
 
          // 1) Nom "pur" du dossier (ex: "Documents")
-         String nomDossier = (parent != null && parent.getName() != null && !parent.getName().isBlank())
-                 ? parent.getName()
-                 : (parent != null ? parent.getAbsolutePath() : ""); // fallback (racine: C:\ ou "/")
+         String nomDossier = (parent != null && nameFolder.getName() != null && !nameFolder.getName().isBlank())
+                 ? nameFolder.getName()
+                 : (nameFolder != null ? nameFolder.getAbsolutePath() : ""); // fallback (racine: C:\ ou "/")
 
          // 2) Chemin absolu du dossier (ex: "C:\Users\Moi\Documents")
-         String cheminDossier = (parent != null) ? parent.getAbsolutePath() : null;
+         String cheminDossier = (nameFolder != null) ? nameFolder.getAbsolutePath() : null;
 
          // Mettre à jour tes variables d’appli
          commandes.nameFile = stripExt(f.getName());        // nom du fichier (avec extension)
          commandes.nomDossierCourant = cheminDossier; // chemin du dossier
-         commandes.currentDirectory = parent;     // si tu l’utilises ailleurs
-
+         commandes.currentDirectory = nameFolder;     // si tu l’utilises ailleurs
 
         });
     }
@@ -122,9 +127,7 @@ public final class readFileTXT {
     }
 
 
-    private static void announceError(String msg) {
-        SwingUtilities.invokeLater(() -> blindWriter.announceCaretLine(false, true, msg));
-    }
+
     
     private static String stripExt(String name) {
         int i = name.lastIndexOf('.');

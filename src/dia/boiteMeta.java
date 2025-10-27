@@ -10,8 +10,8 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-import writer.blindWriter;
 import writer.commandes;
+import writer.ui.EditorFrame;
 
 
 public class boiteMeta {
@@ -22,10 +22,10 @@ public class boiteMeta {
 	private static JTextField coauteurField = new JTextField(20);
 	private static JTextField societyField = new JTextField(20);
 	
-	public boiteMeta() {
-		// Message 
-        
-
+	private final EditorFrame parent;
+	
+	public boiteMeta(EditorFrame parent) {
+		this.parent = parent;
 		dialog = new JDialog((Frame) null, "Modifier les méta-données", true);
         dialog.setLayout(new GridLayout(5, 0));
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -177,9 +177,14 @@ public class boiteMeta {
 	 * fermeture de la dialog
 	 */
 	private void fermeture() {
-		blindWriter.getInstance();
-		dialog.dispose();
-	}
+        if (parent != null) {
+            SwingUtilities.invokeLater(() -> {
+                parent.requestFocus();              // redonne le focus à la frame
+                parent.getEditor().requestFocusInWindow(); // et au JTextArea
+            });
+        }
+        dialog.dispose();
+    }
 	
 	private void valide() {
 		 commandes.meta.retourneFirstEnfant("titre").getAttributs().put("LeTitre", titreField.getText().trim());

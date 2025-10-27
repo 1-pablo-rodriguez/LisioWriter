@@ -1,32 +1,36 @@
 package dia;
 
 import java.awt.BorderLayout;
-import java.awt.Dialog;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import javax.swing.*;
 
-import writer.blindWriter;
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+
 import writer.commandes;
+import writer.ui.EditorFrame;
 
 /** Boîte de choix pour activer/désactiver le mode non-voyant. */
 @SuppressWarnings("serial")
-public final class BoiteNonVoyant extends JDialog {
+public class BoiteNonVoyant extends JDialog {
 
     private final JButton btnOui = new JButton("OUI");
     private final JButton btnNon = new JButton("NON");
     private final JLabel question = new JLabel("Êtes-vous non voyant ?");
+    EditorFrame parent ;
 
-    /** Affiche la boîte (modale) et met à jour commandes.nonvoyant. */
-    public static void show(Frame parent) {
-        BoiteNonVoyant d = new BoiteNonVoyant(parent);
-        d.setVisible(true);
-        // À la fermeture sans choix, on NE change rien => reste true par défaut
-    }
 
-    private BoiteNonVoyant(Frame parent) {
-        super(parent, "Accessibilité", Dialog.ModalityType.APPLICATION_MODAL);
+    public BoiteNonVoyant(EditorFrame parent) {
+    	this.parent = parent;
+    	
+       
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         // Texte lisible par lecteurs d'écran/braille
@@ -40,8 +44,13 @@ public final class BoiteNonVoyant extends JDialog {
         btnOui.getAccessibleContext().setAccessibleName("Bouton OUI, activer mode non voyant");
         btnOui.addActionListener((ActionEvent e) -> {
             commandes.nonvoyant = true;
+            if (parent != null) {
+                SwingUtilities.invokeLater(() -> {
+                    parent.requestFocus();
+                    parent.getEditor().requestFocusInWindow();
+                });
+            }
             dispose();
-            blindWriter.getInstance();
         });
 
         // Bouton NON
@@ -49,8 +58,11 @@ public final class BoiteNonVoyant extends JDialog {
         btnNon.getAccessibleContext().setAccessibleName("Bouton NON, désactiver mode non voyant");
         btnNon.addActionListener((ActionEvent e) -> {
             commandes.nonvoyant = false;
+            SwingUtilities.invokeLater(() -> {
+                parent.requestFocus();
+                parent.getEditor().requestFocusInWindow();
+            });
             dispose();
-            blindWriter.getInstance();
         });
 
         // Disposition
@@ -81,10 +93,10 @@ public final class BoiteNonVoyant extends JDialog {
             }
         });
 
-        
-
         pack();
         setLocationRelativeTo(parent);
+        
+        setVisible(true);
     }
 
 
