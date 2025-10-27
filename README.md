@@ -38,7 +38,7 @@ blindWriter facilite la production de rapports, mémoires, travaux universitaire
 
 ## 🎯 Objectifs
 
-Permettre à toute personne non-voyante ou déficiente visuelle de rédiger, lire et mettre en forme des documents de manière fluide, rapide et indépendante, grâce à une interface accessible et simple d’utilisation.
+Permettre à toute personne **non-voyante** ou **déficiente visuelle** de rédiger, lire et mettre en forme des documents de manière fluide, rapide et indépendante, grâce à une interface accessible et simple d’utilisation.
 
 Le logiciel s’adresse en priorité :
 
@@ -135,7 +135,7 @@ Vous pouvez :
 
 ## 👤 Auteur
 
-**blindWriter** a été développé par **Pablo Rodriguez** dans le cadre d’une démarche de recherche et d’innovation pédagogique visant à promouvoir l’autonomie numérique des personnes non-voyantes et malvoyantes.  
+**blindWriter** a été développé par **Pablo Rodriguez** dans le cadre d’une démarche de recherche et d’innovation pédagogique visant à promouvoir **l’autonomie numérique des personnes non-voyantes ou malvoyantes**.  
 
 Le logiciel a été expérimenté et validé auprès d’un étudiant en licence puis en master à **l’Université d’Artois**.  
 Cette phase de test a permis de mesurer l’accessibilité et l’ergonomie du logiciel, ainsi que sa capacité à répondre aux besoins effectifs des utilisateurs, tant dans le cadre **académique** que dans le milieu **professionnel** (stage de 2x4 mois sur les deux années de Master).
