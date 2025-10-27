@@ -1,15 +1,21 @@
 package writer;
 
+import javax.swing.JTextArea;
+
+import writer.ui.EditorFrame;
+
 public class champAuteur {
-	public champAuteur() {
+	
+	public champAuteur(EditorFrame frame) {
+		JTextArea editorPane = frame.getEditor();
 //		outils.removeCarriageReturns(blindWriter.editorPane.getText());
-		int positionCurseur = blindWriter.editorPane.getCaretPosition();
-		String selectedText = blindWriter.editorPane.getSelectedText();
+		int positionCurseur = editorPane.getCaretPosition();
+		String selectedText = editorPane.getSelectedText();
         
 		if(selectedText==null) {
 			 String newText = "@Auteur";
-             blindWriter.editorPane.replaceRange(newText, positionCurseur, positionCurseur);
-             blindWriter.editorPane.setCaretPosition(positionCurseur);
+             editorPane.replaceRange(newText, positionCurseur, positionCurseur);
+             editorPane.setCaretPosition(positionCurseur);
              //"Le champs auteur est inséré."
 		}else {
 

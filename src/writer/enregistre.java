@@ -4,17 +4,20 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import writer.ui.EditorFrame;
+
 
 public class enregistre {
 	
-    public enregistre() {
+	
+    public enregistre(EditorFrame parent) {
    	 // Sauvegarder le texte du JEditorPane dans un fichier
     	
     	// Mise à jour des bookmarks
     	commandes.nodeblindWriter.removeEnfant("bookmarks");
-    	commandes.nodeblindWriter.addEnfant(blindWriter.bookmarks.saveToXml());
+    	commandes.nodeblindWriter.addEnfant(parent.getBookmarks().saveToXml());
     	
-       String text = blindWriter.editorPane.getText(); // récupération du texte.
+       String text = parent.getEditor().getText(); // récupération du texte.
        commandes.contentText.getContenu().clear(); // RAZ du node contentText
        commandes.nodeblindWriter.retourneFirstEnfant("contentText").getContenu().clear(); // RAZ du node contentText
        
@@ -44,11 +47,11 @@ public class enregistre {
        }
    }
     
-    public enregistre(String nameFile) {
+    public enregistre(String nameFile, EditorFrame parent) {
       	 // Sauvegarder le texte du JEditorPane dans un fichier
-          String text = blindWriter.editorPane.getText();
+          String text = parent.getEditor().getText();
           commandes.nodeblindWriter.removeEnfant("bookmarks");
-          commandes.nodeblindWriter.addEnfant(blindWriter.bookmarks.saveToXml());
+          commandes.nodeblindWriter.addEnfant(parent.getBookmarks().saveToXml());
           commandes.contentText.getContenu().clear();
           commandes.contentText.addContenu(text);
           commandes.nodeblindWriter.getAttributs().put("filename", commandes.nameFile);

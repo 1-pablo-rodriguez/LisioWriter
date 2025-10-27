@@ -17,13 +17,14 @@ import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.text.Position;
 
 import Import.HtmlImporter;
-import writer.blindWriter;
 import writer.commandes;
+import writer.ui.EditorFrame;
 
 
 /** Boîte "Ouvrir" accessible (clavier/lecteur d’écran). */
@@ -60,7 +61,6 @@ public final class ouvrirHTML extends JDialog {
     private int brailleOffset = 0;                 // offset courant dans le nom sélectionné
 
     // local annonce
-    private final writer.blindWriter.SRAnnouncerArea srLocal = new writer.blindWriter.SRAnnouncerArea();
     private static java.awt.KeyEventDispatcher srDismissDispatcher;
     private static javax.swing.Timer srTimer;
 	private static volatile boolean srActive = false;
@@ -72,9 +72,13 @@ public final class ouvrirHTML extends JDialog {
 	private static final Icon ICON_PARENT = UIManager.getIcon("FileChooser.upFolderIcon");
 	private static final Icon ICON_FOLDER = UIManager.getIcon("FileView.directoryIcon");
 	private static final Icon ICON_FILE   = UIManager.getIcon("FileView.fileIcon");
+	
+	private EditorFrame parent;
     
-	public ouvrirHTML(){
-        super((java.awt.Frame) null);
+	public ouvrirHTML(EditorFrame parent){
+		super(parent);
+		this.parent = parent;
+		
         setTitle("Ouvrir un fichier");
         setModal(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -98,14 +102,7 @@ public final class ouvrirHTML extends JDialog {
         fileList.setCellRenderer(new FileRenderer());
         fileList.getAccessibleContext().setAccessibleName("Liste des dossiers et fichiers.");
         fileList.getAccessibleContext().setAccessibleDescription("Utilisez flèches, Entrée, Espace et Retour arrière pour naviguer.");
-        add(new JScrollPane(fileList), BorderLayout.CENTER);
-
-        srLocal.setFocusable(true);
-        srLocal.setOpaque(false);
-        srLocal.setBorder(null);
-        srLocal.setPreferredSize(new java.awt.Dimension(1,1));
-        add(srLocal, BorderLayout.NORTH);
-       
+        add(new JScrollPane(fileList), BorderLayout.CENTER);     
         
         // Barre d’état
         status.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 8));
@@ -361,11 +358,8 @@ public final class ouvrirHTML extends JDialog {
         // Fichier .html
         if (sel.isFile() && sel.getName().toLowerCase().endsWith(".html")) {
         	try {
-                String converted = HtmlImporter.importFileToBlindWriter(sel, sel.getParentFile().toURI().toString());
+                HtmlImporter.importFileToBlindWriter(sel, sel.getParentFile().toURI().toString());
                 // append ou remplacer le document courant selon ton choix
-                blindWriter.editorPane.getDocument().insertString(blindWriter.editorPane.getDocument().getLength(), converted, null);
-                // annonce NVDA : import terminé...
-
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -376,8 +370,11 @@ public final class ouvrirHTML extends JDialog {
     /** Ferme la boîte. restoreDir=true → remet le dossier courant initial. */
     private void closeDialog(boolean restoreDir) {
         if (restoreDir) commandes.currentDirectory = savedDirectory;
+        SwingUtilities.invokeLater(() -> {
+            parent.requestFocus();
+            parent.getEditor().requestFocusInWindow();
+        });
         dispose();
-        blindWriter.getInstance(); // focus retour éditeur
     }
 
     // ——— Recherche incrémentale avec priorité .html > fichiers > dossiers ———
@@ -573,13 +570,10 @@ public final class ouvrirHTML extends JDialog {
     }
 
 	private void announceHere(String msg, boolean autoHide, boolean takeFocus) {
-	    srLocal.setText(msg != null ? msg : "");
-	    srLocal.setCaretPosition(0);            // <<< important pour la braille
 
 	    if (!takeFocus) return; // ✅ on n'installe PAS le dispatcher, on ne touche pas au focus
 
 	    javax.swing.SwingUtilities.invokeLater(() -> {
-	        srLocal.requestFocusInWindow();
 	        srActive = autoHide;
 
 	        srDismissDispatcher = new java.awt.KeyEventDispatcher() {
@@ -598,7 +592,6 @@ public final class ouvrirHTML extends JDialog {
 	                	}
 	                    e.consume();
 	                    cancelSrLocal();
-	                    srLocal.clear();
 	                    fileList.requestFocusInWindow();
 
 	                    java.awt.EventQueue.invokeLater(() -> {

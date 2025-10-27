@@ -18,16 +18,19 @@ import javax.swing.SwingUtilities;
 
 import act.select_CANCEL;
 import act.select_OK;
-import writer.blindWriter;
 import writer.commandes;
 import writer.playSound;
+import writer.ui.EditorFrame;
 
 public class BoiteNewDocument  {
 	
 	private static JDialog dialog = new JDialog((Frame) null, "Créer un nouveau document", true);
+	EditorFrame parent ;
 	 
-	public BoiteNewDocument() {
+	public BoiteNewDocument(EditorFrame parent) {
 		 
+		this.parent = parent;
+		
 		dialog = new JDialog((Frame) null, "Créer un nouveau document", true);
         dialog.setLayout(new BorderLayout());
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -77,7 +80,7 @@ public class BoiteNewDocument  {
                         
                         commandes.defaultStyles();
                         
-                        blindWriter.editorPane.setText("");
+                        parent.getEditor().setText("");
                         if(commandes.audioActif) new playSound(commandes.getPathApp + "/nouveau_document_vierge.wav");
                         fermeture();  // Ferme la boîte de dialogue
                     }
@@ -126,12 +129,12 @@ public class BoiteNewDocument  {
         okButton.addActionListener(e -> {
             String texte = textField.getText();
             if (texte.isBlank()) {
-            	 if(commandes.audioActif) new playSound(commandes.getPathApp + "/erreur_nom_fichier.wav");
+            	System.out.println("Création d'un document vierge impossible");
             } else {
-            	if(commandes.audioActif) new playSound(commandes.getPathApp + "/nouveau_document_vierge.wav");
+            	System.out.println("Création d'un document vierge");
                 commandes.nameFile=texte;
                 commandes.hash=0;
-                blindWriter.editorPane.setText("");
+                parent.getEditor().setText("");
                 fermeture();
             }
         });
@@ -144,12 +147,12 @@ public class BoiteNewDocument  {
                     // Valide la saisie lorsque la touche "Entrée" est appuyée
                     String texte = textField.getText();
                     if (texte.isBlank()) {
-                    	if(commandes.audioActif) new playSound(commandes.getPathApp + "/erreur_nom_fichier.wav");
+                    	System.out.println("Création d'un document vierge impossible");
                     } else {
-                    	if(commandes.audioActif) new playSound(commandes.getPathApp + "/nouveau_document_vierge.wav");
+                    	System.out.println("Création d'un document vierge");
                         commandes.nameFile = texte;
                         commandes.hash=0;
-                        blindWriter.editorPane.setText("");
+                        parent.getEditor().setText("");
                         fermeture();
                     }
                 }
@@ -209,8 +212,12 @@ public class BoiteNewDocument  {
 	 * fermeture de la dialog
 	 */
 	private void fermeture() {
-		blindWriter.getInstance();
-		dialog.setVisible(false);
+		if (parent != null) {
+            SwingUtilities.invokeLater(() -> {
+                parent.requestFocus();              // redonne le focus à la frame
+                parent.getEditor().requestFocusInWindow(); // et au JTextArea
+            });
+        }
 		dialog.dispose();
 	}
 }

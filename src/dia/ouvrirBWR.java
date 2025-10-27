@@ -17,18 +17,19 @@ import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.text.Position;
 
-import writer.blindWriter;
 import writer.commandes;
 import writer.readFileBlindWriter;
+import writer.ui.EditorFrame;
 
 
 /** Boîte "Ouvrir" accessible (clavier/lecteur d’écran). */
 @SuppressWarnings("serial")
-public final class boiteOuvrir2 extends JDialog {
+public final class ouvrirBWR extends JDialog {
     private static final long serialVersionUID = 1L;
 
     // ——— Modèle et widgets ———
@@ -60,7 +61,6 @@ public final class boiteOuvrir2 extends JDialog {
     private int brailleOffset = 0;                 // offset courant dans le nom sélectionné
 
     // local annonce
-    private final writer.blindWriter.SRAnnouncerArea srLocal = new writer.blindWriter.SRAnnouncerArea();
     private static java.awt.KeyEventDispatcher srDismissDispatcher;
     private static javax.swing.Timer srTimer;
 	private static volatile boolean srActive = false;
@@ -72,9 +72,13 @@ public final class boiteOuvrir2 extends JDialog {
 	private static final Icon ICON_PARENT = UIManager.getIcon("FileChooser.upFolderIcon");
 	private static final Icon ICON_FOLDER = UIManager.getIcon("FileView.directoryIcon");
 	private static final Icon ICON_FILE   = UIManager.getIcon("FileView.fileIcon");
+	
+	private EditorFrame parent;
     
-	public boiteOuvrir2(){
-        super((java.awt.Frame) null);
+	public ouvrirBWR(EditorFrame parent){
+        super(parent);
+		this.parent = parent;
+
         setTitle("Ouvrir un fichier");
         setModal(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -98,14 +102,7 @@ public final class boiteOuvrir2 extends JDialog {
         fileList.setCellRenderer(new FileRenderer());
         fileList.getAccessibleContext().setAccessibleName("Liste des dossiers et fichiers.");
         fileList.getAccessibleContext().setAccessibleDescription("Utilisez flèches, Entrée, Espace et Retour arrière pour naviguer.");
-        add(new JScrollPane(fileList), BorderLayout.CENTER);
-
-        srLocal.setFocusable(true);
-        srLocal.setOpaque(false);
-        srLocal.setBorder(null);
-        srLocal.setPreferredSize(new java.awt.Dimension(1,1));
-        add(srLocal, BorderLayout.NORTH);
-       
+        add(new JScrollPane(fileList), BorderLayout.CENTER);     
         
         // Barre d’état
         status.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 8));
@@ -265,7 +262,6 @@ public final class boiteOuvrir2 extends JDialog {
         // Fenêtre
         // Fenêtre (plus grande, redimensionnable)
         setResizable(true);
-//        setSize(1200, 800);                 // largeur x hauteur
         maximizeToUsableScreen();
         setMinimumSize(new java.awt.Dimension(1000, 700));
         setLocationRelativeTo(null);
@@ -279,14 +275,6 @@ public final class boiteOuvrir2 extends JDialog {
                 closeDialog(true);
             }
         });
-
-//        SwingUtilities.invokeLater(() -> {
-//            fileList.requestFocusInWindow();
-//            File dir = commandes.currentDirectory;
-//            String msg = (dir != null ? "Ouvrir — Dossier " + dir.getName() : "Ouvrir — Racine système")
-//                    + ". " + status.getText();
-//            announceHere(msg,true,true);
-//        });
 
         setVisible(true);
     }
@@ -360,8 +348,8 @@ public final class boiteOuvrir2 extends JDialog {
 
         // Fichier .bwr
         if (sel.isFile() && sel.getName().toLowerCase().endsWith(".bwr")) {
-        	 if (new readFileBlindWriter(sel).isErreur()) {
-             	announceHere("Erreur d’ouverture du fichier " + sel.getName(),true, true);
+        	 if (new readFileBlindWriter(sel,parent).isErreur()) {
+        		 System.out.println("Erreur d’ouverture du fichier " + sel.getName());
              } else {
                  closeDialog(false);
              }
@@ -371,8 +359,11 @@ public final class boiteOuvrir2 extends JDialog {
     /** Ferme la boîte. restoreDir=true → remet le dossier courant initial. */
     private void closeDialog(boolean restoreDir) {
         if (restoreDir) commandes.currentDirectory = savedDirectory;
+        SwingUtilities.invokeLater(() -> {
+            parent.requestFocus();
+            parent.getEditor().requestFocusInWindow();
+        });
         dispose();
-        blindWriter.getInstance(); // focus retour éditeur
     }
 
     // ——— Recherche incrémentale avec priorité .bwr > fichiers > dossiers ———
@@ -396,15 +387,12 @@ public final class boiteOuvrir2 extends JDialog {
         }
     }
 
-
     /** Nom utilisé pour la comparaison : pour une racine (C:\, D:\ …) on prend le chemin absolu. */
     private static String nameForMatch(File f) {
         if (isParentEntry(f)) return "";
         if (f.getParentFile() == null) return driveDisplayName(f); // lecteur : matcher sur le nom lisible
         return f.getName();
     }
-
-
 
     // —————————— AFFICHAGE & ACCESSIBILITÉ ——————————
 
@@ -451,8 +439,6 @@ public final class boiteOuvrir2 extends JDialog {
         return "[Fichier] " + f.getName();
     }
 
-
-
     /** Renderer simple, lisible et accessible. */
     private static final class FileRenderer extends javax.swing.DefaultListCellRenderer {
         @Override
@@ -492,7 +478,6 @@ public final class boiteOuvrir2 extends JDialog {
         }
     }
 
- 
     /** Applique la charte "grands caractères" aux composants. */
     private void applyLargePrint() {
         var listFont = new java.awt.Font(UI_FONT_FAMILY, java.awt.Font.PLAIN, UI_FONT_SIZE_LIST);
@@ -513,7 +498,6 @@ public final class boiteOuvrir2 extends JDialog {
         // Indiquer au renderer d’utiliser la même police (voir plus bas)
         // (On ne fait rien ici: c’est géré dans FileRenderer via setFont(list.getFont()))
     }
-    
     
     private void maximizeToUsableScreen() {
         java.awt.GraphicsConfiguration gc = getGraphicsConfiguration();
@@ -568,13 +552,10 @@ public final class boiteOuvrir2 extends JDialog {
     }
 
 	private void announceHere(String msg, boolean autoHide, boolean takeFocus) {
-	    srLocal.setText(msg != null ? msg : "");
-	    srLocal.setCaretPosition(0);            // <<< important pour la braille
 
 	    if (!takeFocus) return; // ✅ on n'installe PAS le dispatcher, on ne touche pas au focus
 
 	    javax.swing.SwingUtilities.invokeLater(() -> {
-	        srLocal.requestFocusInWindow();
 	        srActive = autoHide;
 
 	        srDismissDispatcher = new java.awt.KeyEventDispatcher() {
@@ -593,7 +574,6 @@ public final class boiteOuvrir2 extends JDialog {
 	                	}
 	                    e.consume();
 	                    cancelSrLocal();
-	                    srLocal.clear();
 	                    fileList.requestFocusInWindow();
 
 	                    java.awt.EventQueue.invokeLater(() -> {

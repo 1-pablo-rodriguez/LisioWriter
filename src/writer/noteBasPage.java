@@ -1,15 +1,25 @@
 package writer;
 
+import writer.ui.EditorApi;
+
 public class noteBasPage {
-	public noteBasPage() {
-		int positionCurseur = blindWriter.editorPane.getCaretPosition();
-		String selectedText = blindWriter.editorPane.getSelectedText();
+	private final EditorApi ctx;
+
+	public noteBasPage(EditorApi ctx) {
+	    this.ctx = ctx;
+	}
+	
+	public void appliquer() {
+		var editor = ctx.getEditor();
+	
+		int positionCurseur = editor.getCaretPosition();
+		String selectedText = editor.getSelectedText();
         
 		if(selectedText==null) {
 			 String newText = "@(auteur : - titre : - année : - pages : )";
 			 //"La note de bas de pages est insérée. Vous devez modifier le texte entre les parenthèses pour modifier le texte de la note de bas de page."
-             blindWriter.editorPane.replaceRange(newText, positionCurseur, positionCurseur);
-             blindWriter.editorPane.setCaretPosition(positionCurseur);
+			 editor.replaceRange(newText, positionCurseur, positionCurseur);
+			 editor.setCaretPosition(positionCurseur);
 		}else {
 			//"Vous ne pouvez pas sélectionner un mot ou un texte pour insérer une note de bas de page."
 		}
