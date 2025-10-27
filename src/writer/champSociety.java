@@ -1,15 +1,17 @@
 package writer;
 
+import javax.swing.JTextArea;
+
 public class champSociety {
-	public champSociety() {
-//		outils.removeCarriageReturns(blindWriter.editorPane.getText());
-		int positionCurseur = blindWriter.editorPane.getCaretPosition();
-		String selectedText = blindWriter.editorPane.getSelectedText();
+	public champSociety(JTextArea editorPane) {
+
+		int positionCurseur = editorPane.getCaretPosition();
+		String selectedText = editorPane.getSelectedText();
         
 		if(selectedText==null) {
 			 String newText = "@Société";
-             blindWriter.editorPane.replaceRange(newText, positionCurseur, positionCurseur);
-             blindWriter.editorPane.setCaretPosition(positionCurseur);
+			 editorPane.replaceRange(newText, positionCurseur, positionCurseur);
+			 editorPane.setCaretPosition(positionCurseur);
              //"Le champs société est inséré."
 		}else {
 

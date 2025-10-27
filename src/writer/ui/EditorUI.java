@@ -2,31 +2,40 @@ package writer.ui;
 
 import javax.swing.*;
 import java.awt.*;
-import writer.blindWriter;
 
-/** Monte l’UI de l’éditeur dans une JFrame existante. */
+/**
+ * Monte l’interface principale de l’éditeur (zone de texte + scroll)
+ * dans une JFrame donnée.
+ */
 public final class EditorUI {
-	
-    private EditorUI() {}
 
-    public void installInto(JFrame host) {
-        // -- Crée l’éditeur + scroll et les place au centre
-        blindWriter.editorPane = new JTextArea();
+    private EditorUI() {
+        // classe utilitaire, pas d’instanciation
+    }
 
-        // Si tu as une config d’éditeur dans blindWriter, applique-la ici
-        if (host instanceof EditorFrame bw) {
-            // ta méthode existante : police, wrap, marges, etc.
-            bw.setupEditorPane();
+    /**
+     * Installe l’éditeur (zone de texte + raccourcis + menu) dans la fenêtre fournie.
+     * @param frame Fenêtre principale (doit être un EditorFrame)
+     */
+    public static void installInto(EditorFrame frame) {
+        // --- Crée l’éditeur et le ScrollPane
+        JTextArea editor = frame.getEditor();
+        JScrollPane scroll = new JScrollPane(editor);
 
-            // raccourcis et menus existants (inchangés)
-            bw.configureKeyboardShortcuts();
-            bw.setJMenuBar(blindWriter.createMenuBar());
-            blindWriter.applyMenuFontTree(bw.getJMenuBar());
-        }
+        // --- Mise en page
+        frame.getContentPane().add(scroll, BorderLayout.CENTER);
 
-        blindWriter.scrollPane = new JScrollPane(blindWriter.editorPane);
-        host.getContentPane().add(blindWriter.scrollPane, BorderLayout.CENTER);
+        // --- Configuration de l’éditeur (marges, polices, etc.)
+        frame.setupEditorPane();
 
-        host.validate();
+        // --- Raccourcis clavier
+        frame.configureKeyboardShortcuts();
+
+        // --- Barre de menus
+        JMenuBar bar = writer.ui.menu.MenuBarFactory.create(frame);
+        frame.setJMenuBar(bar);
+
+        // --- Validation finale de la fenêtre
+        frame.validate();
     }
 }

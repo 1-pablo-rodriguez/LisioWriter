@@ -124,7 +124,7 @@ public class HtmlBrowserDialog extends JDialog {
         backBtn.addActionListener(e -> goBack());
         forwardBtn.addActionListener(e -> goForward());
         reloadBtn.addActionListener(e -> reload());
-        insertBtn.addActionListener(e -> insertIntoEditor());
+        insertBtn.addActionListener(e -> insertIntoEditor(editorPane));
         closeBtn.addActionListener(e -> closeDialog());
         linksBtn.addActionListener(e -> openLinksDialog());
 
@@ -137,7 +137,7 @@ public class HtmlBrowserDialog extends JDialog {
 
         // Ctrl+I => Insérer
         root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control I"), "insertDoc");
-        root.getActionMap().put("insertDoc", new AbstractAction(){ public void actionPerformed(ActionEvent e){ insertIntoEditor(); }});
+        root.getActionMap().put("insertDoc", new AbstractAction(){ public void actionPerformed(ActionEvent e){ insertIntoEditor(editorPane); }});
 
         // Ctrl+R => Reload
         root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control R"), "reload");
@@ -294,11 +294,11 @@ public class HtmlBrowserDialog extends JDialog {
             int pos = doc.getLength();
             doc.insertString(pos, "\n\n" + t, null);
             editorPane.setCaretPosition(pos);
-            writer.blindWriter.setModified(true);
-            writer.blindWriter.announceCaretLine(false, true, "Page insérée dans le document.");
+            //writer.blindWriter.setModified(true);
+            System.out.println("Page insérée dans le document.");
         } catch (Exception ex) {
             ex.printStackTrace();
-            writer.blindWriter.announceCaretLine(false, true, "Erreur lors de l'insertion : " + ex.getMessage());
+            System.out.println("Erreur lors de l'insertion : " + ex.getMessage());
             JOptionPane.showMessageDialog(this, "Erreur insertion : " + ex.getMessage());
         }
     }
@@ -306,7 +306,7 @@ public class HtmlBrowserDialog extends JDialog {
     private void openLinksDialog() {
         if (extractedLinks == null || extractedLinks.isEmpty()) {
             Toolkit.getDefaultToolkit().beep();
-            writer.blindWriter.announceCaretLine(false, true, "Aucun lien détecté sur cette page.");
+            System.out.println("Aucun lien détecté sur cette page.");
             return;
         }
 
@@ -356,7 +356,7 @@ public class HtmlBrowserDialog extends JDialog {
         dlg.setLocationRelativeTo(this);
 
         // annonce avant affichage
-        writer.blindWriter.announceCaretLine(false, true, extractedLinks.size() + " liens listés. Utilisez les flèches et appuyez sur Entrée pour ouvrir.");
+        System.out.println(extractedLinks.size() + " liens listés. Utilisez les flèches et appuyez sur Entrée pour ouvrir.");
         dlg.setVisible(true);
     }
 
@@ -368,7 +368,7 @@ public class HtmlBrowserDialog extends JDialog {
     }
 
     private void closeDialog() {
-        writer.blindWriter.announceCaretLine(false, true, "Navigateur fermé.");
+    	System.out.println("Navigateur fermé.");
         dispose();
     }
 }

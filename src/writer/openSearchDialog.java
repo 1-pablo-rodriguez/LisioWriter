@@ -14,6 +14,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -37,9 +38,12 @@ public class openSearchDialog extends JDialog {
     private JTextField field;
     private JLabel status;
     private JButton btnNext, btnPrev;
+    private JTextArea editor;
 
-    public openSearchDialog() {
-        super(SwingUtilities.getWindowAncestor(blindWriter.editorPane), "Recherche");
+    public openSearchDialog(JTextArea editor) {
+        super(SwingUtilities.getWindowAncestor(editor), "Recherche");
+        this.editor = editor;
+        
         setModalityType(ModalityType.MODELESS);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
@@ -51,7 +55,7 @@ public class openSearchDialog extends JDialog {
             field.setText(searchText);
             field.selectAll();
         } else {
-            String sel = blindWriter.editorPane.getSelectedText();
+            String sel = editor.getSelectedText();
             if (sel != null && !sel.isBlank()) {
                 field.setText(sel);
                 field.selectAll();
@@ -172,7 +176,7 @@ public class openSearchDialog extends JDialog {
         currentIndex = 0;
         // Nettoyer les surlignages
         try {
-            blindWriter.editorPane.getHighlighter().removeAllHighlights();
+        	editor.getHighlighter().removeAllHighlights();
         } catch (Exception ignore) {}
     }
 
@@ -191,21 +195,20 @@ public class openSearchDialog extends JDialog {
 
     private String getAllText() {
         try {
-            Document doc = blindWriter.editorPane.getDocument();
+            Document doc = editor.getDocument();
             return doc.getText(0, doc.getLength());
         } catch (BadLocationException e) {
-            return blindWriter.editorPane.getText();
+            return editor.getText();
         }
     }
 
     private void findNext(boolean up) {
         String q = field.getText();
-        if (q == null || q.isBlank()) { say("Entrez un texte à rechercher."); field.requestFocusInWindow(); return; }
 
-        final javax.swing.text.JTextComponent area = blindWriter.editorPane;
+        final javax.swing.text.JTextComponent area = editor;
         final String all = getAllText();
         final java.util.regex.Pattern p = buildPattern(q);
-        if (p == null) { setStatus("Aucune occurrence."); say("Aucune occurrence."); return; }
+
 
         final int caret = area.getCaretPosition();
         int startIdx;
@@ -227,7 +230,6 @@ public class openSearchDialog extends JDialog {
                 foundStart = m.start(); foundEnd = m.end();
             } else if (m.find(0)) {
                 foundStart = m.start(); foundEnd = m.end();
-                say("Retour en haut du document.");
             }
         } else {
             // Vers le haut : on garde le dernier match <= startIdx
@@ -239,11 +241,9 @@ public class openSearchDialog extends JDialog {
             if (foundStart < 0) {
                 // wrap à la fin
                 while (m.find()) { foundStart = m.start(); foundEnd = m.end(); }
-                if (foundStart >= 0) say("Retour en bas du document.");
             }
         }
 
-        if (foundStart < 0) { setStatus("Aucune occurrence."); say("Aucune occurrence."); return; }
 
         // --- mémorisation & index logique k/N ---
         lastDirectionUp = up;
@@ -295,7 +295,7 @@ public class openSearchDialog extends JDialog {
         } else {
             spoken = matchedWord + " - " + currentIndex + "/" + totalCount;
         }
-        say(spoken);
+        System.out.println(spoken);
 
 
         // --- InfoDialog : contexte avec crochets ---
@@ -319,20 +319,12 @@ public class openSearchDialog extends JDialog {
         status.getAccessibleContext().setAccessibleDescription(s);
     }
 
-    private void say(String s) {
-        // Utilise ton utilitaire d’annonce.
-        // Adapte si nécessaire : blindWriter.announceCaretLine(withTimer, withMessage, msg)
-        try {
-            blindWriter.announceCaretLine(false, true, s);
-        } catch (Throwable t) {
-            // En secours, on n’affiche rien de modal pour ne pas casser la navigation lecteur d’écran
-        }
-    }
+
 
     private void close() {
         // Rendre le focus à l’éditeur
         try {
-            blindWriter.editorPane.requestFocusInWindow();
+        	editor.requestFocusInWindow();
         } catch (Throwable ignore) {}
         dispose();
     }
@@ -391,12 +383,12 @@ public class openSearchDialog extends JDialog {
         }
 
         String msg = firstLine + "\n" + snippet;
-        java.awt.Window owner = getOwner() != null ? getOwner() : SwingUtilities.getWindowAncestor(blindWriter.editorPane);
+        java.awt.Window owner = getOwner() != null ? getOwner() : SwingUtilities.getWindowAncestor(editor);
         try {
             dia.InfoDialog.show(owner, "Recherche", msg);
         } catch (Throwable t) {
             // en secours, on annonce seulement (synthèse)
-            say(snippet);
+        	System.out.println(snippet);
         }
     }
 

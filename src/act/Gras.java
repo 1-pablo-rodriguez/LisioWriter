@@ -16,6 +16,7 @@ public class Gras extends AbstractAction{
 	    super("Gras");
 	    this.ctx = ctx;
 	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		new formatage.Gras(ctx).appliquer();

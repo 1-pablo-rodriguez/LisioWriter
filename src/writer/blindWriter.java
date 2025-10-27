@@ -66,9 +66,8 @@ public class blindWriter extends writer.ui.EditorFrame {
                      return;
                  }
 	            // tu peux ici appeler ta classe d’import :
-	            new readFileBlindWriter(f);
-	            frame.setModified(false);
-	            frame.updateWindowTitle();
+	            new readFileBlindWriter(f, frame);
+
 	        } catch (Exception ex) {
 	            ex.printStackTrace();
 	        }

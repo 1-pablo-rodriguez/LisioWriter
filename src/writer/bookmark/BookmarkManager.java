@@ -58,6 +58,13 @@ public final class BookmarkManager {
          return b;
      } catch (BadLocationException ex) { return null; }
  }
+ 
+ // Supprime tous les marque-pages
+ public void clearAll() {
+	    map.clear();
+	    order.clear();
+	    cursor = -1;
+	}
 
  // Supprime le marque-page le plus proche du caret (tolérance : même ligne)
  public Bookmark removeNearestOnSameLine() {

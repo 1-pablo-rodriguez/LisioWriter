@@ -19,6 +19,7 @@ import java.util.HexFormat;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
+import writer.util.AppInfo;
 
 
 /**
@@ -29,16 +30,16 @@ import jakarta.json.JsonReader;
  */
 public class AutoUpdater {
 
-    private final String metadataUrl; // ex: https://updates.exemple.com/updates.json
+    private final String metadataUrl; // ex: https://raw.githubusercontent.com/1-pablo-rodriguez/blindWriter/refs/heads/main/updates.json
 
-	private final String currentVersion; // ex: "1.0.6"
+	private final String currentVersion; // ex: "1.0.10"
 
     public AutoUpdater(String metadataUrl, String currentVersion) {
         this.metadataUrl = metadataUrl;
         // utiliser la version passée en paramètre (fallback vers blindWriter si null)
         this.currentVersion = (currentVersion != null && !currentVersion.isBlank())
                               ? currentVersion
-                              : writer.blindWriter.getAppVersion();
+                              : AppInfo.getAppVersion();
     }
 
 

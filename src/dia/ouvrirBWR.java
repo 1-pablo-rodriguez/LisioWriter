@@ -348,8 +348,8 @@ public final class ouvrirBWR extends JDialog {
 
         // Fichier .bwr
         if (sel.isFile() && sel.getName().toLowerCase().endsWith(".bwr")) {
-        	 if (new readFileBlindWriter(sel).isErreur()) {
-             	announceHere("Erreur d’ouverture du fichier " + sel.getName(),true, true);
+        	 if (new readFileBlindWriter(sel,parent).isErreur()) {
+        		 System.out.println("Erreur d’ouverture du fichier " + sel.getName());
              } else {
                  closeDialog(false);
              }
@@ -360,8 +360,8 @@ public final class ouvrirBWR extends JDialog {
     private void closeDialog(boolean restoreDir) {
         if (restoreDir) commandes.currentDirectory = savedDirectory;
         SwingUtilities.invokeLater(() -> {
-            parent.requestFocus();              // redonne le focus à la frame
-            parent.getEditor().requestFocusInWindow(); // et au JTextArea
+            parent.requestFocus();
+            parent.getEditor().requestFocusInWindow();
         });
         dispose();
     }
