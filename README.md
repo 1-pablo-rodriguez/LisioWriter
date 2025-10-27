@@ -88,11 +88,12 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de blindWriter acces
 |----------------|------------------------|-----------------------------------------------------------------------------|
 | **F1**         | Informations           | Annonce des informations sur la fenêtre en cours ou sur l’ensemble du document. |
 | **F2**         | Lecture de titre       | Dans une fenêtre, affiche le titre du paragraphe et affiche le titre suivant.   |
-| **Ctrl+F2**    | Insère/Supp. un marque page  | Insère ou supprime un marque-page associé à une note          |
+| **Ctrl+F2**    | Insère/Supp. un marque page  | Insère ou supprime un marque-page associé à une note.          |
 | **F3 / Maj+F3**| Navigation par titres  | Passe rapidement au titre suivant ou au titre précédent.                    |
 | **F4 / Maj+F4**| Navigation par marque-page  | Passe rapidement au marque-page suivant ou au marque-page précédent.   |
 | **ALT+A**      | Documentation intégrée | Ouvre la documentation interne de blindWriter.                              |
 | **F6**         | Navigateur de titres   | Ouvre le navigateur pour parcourir la structure du document.                |
+| **F7**         | Erreur suivante     | Sélectionne le mot ou le texte contenant une faute ou erreur.              |
 | **Ctrl+F7**    | Vérification du document   | Lance la vérification orthographique et grammaticale de tout le document.   |
 | **Ctrl+F2**    | Marque-page            | Ajoute un marque-page annoté dans le document.                              |
 
