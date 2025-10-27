@@ -6,14 +6,30 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
-import javax.swing.*;
-import javax.swing.text.*;
+
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
+import javax.swing.text.JTextComponent;
 
 import act.select_CANCEL;
 import act.select_OK;
-import writer.blindWriter;
 import writer.commandes;
 import writer.playSound;
+import writer.ui.EditorFrame;
 
 @SuppressWarnings("serial")
 public final class BoiteRenameFile extends JDialog {
@@ -29,8 +45,10 @@ public final class BoiteRenameFile extends JDialog {
     // autorise lettres, chiffres, espace, _ - . (souvent utiles dans un nom)
     private static final Pattern ALLOWED = Pattern.compile("[a-zA-Z0-9 _.-]+");
 
-    public BoiteRenameFile() {
+    
+    public BoiteRenameFile(EditorFrame parent) {
         super((Frame) null, "Modifier le nom de fichier", true);
+        
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(12, 12));
 
@@ -95,7 +113,10 @@ public final class BoiteRenameFile extends JDialog {
         getRootPane().getActionMap().put("cancel", new AbstractAction() {
             @Override public void actionPerformed(ActionEvent e) {
                 new select_CANCEL().actionPerformed(null);
-                blindWriter.getInstance();
+                SwingUtilities.invokeLater(() -> {
+                    parent.requestFocus();
+                    parent.getEditor().requestFocusInWindow();
+                });
                 dispose();
             }
         });

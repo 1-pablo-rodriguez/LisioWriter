@@ -28,11 +28,12 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import writer.TraitementSonPourTTS;
-import writer.blindWriter;
+import writer.ui.EditorFrame;
 
 
 public class navigateurT1 extends JFrame{
@@ -62,10 +63,13 @@ public class navigateurT1 extends JFrame{
 
     int selectedIndex = 0;
 
-    
+    private EditorFrame parent;
+    private JTextArea editor;
     
 	@SuppressWarnings("serial")
-	public navigateurT1() {
+	public navigateurT1(EditorFrame parent) {
+		this.parent = parent;
+		this.editor = parent.getEditor();
 		
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -122,7 +126,7 @@ public class navigateurT1 extends JFrame{
 
 		list.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 
-		allTitle(writer.blindWriter.editorPane.getText());
+		allTitle(editor.getText());
 		// au lieu de ajouteTousLesTitreUnDansList();
 		rebuildVisibleModel();
 		//ajouteTousLesTitreUnDansList();
@@ -157,7 +161,7 @@ public class navigateurT1 extends JFrame{
             	        int caret = titresOffsets.get(selectedGlobalIndex);
 
             	        // Sécurité : avance jusqu’au premier '#'
-            	        String doc = blindWriter.editorPane.getText();
+            	        String doc = editor.getText();
             	        while (caret < doc.length() && Character.isWhitespace(doc.charAt(caret))) {
             	            if (caret + 1 < doc.length() && doc.charAt(caret + 1) == '#') { break; }
             	            caret++;
@@ -168,15 +172,15 @@ public class navigateurT1 extends JFrame{
             	            if (h >= 0 && h - caret < 8) caret = h; // marge raisonnable
             	        }
 
-            	        caret = Math.max(0, Math.min(caret, blindWriter.editorPane.getDocument().getLength()));
-            	        blindWriter.editorPane.setCaretPosition(caret);
+            	        caret = Math.max(0, Math.min(caret, editor.getDocument().getLength()));
+            	        editor.setCaretPosition(caret);
 
             	        try {
-            	            java.awt.geom.Rectangle2D r2d = blindWriter.editorPane.modelToView2D(caret);
+            	            java.awt.geom.Rectangle2D r2d = editor.modelToView2D(caret);
             	            if (r2d != null) {
             	                java.awt.Rectangle r = r2d.getBounds();
-            	                int h = blindWriter.scrollPane.getViewport().getHeight();
-            	                blindWriter.editorPane.scrollRectToVisible(new java.awt.Rectangle(r.x, r.y, r.width, h));
+            	                int h = parent.getScrollPane().getViewport().getHeight();
+            	                parent.getScrollPane().scrollRectToVisible(new java.awt.Rectangle(r.x, r.y, r.width, h));
             	            }
             	        } catch (Exception ex) {
             	            ex.printStackTrace();
@@ -372,7 +376,10 @@ public class navigateurT1 extends JFrame{
 		list.removeAll();
 	  	structure.clear();
 		dispose();
-	  	blindWriter.getInstance();
+		SwingUtilities.invokeLater(() -> {
+            parent.requestFocus();
+            parent.getEditor().requestFocusInWindow();
+        });
 	}
 
 	
@@ -492,7 +499,7 @@ public class navigateurT1 extends JFrame{
 	    if (niveau == 0) return false;
 
 	    // bornes du bloc (titre + descendants)
-	    String contenu = blindWriter.editorPane.getText();
+	    String contenu = editor.getText();
 	    int start = titresOffsets.get(idx);
 	    int idxSuiv = indiceSuivantMemeOuInferieur(idx, niveau);
 	    int end = (idxSuiv >= 0) ? titresOffsets.get(idxSuiv) : contenu.length();
@@ -507,7 +514,7 @@ public class navigateurT1 extends JFrame{
 
 	    // supprimer le bloc
 	    String nouveau = contenu.substring(0, start) + contenu.substring(end);
-	    blindWriter.editorPane.setText(nouveau);
+	    editor.setText(nouveau);
 
 	    // séquence complète
 	    allTitle(nouveau);
@@ -723,7 +730,7 @@ public class navigateurT1 extends JFrame{
 		    int prevIdx = indicePrecedentMemeOuInferieur(idx, niveau);
 		    if (prevIdx < 0) return false; // déjà tout en haut pour ce niveau
 
-		    String contenu = blindWriter.editorPane.getText();
+		    String contenu = editor.getText();
 
 		    // bornes du bloc à déplacer : [start, end)
 		    int start = titresOffsets.get(idx);
@@ -747,7 +754,7 @@ public class navigateurT1 extends JFrame{
 		    String nouveau = new StringBuilder(sansBloc).insert(insertPos, bloc).toString();
 
 		    // 5) appliquer le texte
-		    blindWriter.editorPane.setText(nouveau);
+		    editor.setText(nouveau);
 
 		    // 6) reconstruire les tables sur le texte final, restaurer expansions, re-bâtir la vue
 		    allTitle(nouveau);
@@ -768,7 +775,7 @@ public class navigateurT1 extends JFrame{
 		    if (niveau == 0) return false;
 
 		    // début/fin du bloc courant
-		    String contenu = blindWriter.editorPane.getText();
+		    String contenu = editor.getText();
 		    int start = titresOffsets.get(idx);
 		    int idxBreak = indiceSuivantMemeOuInferieur(idx, niveau); // 1er titre après le bloc courant (même ou plus haut niveau)
 		    int end = (idxBreak >= 0) ? titresOffsets.get(idxBreak) : contenu.length();
@@ -802,7 +809,7 @@ public class navigateurT1 extends JFrame{
 
 		    // Insérer le bloc après le frère
 		    String nouveau = new StringBuilder(sansBloc).insert(insertPos, bloc).toString();
-		    blindWriter.editorPane.setText(nouveau);
+		    editor.setText(nouveau);
 
 		    // Recalculer sur le texte final + restaurer expansions + rebâtir la vue
 		    allTitle(nouveau);
@@ -1140,7 +1147,7 @@ public class navigateurT1 extends JFrame{
 		    }
 		    
 		    // Bornes du bloc (titre + descendants)
-		    String contenu = blindWriter.editorPane.getText();
+		    String contenu = editor.getText();
 		    int start = titresOffsets.get(idx);
 		    int idxBreak = indiceSuivantMemeOuInferieur(idx, lvl);
 		    int end = (idxBreak >= 0) ? titresOffsets.get(idxBreak) : contenu.length();
@@ -1179,7 +1186,7 @@ public class navigateurT1 extends JFrame{
 
 		    // Construire le nouveau document
 		    String nouveau = contenu.substring(0, start) + blocShifted + contenu.substring(end);
-		    blindWriter.editorPane.setText(nouveau);
+		    editor.setText(nouveau);
 
 		    // Recalculs + resto expansions + rebuild
 		    allTitle(nouveau);
@@ -1249,7 +1256,7 @@ public class navigateurT1 extends JFrame{
 
 
 		    // Bornes du bloc (titre + descendants)
-		    String contenu = blindWriter.editorPane.getText();
+		    String contenu = editor.getText();
 		    int start = titresOffsets.get(idx);
 		    int idxBreak = indiceSuivantMemeOuInferieur(idx, lvl);
 		    int end = (idxBreak >= 0) ? titresOffsets.get(idxBreak) : contenu.length();
@@ -1287,7 +1294,7 @@ public class navigateurT1 extends JFrame{
 
 		    // Construire le nouveau document
 		    String nouveau = contenu.substring(0, start) + blocShifted + contenu.substring(end);
-		    blindWriter.editorPane.setText(nouveau);
+		    editor.setText(nouveau);
 
 		    // Recalcul structures + restauration expansions + rebuild de la vue
 		    allTitle(nouveau);
@@ -1349,7 +1356,7 @@ public class navigateurT1 extends JFrame{
 
 
 		    // Contenu courant
-		    String contenu = blindWriter.editorPane.getText();
+		    String contenu = editor.getText();
 
 		    // Offsets de la LIGNE de titre
 		    int start = titresOffsets.get(idx);
@@ -1364,7 +1371,7 @@ public class navigateurT1 extends JFrame{
 
 		    // Remplacement dans le document (uniquement la ligne de titre)
 		    String nouveau = contenu.substring(0, start) + newLine + contenu.substring(start + lineLen);
-		    blindWriter.editorPane.setText(nouveau);
+		    editor.setText(nouveau);
 
 		    // Recalcul & restauration UI
 		    allTitle(nouveau);
@@ -1411,7 +1418,7 @@ public class navigateurT1 extends JFrame{
 		    	return;
 		    }
 
-		    String contenu = blindWriter.editorPane.getText();
+		    String contenu = editor.getText();
 		    int start = titresOffsets.get(idx);
 		    String oldLine = titresOrdre.get(idx);
 		    int lineLen = oldLine.length();
@@ -1433,7 +1440,7 @@ public class navigateurT1 extends JFrame{
 
 		    // Remplacer uniquement la ligne de titre dans le document
 		    String nouveau = contenu.substring(0, start) + newLine + contenu.substring(start + lineLen);
-		    blindWriter.editorPane.setText(nouveau);
+		    editor.setText(nouveau);
 
 		    // Recalcul + restauration + rebuild
 		    allTitle(nouveau);
@@ -1497,7 +1504,7 @@ public class navigateurT1 extends JFrame{
 		    String libSousTitres = (nbSousTitres <= 1) ? "sous-titre" : "sous-titres";
 		
 		    // === Délimitation du bloc (titre + descendants) ===
-		    String contenuDoc = blindWriter.editorPane.getText();
+		    String contenuDoc = editor.getText();
 		    int lvl   = Math.max(1, titresNiveaux.get(idx));
 		    int start = titresOffsets.get(idx);
 		    int idxBreak = indiceSuivantMemeOuInferieur(idx, lvl); // 1er titre de même ou plus haut niveau après 'idx'
@@ -1727,7 +1734,7 @@ public class navigateurT1 extends JFrame{
 		    }
 
 		    // Délimiter le bloc : [start, end)
-		    String contenu = writer.blindWriter.editorPane.getText();
+		    String contenu = editor.getText();
 		    int start = titresOffsets.get(idx);
 		    int idxSuiv = indiceSuivantMemeOuInferieur(idx, niveau); // 1er titre de même ou plus haut niveau
 		    int end = (idxSuiv >= 0) ? titresOffsets.get(idxSuiv) : contenu.length();

@@ -1,15 +1,17 @@
 package writer;
 
+import javax.swing.JTextArea;
+
 public class champDateModification {
-	public champDateModification() {
-//		outils.removeCarriageReturns(blindWriter.editorPane.getText());
-		int positionCurseur = blindWriter.editorPane.getCaretPosition();
-		String selectedText = blindWriter.editorPane.getSelectedText();
+	public champDateModification(JTextArea editorPane) {
+
+		int positionCurseur = editorPane.getCaretPosition();
+		String selectedText = editorPane.getSelectedText();
         
 		if(selectedText==null) {
 			 String newText = "@Date";
-             blindWriter.editorPane.replaceRange(newText, positionCurseur, positionCurseur);
-             blindWriter.editorPane.setCaretPosition(positionCurseur);
+			 editorPane.replaceRange(newText, positionCurseur, positionCurseur);
+			 editorPane.setCaretPosition(positionCurseur);
              //"Le champs date est inséré."
 		}else {
 

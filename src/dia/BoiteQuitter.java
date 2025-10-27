@@ -14,7 +14,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.lang.reflect.Field;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -27,18 +26,22 @@ import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 
-import writer.blindWriter;
 import writer.enregistre;
+import writer.ui.EditorFrame;
 
 public class BoiteQuitter {
 
     private static JDialog dialog;
+    private EditorFrame parent;
 
     @SuppressWarnings("serial")
-	public BoiteQuitter() {
+	public BoiteQuitter(EditorFrame parent) {
 
+    	this.parent = parent;
+    	
         final boolean modified = hasUnsavedChanges();
         final String title = "Quitter";
         final String baseMessage = modified
@@ -49,8 +52,6 @@ public class BoiteQuitter {
                 : "\nDeux choix : Quitter ou Annuler.\n";
         final String fullMessage = modified ? (baseMessage + " " + detail) : baseMessage;
 
-        // Annonce immédiate pour le lecteur d’écran
-        blindWriter.announceCaretLine(true, true, fullMessage);
 
         dialog = new JDialog((Frame) null, title, true);
         dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
@@ -88,8 +89,6 @@ public class BoiteQuitter {
         label.addFocusListener(new FocusAdapter() {
             @Override public void focusGained(FocusEvent e) {
                 label.setBorder(new LineBorder(accent, 3, true));
-                // annonce explicite du contenu
-                blindWriter.announceCaretLine(true, true, fullMessage);
             }
             @Override public void focusLost(FocusEvent e) {
                 label.setBorder(new LineBorder(bg, 0));
@@ -210,25 +209,7 @@ public class BoiteQuitter {
 
     // ---------- Détection des modifications ----------
     private boolean hasUnsavedChanges() {
-        try {
-            // 1) champ public static ?
-            Field fStatic = blindWriter.class.getField("isModified");
-            if (java.lang.reflect.Modifier.isStatic(fStatic.getModifiers())) {
-                return fStatic.getBoolean(null);
-            }
-        } catch (NoSuchFieldException ignore) {
-            // passe au cas instance
-        } catch (Exception e) {
-            // problème d'accès → on tente l'instance
-        }
-        try {
-            Object inst = blindWriter.getInstance();
-            Field fInstance = inst.getClass().getField("isModified");
-            return fInstance.getBoolean(inst);
-        } catch (Exception e) {
-            // Si on ne peut pas lire, par prudence considérer non modifié (sinon on bloquerait à tort)
-            return false;
-        }
+    	 return parent.isModifier();
     }
 
 
@@ -276,11 +257,17 @@ public class BoiteQuitter {
     // ---------- Actions ----------
     private void annuler() {
         if (dialog != null) dialog.dispose();
-        blindWriter.getInstance();
+        SwingUtilities.invokeLater(() -> {
+            parent.requestFocus();
+            parent.getEditor().requestFocusInWindow();
+        });
     }
 
     private void fermeture() {
-        blindWriter.getInstance();
+    	 SwingUtilities.invokeLater(() -> {
+             parent.requestFocus();
+             parent.getEditor().requestFocusInWindow();
+         });
         System.exit(0);
     }
     
@@ -289,17 +276,17 @@ public class BoiteQuitter {
     private void doSaveAndQuit() {
         try {
             // 1) lancer l'enregistrement (ta classe/commande existante)
-            new enregistre(); 
+            new enregistre(parent); 
 
             // 2) indiquer qu'il n'y a plus de modifications et MAJ du titre
-            blindWriter.setModified(false);
+            parent.setModified(false);
 
             // 3) fermer l'application
             fermeture();
 
         } catch (Throwable ex) {
             // Si quelque chose échoue, on prévient et on reste dans l'éditeur
-        	dia.InfoDialog.show(blindWriter.getInstance(), "Erreur", "Erreur pendant l'enregistrement. L'application reste ouverte.");
+        	System.out.println("Erreur pendant l'enregistrement. L'application reste ouverte.");
             ex.printStackTrace();
             annuler();
         }

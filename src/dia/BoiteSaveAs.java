@@ -25,8 +25,8 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileSystemView;
 
-import writer.blindWriter;
 import writer.commandes;
+import writer.ui.EditorFrame;
 
 public class BoiteSaveAs extends JFrame {
     /**
@@ -37,7 +37,6 @@ public class BoiteSaveAs extends JFrame {
     private final JList<File> fileList = new JList<>(model);
     private static boolean isParentEntry(File f) { return f != null && "..".equals(f.getName()) && !f.isAbsolute(); }
     private static File parentEntry() { return new File(".."); }
-    private final writer.blindWriter.SRAnnouncerArea srLocal = new writer.blindWriter.SRAnnouncerArea();
     private java.awt.KeyEventDispatcher srDismissDispatcher;
     private javax.swing.Timer srTimer;
     private volatile boolean srActive = false;
@@ -48,7 +47,6 @@ public class BoiteSaveAs extends JFrame {
     
 	// Variable pour suivre le répertoire courant
 	public static boolean isOKtoSaveAs = false;
-	private String announceAfterClose = null;
 	
 	// Champ de saisie du nom de fichier (focusable pour la braille)
 	private final javax.swing.JTextField nameField = new javax.swing.JTextField(32);
@@ -67,9 +65,13 @@ public class BoiteSaveAs extends JFrame {
 	
 	 // ——— Lecteurs : nom/icone système ———
     private static final FileSystemView FSV = FileSystemView.getFileSystemView();
+    
+    private EditorFrame parent;
 	
 	@SuppressWarnings("serial")
-	public BoiteSaveAs() {		
+	public BoiteSaveAs(EditorFrame parent) {
+		this.parent = parent;
+		
 	    setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 	    setTitle("Enregistrer sous");
 	
@@ -79,11 +81,6 @@ public class BoiteSaveAs extends JFrame {
 	
 	 // --- En haut : SR braille + ligne "Nom du fichier"
 	    JPanel north = new JPanel(new BorderLayout());
-	    srLocal.setFocusable(false);
-	    srLocal.setRequestFocusEnabled(false);
-	    srLocal.setOpaque(false);
-	    srLocal.setBorder(null);
-	    srLocal.setPreferredSize(new java.awt.Dimension(1,1));
 
 	    JPanel namePanel = new JPanel(new BorderLayout(8, 8));
 	    JLabel nameLabel = new JLabel("Nom du fichier :");
@@ -95,8 +92,6 @@ public class BoiteSaveAs extends JFrame {
 
 	    namePanel.add(nameLabel, BorderLayout.WEST);
 	    namePanel.add(nameField, BorderLayout.CENTER);
-
-	    north.add(srLocal, BorderLayout.NORTH);
 	    north.add(namePanel, BorderLayout.SOUTH);
 	    contentPane.add(north, BorderLayout.NORTH);
 
@@ -244,18 +239,6 @@ public class BoiteSaveAs extends JFrame {
 	        announceHere(msg, true, true);
 	    });
 	    
-	    addWindowListener(new java.awt.event.WindowAdapter() {
-	    	  @Override public void windowClosed(java.awt.event.WindowEvent e) {
-	    	    if (announceAfterClose != null) {
-	    	      String msg = announceAfterClose;
-	    	      announceAfterClose = null;
-	    	      // annoncer quand l’éditeur a le focus
-	    	      SwingUtilities.invokeLater(() ->
-	    	        blindWriter.announceCaretLine(false, true, msg)
-	    	      );
-	    	    }
-	    	  }
-	    	});
 
 	    // ----- CHAMP 'Nom du fichier' (basse vision + accessibilité)
 	    nameLabel.setFont(LV_FONT_STATUS);
@@ -303,12 +286,15 @@ public class BoiteSaveAs extends JFrame {
         setSize(LV_FRAME_SIZE);
         setLocationRelativeTo(null);
 	
-	    setVisible(true);                              // ✅ une seule fois, en dernier
+	    setVisible(true);
 	}
 
 	private void fermeture() {
 	    cancelSrLocal();            
-	    blindWriter.getInstance();
+	    SwingUtilities.invokeLater(() -> {
+            parent.requestFocus();
+            parent.getEditor().requestFocusInWindow();
+        });
 	    dispose();
 	}
 
@@ -416,16 +402,11 @@ public class BoiteSaveAs extends JFrame {
 
     
     private void announceHere(String msg, boolean autoHide, boolean takeFocus) {
-        // toujours remettre le caret au début pour la braille
-        srLocal.setText(msg != null ? msg : "");
-        srLocal.setCaretPosition(0);
+
 
         if (!takeFocus) return;
 
         SwingUtilities.invokeLater(() -> {
-        	srLocal.setFocusable(true);
-        	srLocal.setRequestFocusEnabled(true);
-            srLocal.requestFocusInWindow();
             srActive = autoHide;
 
             srDismissDispatcher = new java.awt.KeyEventDispatcher() {
@@ -440,7 +421,6 @@ public class BoiteSaveAs extends JFrame {
                     if (!isModifier && kc!=KeyEvent.VK_LEFT && kc!=KeyEvent.VK_RIGHT) {
                         e.consume();
                         cancelSrLocal();
-                        srLocal.setText("");
                         fileList.requestFocusInWindow();
 
                         // Espace : on veut monter d’un cran ET annoncer
@@ -467,8 +447,6 @@ public class BoiteSaveAs extends JFrame {
             srDismissDispatcher = null;
         }
         srActive = false;
-        srLocal.setFocusable(false);
-        srLocal.setRequestFocusEnabled(false);
     }
 
 
@@ -530,16 +508,12 @@ public class BoiteSaveAs extends JFrame {
     private void saveTo(File targetFile) {
         commandes.currentDirectory = targetFile.getParentFile().getAbsoluteFile();
         commandes.nameFile = stripExt(targetFile.getName());
-        new writer.enregistre(commandes.nameFile);
+        new writer.enregistre(commandes.nameFile, parent);
         
         fermeture(); // rend le focus à l'éditeur
 
-        // Annonce juste après que l'éditeur ait repris la main
-        SwingUtilities.invokeLater(() ->
-            SwingUtilities.invokeLater(() ->
-                blindWriter.announceCaretLine(false, true, "Fichier enregistré : " + targetFile.getName())
-            )
-        );
+        System.out.println("Fichier enregistré : " + targetFile.getName());
+        
     }
 
 
@@ -581,17 +555,6 @@ public class BoiteSaveAs extends JFrame {
         dlg.getRootPane().setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 20, 16, 20));
         dlg.setResizable(true);
 
-        // --- 1) Bandeau BRAILLE : focusable mais… minuscule (invisible à l'œil)
-        writer.blindWriter.SRAnnouncerArea sr = new writer.blindWriter.SRAnnouncerArea();
-        sr.setFocusable(true);
-        sr.setRequestFocusEnabled(true);
-        sr.setOpaque(false);
-        sr.setBorder(null);
-        sr.setText(body != null ? body : "");
-        sr.setCaretPosition(0);
-        // <- le rend quasi invisible visuellement
-        sr.setPreferredSize(new java.awt.Dimension(1, 1));
-        dlg.add(sr, BorderLayout.NORTH);
 
         // --- 2) Texte VISUEL grand pour la basse vision (pas de doublon à l’écran)
         String html = "<html><body style='width:100%;'>" +
@@ -651,8 +614,6 @@ public class BoiteSaveAs extends JFrame {
         dlg.setSize(Math.max(s.width, 900), Math.max(s.height, 360));
         dlg.setLocationRelativeTo(this);
 
-        // Focus initial sur la zone BRAILLE (pour NVDA/plage braille)
-        SwingUtilities.invokeLater(sr::requestFocusInWindow);
         
         dlg.setVisible(true);
 

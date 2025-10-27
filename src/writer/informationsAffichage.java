@@ -1,17 +1,23 @@
 package writer;
 
-import writer.blindWriter.Affiche;
+import javax.swing.JTextArea;
+
+import writer.model.Affiche;
+import writer.ui.EditorFrame;
 
 public class informationsAffichage {
-    public informationsAffichage() {
+	EditorFrame parent;
+    public informationsAffichage(EditorFrame parent) {
+    	this.parent = parent;
         StringBuilder message = new StringBuilder(128);
 
         try {
-            Affiche vue = blindWriter.affichage;
+            Affiche vue = parent.getAffichage();
 
             if (vue == Affiche.TEXTE) {
+            	JTextArea editor = parent.getEditor();
             	
-            	javax.swing.text.Document doc = blindWriter.editorPane.getDocument();
+            	javax.swing.text.Document doc = editor.getDocument();
                 javax.swing.text.Element root = doc.getDefaultRootElement();
                 TextStats all = computeStats(doc, root);
           	
@@ -20,7 +26,7 @@ public class informationsAffichage {
                 String folder   = (commandes.currentDirectory != null)
                                   ? commandes.currentDirectory.getName() : "Dossier inconnu";
 
-                boolean editable = blindWriter.editorPane != null && blindWriter.editorPane.isEditable();
+                boolean editable = editor != null && editor.isEditable();
                 boolean liveSpell = commandes.verificationOrthoGr; // ta variable existante
 
                 message.append("INFO. & STAT. ↓");
@@ -61,10 +67,9 @@ public class informationsAffichage {
             message = new StringBuilder("Informations indisponibles pour le moment.");
         }
         
-        java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(blindWriter.editorPane);
+        java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(parent);
         dia.InfoDialog.show(owner, "Information", message.toString());
 
-        //blindWriter.announceCaretLine(false, true, message.toString());
     }
     
  // --- Utilitaires statistiques ---

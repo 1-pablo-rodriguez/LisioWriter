@@ -1,15 +1,17 @@
 package writer;
 
+import javax.swing.JTextArea;
+
 public class champTitre {
-	public champTitre() {
-//		outils.removeCarriageReturns(blindWriter.editorPane.getText());
-		int positionCurseur = blindWriter.editorPane.getCaretPosition();
-		String selectedText = blindWriter.editorPane.getSelectedText();
+	public champTitre(JTextArea editorPane) {
+
+		int positionCurseur = editorPane.getCaretPosition();
+		String selectedText = editorPane.getSelectedText();
         
 		if(selectedText==null) {
 			 String newText = "@Titre";
-             blindWriter.editorPane.replaceRange(newText, positionCurseur, positionCurseur);
-             blindWriter.editorPane.setCaretPosition(positionCurseur);
+			 editorPane.replaceRange(newText, positionCurseur, positionCurseur);
+			 editorPane.setCaretPosition(positionCurseur);
              //"Le champs titre est inséré."
 		}else {
 			 

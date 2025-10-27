@@ -106,13 +106,13 @@ public final class MenuBarFactory {
         	var win = ctx.getWindow();
         	if (win instanceof EditorFrame frame) {
                 new BoiteNewDocument(frame);
+                ctx.setModified(false);
+                ctx.updateWindowTitle();
             } else {
-                System.err.println("⚠ Impossible d’ouvrir la boîte : la fenêtre n’est pas un EditorFrame.");
+                System.err.println("Impossible d’ouvrir la boîte : la fenêtre n’est pas un EditorFrame.");
                 Toolkit.getDefaultToolkit().beep();
                 return;
             }
-            ctx.setModified(false);
-            ctx.updateWindowTitle();
         });
 
         JMenuItem openItem = createMenuItem("Ouvrir", KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK, e -> {
@@ -125,37 +125,45 @@ public final class MenuBarFactory {
         });
 
         JMenuItem saveItem = createMenuItem("Enregistrer", KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK, e -> {
-            ctx.clearSpellHighlightsAndFocusEditor();
-            new enregistre();
-            ctx.setModified(false);
-            ctx.updateWindowTitle();
+        	var win = ctx.getWindow();
+			if (win instanceof EditorFrame frame) {
+				 ctx.clearSpellHighlightsAndFocusEditor();
+		            new enregistre(frame);
+		            ctx.setModified(false);
+		            ctx.updateWindowTitle();
 
-            StringBuilder msg = new StringBuilder(128);
-            msg.append("Fichier enregistré ↓")
-               .append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓")
-               .append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
-            ctx.showInfo("Information", msg.toString());
+		            StringBuilder msg = new StringBuilder(128);
+		            msg.append("Fichier enregistré ↓")
+		               .append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓")
+		               .append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
+		            ctx.showInfo("Information", msg.toString());
+			}
         });
 
-        JMenuItem saveAsItem = createMenuItem("Enregistrer sous",
-                KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, e -> {
+        JMenuItem saveAsItem = createMenuItem("Enregistrer sous", KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, e -> {
             ctx.clearSpellHighlightsAndFocusEditor();
-            new BoiteSaveAs();
-            ctx.setModified(false);
-            ctx.updateWindowTitle();
+            var win = ctx.getWindow();
+            if (win instanceof EditorFrame frame) {
+            	 new BoiteSaveAs(frame);
+                 ctx.setModified(false);
+                 ctx.updateWindowTitle();
 
-            StringBuilder msg = new StringBuilder(128);
-            msg.append("Fichier enregistré ↓")
-               .append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓")
-               .append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
-            ctx.showInfo("Information", msg.toString());
+                 StringBuilder msg = new StringBuilder(128);
+                 msg.append("Fichier enregistré ↓")
+                    .append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓")
+                    .append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
+                 ctx.showInfo("Information", msg.toString());
+            }
         });
 
         JMenuItem renameItem = createMenuItem("Renommer le fichier", KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK, e -> {
             ctx.clearSpellHighlightsAndFocusEditor();
-            new BoiteRenameFile();
-            ctx.setModified(false);
-            ctx.updateWindowTitle();
+            var win = ctx.getWindow();
+        	if (win instanceof EditorFrame frame) {
+        		new BoiteRenameFile(frame);
+                ctx.setModified(false);
+                ctx.updateWindowTitle();
+        	} 
         });
 
         JMenuItem metaItem = createMenuItem("Meta-données", KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK, e -> {
@@ -167,7 +175,10 @@ public final class MenuBarFactory {
         });
 
         JMenuItem quitItem = createMenuItem("Quitter", KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK, e -> {
-            new dia.BoiteQuitter();
+        	 var win = ctx.getWindow();
+             if (win instanceof EditorFrame frame) {
+                 new dia.BoiteQuitter(frame);
+             }
         });
 
         // les listeners d’état (conserve le comportement existant)
@@ -318,15 +329,21 @@ public final class MenuBarFactory {
         });
         
         JMenuItem open2Item = createMenuItem("Importer fichier LibreOffice Writer", KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK, e -> {
-            System.out.println("Ouverture fichier .odt"); // Debugger
-            new dia.ouvrirODT();
-            ctx.setModified(false);
+            System.out.println("Ouverture fichier .odt");
+            var win = ctx.getWindow();
+            if (win instanceof EditorFrame frame) {
+            	new dia.ouvrirODT(frame);
+                ctx.setModified(false);
+            }
         });
         
         JMenuItem openItem = createSimpleMenuItem("Importer fichier texte",e -> {
             System.out.println("Ouverture fichier .txt");
-            SwingUtilities.invokeLater(() -> new ouvrirTxt());
-            ctx.setModified(false);
+            var win = ctx.getWindow();
+            if (win instanceof EditorFrame frame) {
+               new ouvrirTxt(frame);
+               ctx.setModified(false);
+            }
         });
        
         JMenuItem open3Item = createMenuItem("Importer fichier Microsoft Word", KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK, e -> {
@@ -761,13 +778,16 @@ public final class MenuBarFactory {
     	JMenuItem navigateurItem = createMenuItem("Navigateur", KeyEvent.VK_F6, 0, e -> {
     		writer.spell.SpellCheckLT spell = ctx.getSpell();
     		if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
-            new navigateurT1();
+    		 var win = ctx.getWindow();
+             if (win instanceof EditorFrame frame) {
+                 new navigateurT1(frame);
+             }
         });
     	
     	JMenuItem rechercher = createMenuItem("Rechercher texte", KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK, e -> {
     		writer.spell.SpellCheckLT spell = ctx.getSpell();
     		if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
-            new writer.openSearchDialog();
+            new writer.openSearchDialog(ctx.getEditor());
         });
 	
     	//-------------- Marque page ----------------

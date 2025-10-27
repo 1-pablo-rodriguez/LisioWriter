@@ -263,9 +263,9 @@ public class EditorFrame extends JFrame implements EditorApi {
         addKeyBinding(KeyEvent.VK_LEFT, InputEvent.SHIFT_DOWN_MASK, "versGauche", new act.VersGauche(this.editorPane));
         addKeyBinding(KeyEvent.VK_SPACE, InputEvent.CTRL_DOWN_MASK, "sautPage", new act.SautPage(this));
         addKeyBinding(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK, "citation", new act.citation(this));
-        addKeyBinding(KeyEvent.VK_F6, 0, "navigateurT1", new act.ouvrirNavigateurT1());
-        addKeyBinding(KeyEvent.VK_F1, 0, "Informations", new act.informations());
-        addKeyBinding(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK, "rechercher", new act.openSearchDialog());
+        addKeyBinding(KeyEvent.VK_F6, 0, "navigateurT1", new act.ouvrirNavigateurT1(this));
+        addKeyBinding(KeyEvent.VK_F1, 0, "Informations", new act.informations(this));
+        addKeyBinding(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK, "rechercher", new act.openSearchDialog(this.editorPane));
         
         Action puceAction = new InsertUnorderedBulletAction(this.editorPane);
         // US : Ctrl+Shift+.
@@ -381,12 +381,7 @@ public class EditorFrame extends JFrame implements EditorApi {
     }
     
 
-    
-    
-    
-    
-
-    // === GESTION DU TITRE / MODIFICATION ===
+    // ===  GESTION ET ACCÈS AUX SERVICES ===
     @Override
     public JFrame getWindow() { return this; }
 
@@ -394,12 +389,17 @@ public class EditorFrame extends JFrame implements EditorApi {
     public JTextArea getEditor() { return this.editorPane; }
 
     @Override
+	public JScrollPane getScrollPane() { return this.scrollPane; }
+
+	@Override
     public void setModified(boolean modified) {
         this.isModified = modified;
         updateWindowTitle();
     }
-
     @Override
+	public Boolean isModifier() { return this.isModified; }
+
+	@Override
     public void updateWindowTitle() {
         String base = "blindWriter";
         String name = (commandes.nameFile != null && !commandes.nameFile.isBlank())
@@ -417,7 +417,6 @@ public class EditorFrame extends JFrame implements EditorApi {
         setTitle(title.toString());
     }
 
-    // === MÉTHODES SUPPLÉMENTAIRES ===
     @Override
     public void clearSpellHighlightsAndFocusEditor() {
         if (spell != null) spell.clearHighlights();
@@ -437,9 +436,7 @@ public class EditorFrame extends JFrame implements EditorApi {
             }
         });
     }
-
-
-    // === ACCÈS AUX SERVICES ===
+    
     @Override
     public SpellCheckLT getSpell() { return this.spell; }
 
@@ -449,6 +446,8 @@ public class EditorFrame extends JFrame implements EditorApi {
     public Action getUndoAction() { return this.undoAction; }
 
     public Action getRedoAction() { return this.redoAction; }
+    
+    public Affiche getAffiche() { return this.affichage;}
 
     // === UTILITAIRE ===
     private void updateUndoRedoState() {
@@ -466,7 +465,22 @@ public class EditorFrame extends JFrame implements EditorApi {
         return this.bookmarks;
     }
 	 
-	 public boolean withBm(java.util.function.Consumer<writer.bookmark.BookmarkManager> use) {
+	 @Override
+	public void setBookMarkMannager(BookmarkManager bookmark) {
+		this.bookmarks = bookmark;
+	}
+
+	public void createNewBookmarkManager() {
+		if (this.bookmarks == null && editorPane != null) {
+        	this.bookmarks = new BookmarkManager(editorPane);
+        }
+		if (this.bookmarks != null && editorPane != null){
+        	this.bookmarks.clearAll();
+        	this.bookmarks = new BookmarkManager(editorPane);
+        }
+	}
+
+	public boolean withBm(java.util.function.Consumer<writer.bookmark.BookmarkManager> use) {
 	     writer.bookmark.BookmarkManager m = bookmarks;
 	     if (m == null) {
 	         java.awt.Toolkit.getDefaultToolkit().beep();
@@ -696,7 +710,7 @@ public class EditorFrame extends JFrame implements EditorApi {
 	public void sauvegardeTemporaire() {
 		if(affichage == Affiche.TEXTE) {
     		positionCurseurSauv = this.editorPane.getCaretPosition();
-    		commandes.sauvFile();
+    		commandes.sauvFile(this.editorPane);
     	}	
 	}
 
