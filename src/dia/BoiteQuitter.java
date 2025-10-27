@@ -194,7 +194,7 @@ public class BoiteQuitter {
 
         dialog.addWindowListener(new WindowAdapter() {
             @Override public void windowOpened(WindowEvent e) {
-            	 label.requestFocusInWindow();
+            	SwingUtilities.invokeLater(() -> primaryBtn.requestFocusInWindow());
             }
             @Override public void windowClosing(WindowEvent e) {
                 annuler();

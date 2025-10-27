@@ -62,7 +62,6 @@ public class titre1 {
     }
 
     private void sound() {
-        // à adapter : utilise ctx.getWindow() si announceCaretLine dépend du contexte
-        System.out.println("Paragraphe en Titre 1"); // temporaire
+    	 ctx.showInfo("Titre 1", "Paragraphe en Titre 1");
     }
 }

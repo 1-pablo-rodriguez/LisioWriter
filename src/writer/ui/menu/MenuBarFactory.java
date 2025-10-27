@@ -413,7 +413,7 @@ public final class MenuBarFactory {
             @Override public void menuCanceled(MenuEvent e) {}
         }); 
     	
-    	JMenuItem ctItem = createMenuItem("Corps de texte", KeyEvent.VK_1, InputEvent.CTRL_DOWN_MASK, e -> {
+    	JMenuItem ctItem = createMenuItem("Corps de texte", KeyEvent.VK_0, InputEvent.CTRL_DOWN_MASK, e -> {
             System.out.println("Applique Corps de texte"); // Debugger
             new styles.bodyTexte(ctx).appliquer();	
         });
@@ -1073,7 +1073,7 @@ public final class MenuBarFactory {
 
         JMenuItem zi = new JMenuItem("Zoom avant");
         zi.addActionListener(e -> ctx.zoomIn());
-        zi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.CTRL_DOWN_MASK));
+        zi.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, InputEvent.CTRL_DOWN_MASK));
         m.add(zi);
 
         JMenuItem zo = new JMenuItem("Zoom arrière");
@@ -1083,7 +1083,7 @@ public final class MenuBarFactory {
 
         JMenuItem zr = new JMenuItem("Réinitialiser le zoom");
         zr.addActionListener(e -> ctx.zoomReset());
-        zr.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_0, InputEvent.CTRL_DOWN_MASK));
+        zr.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.CTRL_DOWN_MASK));
         m.add(zr);
         
         

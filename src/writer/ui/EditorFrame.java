@@ -149,12 +149,6 @@ public class EditorFrame extends JFrame implements EditorApi {
         // --- BARRE DE MENUS ---
         setJMenuBar(writer.ui.menu.MenuBarFactory.create(this));
         
-        // --- Mise à jour du titre de la fenêtre si modifier ---
-    	updateWindowTitle();
-    	
-    	// --- Maximise la fenêtre ---
-    	setExtendedState(JFrame.MAXIMIZED_BOTH);
-
     	// --- Applique les marges pour le texte ---
     	this.editorPane.addCaretListener(ev ->
     	SwingUtilities.invokeLater(() -> ensureCaretHorizontalMargins(108, 108))
@@ -168,9 +162,24 @@ public class EditorFrame extends JFrame implements EditorApi {
     	
         // --- FOCUS INITAIL ---
         SwingUtilities.invokeLater(this.editorPane::requestFocusInWindow);
+
+    	// --- Setup de la frame ---
+    	setupEditorPane();
     	
-        pack();
-        setLocationRelativeTo(null);
+    	// --- Ajoute les raccourcis clavier ---
+    	configureKeyboardShortcuts();
+
+    	// --- Mise à jour du titre de la fenêtre si modifier ---
+    	updateWindowTitle();
+    	
+    	// --- Adaptation de la taille de la frame à son contenu ---
+    	pack();
+         
+         // --- Positionnement de la frame ---
+         setLocationRelativeTo(null);
+         
+     	// --- Maximise la fenêtre ---
+     	setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
     
     
@@ -291,17 +300,21 @@ public class EditorFrame extends JFrame implements EditorApi {
         // ——— Raccourci SHIFT+F3 : Pour aller sur le titre précédent ———
         addKeyBinding(KeyEvent.VK_F3, InputEvent.SHIFT_DOWN_MASK, "gotoPrevHeading", actGotoPrevHeading);
 
-        // Zoom clavier
-        addKeyBinding(KeyEvent.VK_EQUALS,  InputEvent.CTRL_DOWN_MASK, "zoomInEq",
-        	    new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomIn(); }});
-    	addKeyBinding(KeyEvent.VK_ADD,     InputEvent.CTRL_DOWN_MASK, "zoomInNP",
-    	    new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomIn(); }});
-    	addKeyBinding(KeyEvent.VK_MINUS,   InputEvent.CTRL_DOWN_MASK, "zoomOut",
-    	    new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomOut(); }});
-    	addKeyBinding(KeyEvent.VK_SUBTRACT,InputEvent.CTRL_DOWN_MASK, "zoomOutNP",
-    	    new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomOut(); }});
-    	addKeyBinding(KeyEvent.VK_0,       InputEvent.CTRL_DOWN_MASK, "zoomReset",
-    	    new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomReset(); }});
+     // --- Zoom avant ---
+        addKeyBinding(KeyEvent.VK_PLUS,     InputEvent.CTRL_DOWN_MASK, "zoomIn1",
+            new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomIn(); }});
+        addKeyBinding(KeyEvent.VK_ADD,      InputEvent.CTRL_DOWN_MASK, "zoomIn3",
+            new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomIn(); }});
+
+        // --- Zoom arrière ---
+        addKeyBinding(KeyEvent.VK_MINUS,    InputEvent.CTRL_DOWN_MASK, "zoomOut1",
+            new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomOut(); }});
+        addKeyBinding(KeyEvent.VK_SUBTRACT, InputEvent.CTRL_DOWN_MASK, "zoomOut2",
+            new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomOut(); }});
+
+        // --- Réinitialisation ---
+        addKeyBinding(KeyEvent.VK_EQUALS,        InputEvent.CTRL_DOWN_MASK, "zoomReset",
+            new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomReset(); }});
     	
     	// Actifs seulement quand le caret est dans l'éditeur
     	editorPane.getInputMap(JComponent.WHEN_FOCUSED).put(
@@ -767,16 +780,23 @@ public class EditorFrame extends JFrame implements EditorApi {
 	    applyEditorFont();
 	}
 
+	// === ZOOM DU TEXTE ===
 	private void applyEditorFont() {
- 	    if (this.editorPane == null) return;
- 	    this.editorPane.setFont(new Font(EDITOR_FONT_FAMILY, Font.PLAIN, EDITOR_FONT_SIZE));
- 	    // optionnel : marges internes pour le confort visuel
- 	    this.editorPane.setMargin(new java.awt.Insets(12, 24, 12, 24));
- 	    this.editorPane.revalidate();
- 	    this.editorPane.repaint();
- 	    // garde le caret bien visible même après zoom
- 	    SwingUtilities.invokeLater(() -> ensureCaretHorizontalMargins(100, 100));
- 	}
+	    if (this.editorPane == null) return;
+
+	    // Ltaille dynamique (celle qui change avec le zoom)
+	    this.editorPane.setFont(new Font(EDITOR_FONT_FAMILY, Font.PLAIN, Math.round(this.editorFontSize)));
+
+	    // Marges internes pour le confort visuel
+	    this.editorPane.setMargin(new java.awt.Insets(12, 24, 12, 24));
+
+	    this.editorPane.revalidate();
+	    this.editorPane.repaint();
+
+	    // Le caret bien visible même après zoom
+	    SwingUtilities.invokeLater(() -> ensureCaretHorizontalMargins(108, 108));
+	}
+
     
 	/** Force une marge horizontale minimale autour du caret dans le viewport. */
  	private void ensureCaretHorizontalMargins(int leftMarginPx, int rightMarginPx) {
