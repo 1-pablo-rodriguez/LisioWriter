@@ -87,7 +87,8 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de blindWriter acces
 | Raccourci      | Fonction               | Description                                                                 |
 |----------------|------------------------|-----------------------------------------------------------------------------|
 | **F1**         | Informations           | Annonce des informations sur la fenêtre en cours ou sur l’ensemble du document. |
-| **F2**         | Lecture de titre       | Lit le titre du paragraphe en cours et annonce le titre suivant.            |
+| **F2**         | Lecture de titre       | Dans une fenêtre, affiche le titre du paragraphe et affiche le titre suivant.   |
+| **Ctrl+F2**    | Insère/Supp. un marque page  | Insère ou supprime un marque-page associé à une note          |
 | **F3 / Maj+F3**| Navigation par titres  | Passe rapidement au titre suivant ou au titre précédent.                    |
 | **F4 / Maj+F4**| Navigation par marque-page  | Passe rapidement au marque-page suivant ou au marque-page précédent.   |
 | **ALT+A**      | Documentation intégrée | Ouvre la documentation interne de blindWriter.                              |
