@@ -129,9 +129,9 @@ Dans le menu **Préférence**, les mises à jour se font via un fichier `updates
 
 Les contributions sont les bienvenues !  
 Vous pouvez :
-- Signaler des bugs dans l’onglet **Issues**
-- Proposer des améliorations d’accessibilité ou de compatibilité
-- Soumettre des pull requests
+- Signaler des bugs dans l’onglet **Issues**.
+- Proposer des améliorations d’accessibilité ou de compatibilité.
+- Soumettre des pull requests.
 
 ---
 
