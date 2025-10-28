@@ -203,6 +203,26 @@ public final class HtmlImporter {
 	  out.append("\n\nSource: ").append(url).append("\n");
 	  return tidyOutput(out.toString());
 	}
+	
+	/**
+	 * Convertit directement une chaîne HTML (déjà téléchargée ou filtrée)
+	 * vers le format blindWriter.
+	 */
+	public static String importFromHtml(String html) throws IOException {
+	    if (html == null || html.isBlank()) return "";
+
+	    // Parse le HTML brut fourni
+	    Document doc = Jsoup.parse(html);
+	    Element body = doc.body();
+	    StringBuilder out = new StringBuilder();
+
+	    // Conversion comme pour importFromUrl()
+	    traverseChildren(body, out, 0, null);
+
+	    // Nettoyage final du texte
+	    return tidyOutput(out.toString());
+	}
+
 
 
 }

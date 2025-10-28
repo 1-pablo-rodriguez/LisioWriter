@@ -7,7 +7,6 @@ import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,10 +52,38 @@ public class HtmlBrowserDialog extends JDialog {
 
     // liens extraits (ordonnés) pour la vue "Liens"
     private List<String> extractedLinks = new ArrayList<>();
+    
+    public HtmlBrowserDialog(JFrame owner, JTextArea editorPane, String startUrl) {
+        super(owner, "Navigateur accessible — blindWriter", false); // 🔹 false = non modal
+        setLayout(new BorderLayout(6,6));
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+        // --- réutilise le contenu du constructeur principal ---
+        // on peut directement appeler ton constructeur principal existant
+        // mais comme il est modal, on doit le factoriser un peu
+        // donc le plus simple est de créer une méthode initUI(editorPane)
+
+        initUI(owner, editorPane);
+
+        // ✅ lance la navigation immédiatement
+        navigateTo(startUrl);
+
+        pack();
+        setLocationRelativeTo(owner);
+        setVisible(true);
+    }
 
     public HtmlBrowserDialog(JFrame owner, JTextArea editorPane) {
-        super(owner, "Navigateur accessible — blindWriter", true); // modal pour braille/TTS clair
-        setLayout(new BorderLayout(6,6));
+        super(owner, "Navigateur accessible — blindWriter", true);
+        initUI(owner, editorPane);
+        pack();
+        setLocationRelativeTo(owner);
+    }
+
+
+    public void initUI(JFrame owner, JTextArea editorPane) {
+        
+    	setLayout(new BorderLayout(6,6));
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         // Top panel : controls + adresse
@@ -167,7 +194,7 @@ public class HtmlBrowserDialog extends JDialog {
             System.out.println("Navigateur ouvert. Entrez une adresse et appuyez sur Entrée. Ctrl+L pour revenir au champ adresse.");
         });
 
-        setVisible(true);
+
     }
 
     /** Navigue vers l'URL fournie et extrait les liens. */
@@ -196,8 +223,44 @@ public class HtmlBrowserDialog extends JDialog {
 
             @Override protected Void doInBackground() {
                 try {
-                    // 1) Utilise HtmlImporter pour la conversion (il récupère le HTML)
-                    converted = HtmlImporter.importFromUrl(finalUrl);
+                	// 1) Si c’est une page Wikipédia, on extrait seulement le contenu principal
+                	try {
+                	    Document fullDoc = Jsoup.connect(finalUrl)
+                	            .userAgent("blindWriter/accessible-browser")
+                	            .timeout(15000)
+                	            .followRedirects(true)
+                	            .get();
+
+                	    // Si l’URL contient "wikipedia.org", on ne garde que l’article
+                	    if (finalUrl.contains("wikipedia.org")) {
+                	        Element content = fullDoc.selectFirst("#mw-content-text");
+                	        if (content != null) {
+                	            // Supprime les éléments inutiles : menus, références, infobox, etc.
+                	            content.select(".mw-editsection, .reflist, .navbox, .infobox, .metadata, table, sup.reference").remove();
+                	            String mainHtml = content.html();
+                	            converted = HtmlImporter.importFromHtml(mainHtml);
+                	        } else {
+                	            converted = HtmlImporter.importFromUrl(finalUrl); // secours
+                	        }
+                	    } else {
+                	        // Autres sites : traitement normal
+                	        converted = HtmlImporter.importFromUrl(finalUrl);
+                	    }
+
+                	    // Titre
+                	    title = fullDoc.title();
+
+                	    // Liens internes de la page
+                	    Elements a = fullDoc.select("a[href]");
+                	    for (Element e : a) {
+                	        String href = e.absUrl("href");
+                	        if (!href.isBlank()) linksLocal.add(href);
+                	    }
+
+                	} catch (Exception ex) {
+                	    error = ex.getMessage();
+                	}
+
 
                     // 2) Pour extraire titre & liens, on fait une requête Jsoup séparée
                     try {
@@ -216,8 +279,6 @@ public class HtmlBrowserDialog extends JDialog {
                     } catch (Exception ex) {
                         // si l'extraction fail, on continue malgré tout (conversion peut avoir marché)
                     }
-                } catch (IOException io) {
-                    error = io.getMessage();
                 } catch (Throwable t) {
                     error = t.getMessage();
                 }
