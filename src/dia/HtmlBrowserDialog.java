@@ -1,4 +1,3 @@
-// HtmlBrowserDialog.java
 package dia;
 
 import java.awt.BorderLayout;
@@ -16,15 +15,14 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import org.jsoup.Jsoup;
@@ -33,403 +31,279 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import Import.HtmlImporter;
+import writer.commandes;
 
 @SuppressWarnings("serial")
 public class HtmlBrowserDialog extends JDialog {
 
-    private final JTextField addressField = new JTextField();
-    private final JButton backBtn = new JButton("← (Retour)");
-    private final JButton forwardBtn = new JButton("→ (Suivant)");
-    private final JButton reloadBtn = new JButton("⟳ (Recharger)");
-    private final JButton linksBtn = new JButton("Liens");
-    private final JButton insertBtn = new JButton("Insérer (Ctrl+I)");
-    private final JButton closeBtn = new JButton("Fermer (Esc)");
-    private final JTextArea previewArea = new JTextArea();
-    private final JLabel statusLabel = new JLabel(" ");
+    private final JButton insertBtn = new JButton("Insérer (Entrée)");
+    private final JButton closeBtn = new JButton("Fermer (Échap)");
+    private final DefaultListModel<WikiResult> resultModel = new DefaultListModel<>();
+    private final JList<WikiResult> resultList = new JList<>(resultModel);
 
-    private final List<String> history = new ArrayList<>();
-    private int historyIndex = -1;
 
-    // liens extraits (ordonnés) pour la vue "Liens"
-    private List<String> extractedLinks = new ArrayList<>();
-    
-    public HtmlBrowserDialog(JFrame owner, JTextArea editorPane, String startUrl) {
-        super(owner, "Navigateur accessible — blindWriter", false); // 🔹 false = non modal
-        setLayout(new BorderLayout(6,6));
+    public HtmlBrowserDialog(JFrame owner, JTextArea editorPane, String searchUrl) {
+        super(owner, "Résultats Wikipédia", true);
+        setLayout(new BorderLayout(6, 6));
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        // --- réutilise le contenu du constructeur principal ---
-        // on peut directement appeler ton constructeur principal existant
-        // mais comme il est modal, on doit le factoriser un peu
-        // donc le plus simple est de créer une méthode initUI(editorPane)
+        // === Liste des résultats ===
+        resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        resultList.setFont(editorPane.getFont());
+        resultList.getAccessibleContext().setAccessibleName("Résultats de recherche Wikipédia");
+        resultList.getAccessibleContext().setAccessibleDescription("Liste des résultats de recherche Wikipédia. Appuyez sur Entrée pour insérer.");
 
-        initUI(owner, editorPane);
+        JScrollPane sc = new JScrollPane(resultList);
+        sc.setPreferredSize(new Dimension(900, 600));
+        add(sc, BorderLayout.CENTER);
 
-        // ✅ lance la navigation immédiatement
-        navigateTo(startUrl);
+        // === Boutons bas de fenêtre ===
+        JPanel bottomPanel = new JPanel();
+        insertBtn.getAccessibleContext().setAccessibleName("Insérer");
+        insertBtn.getAccessibleContext().setAccessibleDescription("Insère l'article sélectionné dans le document.");
+        bottomPanel.add(insertBtn);
+
+        closeBtn.getAccessibleContext().setAccessibleName("Fermer");
+        closeBtn.getAccessibleContext().setAccessibleDescription("Ferme la fenêtre des résultats Wikipédia.");
+        bottomPanel.add(closeBtn);
+
+        add(bottomPanel, BorderLayout.SOUTH);
+
+        // === Navigation clavier simple ===
+        resultList.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    insertBtn.doClick();
+                }
+            }
+        });
+        
+        // === Affichage du titre et de l'url dans la resultList ===
+        resultList.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
+            javax.swing.JLabel label = new javax.swing.JLabel();
+            label.setText("<html><b>" + value.title + "</b><br><small>" + value.url + "</small></html>");
+            label.setOpaque(true);
+            label.setFont(list.getFont());
+            if (isSelected) {
+                label.setBackground(list.getSelectionBackground());
+                label.setForeground(list.getSelectionForeground());
+            } else {
+                label.setBackground(list.getBackground());
+                label.setForeground(list.getForeground());
+            }
+            return label;
+        });
+
+
+        // === Actions ===
+        insertBtn.addActionListener(e -> insertIntoEditor(editorPane));
+        closeBtn.addActionListener(e -> {
+            dispose();
+            // remettre le focus dans l’éditeur principal
+            SwingUtilities.invokeLater(() -> editorPane.requestFocusInWindow());
+        });
+
+        // === Key Binding globale pour Échap ===
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "closeDialog");
+        getRootPane().getActionMap().put("closeDialog", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                dispose();
+                SwingUtilities.invokeLater(() -> editorPane.requestFocusInWindow());
+            }
+        });
+
+        // === Charger les résultats ===
+        loadWikipediaResults(searchUrl);
 
         pack();
         setLocationRelativeTo(owner);
         setVisible(true);
-    }
 
-    public HtmlBrowserDialog(JFrame owner, JTextArea editorPane) {
-        super(owner, "Navigateur accessible — blindWriter", true);
-        initUI(owner, editorPane);
-        pack();
-        setLocationRelativeTo(owner);
-    }
-
-
-    public void initUI(JFrame owner, JTextArea editorPane) {
-        
-    	setLayout(new BorderLayout(6,6));
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
-        // Top panel : controls + adresse
-        JPanel top = new JPanel(new BorderLayout(6,6));
-        JPanel controls = new JPanel();
-
-        // boutons avec accessible names/descriptions
-        backBtn.setMnemonic(KeyEvent.VK_B);
-        backBtn.getAccessibleContext().setAccessibleName("Bouton Retour");
-        backBtn.getAccessibleContext().setAccessibleDescription("Retourne à la page précédente de l'historique. Alt+Flèche gauche ou Alt+←.");
-        controls.add(backBtn);
-
-        forwardBtn.setMnemonic(KeyEvent.VK_F);
-        forwardBtn.getAccessibleContext().setAccessibleName("Bouton Suivant");
-        forwardBtn.getAccessibleContext().setAccessibleDescription("Avance à la page suivante de l'historique. Alt+Flèche droite ou Alt+→.");
-        controls.add(forwardBtn);
-
-        reloadBtn.setMnemonic(KeyEvent.VK_R);
-        reloadBtn.getAccessibleContext().setAccessibleName("Bouton Recharger");
-        reloadBtn.getAccessibleContext().setAccessibleDescription("Recharge la page courante. Ctrl+R.");
-        controls.add(reloadBtn);
-
-        linksBtn.setMnemonic(KeyEvent.VK_L);
-        linksBtn.getAccessibleContext().setAccessibleName("Bouton Liens");
-        linksBtn.getAccessibleContext().setAccessibleDescription("Ouvre la liste des liens présents sur la page pour sélection clavier.");
-        controls.add(linksBtn);
-
-        top.add(controls, BorderLayout.WEST);
-
-        addressField.getAccessibleContext().setAccessibleName("Champ adresse");
-        addressField.getAccessibleContext().setAccessibleDescription("Saisissez l'URL ou collez-la puis appuyez sur Entrée pour charger. Ctrl+L pour y revenir.");
-        top.add(addressField, BorderLayout.CENTER);
-
-        JPanel rightControls = new JPanel(new BorderLayout(4,4));
-        insertBtn.getAccessibleContext().setAccessibleName("Insérer");
-        insertBtn.getAccessibleContext().setAccessibleDescription("Insère le texte converti dans le document. Raccourci Ctrl+I.");
-        rightControls.add(insertBtn, BorderLayout.NORTH);
-
-        closeBtn.getAccessibleContext().setAccessibleName("Fermer");
-        closeBtn.getAccessibleContext().setAccessibleDescription("Ferme la fenêtre du navigateur. Esc ou Ctrl+W.");
-        rightControls.add(closeBtn, BorderLayout.SOUTH);
-
-        top.add(rightControls, BorderLayout.EAST);
-
-        add(top, BorderLayout.NORTH);
-
-        // Preview area — texte converti (non riche)
-        previewArea.setEditable(false);
-        previewArea.setLineWrap(true);
-        previewArea.setWrapStyleWord(true);
-        previewArea.setFont(editorPane.getFont()); // même police que l'éditeur principal
-        previewArea.getAccessibleContext().setAccessibleName("Aperçu de la page");
-        previewArea.getAccessibleContext().setAccessibleDescription("Zone contenant le texte converti de la page web. Utilisez Tab pour atteindre les commandes.");
-
-        JScrollPane sc = new JScrollPane(previewArea);
-        sc.setPreferredSize(new Dimension(900, 600));
-        add(sc, BorderLayout.CENTER);
-
-        statusLabel.getAccessibleContext().setAccessibleName("Statut navigation");
-        statusLabel.getAccessibleContext().setAccessibleDescription("Affiche des informations de chargement ou d'erreur.");
-        add(statusLabel, BorderLayout.SOUTH);
-
-        // Actions wiring
-        addressField.addActionListener(e -> navigateTo(addressField.getText().trim()));
-        backBtn.addActionListener(e -> goBack());
-        forwardBtn.addActionListener(e -> goForward());
-        reloadBtn.addActionListener(e -> reload());
-        insertBtn.addActionListener(e -> insertIntoEditor(editorPane));
-        closeBtn.addActionListener(e -> closeDialog());
-        linksBtn.addActionListener(e -> openLinksDialog());
-
-        // Key bindings globales (au JRootPane)
-        var root = getRootPane();
-
-        // Ctrl+L => focus champ adresse
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control L"), "focusAddress");
-        root.getActionMap().put("focusAddress", new AbstractAction(){ public void actionPerformed(ActionEvent e){ addressField.requestFocusInWindow(); }});
-
-        // Ctrl+I => Insérer
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control I"), "insertDoc");
-        root.getActionMap().put("insertDoc", new AbstractAction(){ public void actionPerformed(ActionEvent e){ insertIntoEditor(editorPane); }});
-
-        // Ctrl+R => Reload
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control R"), "reload");
-        root.getActionMap().put("reload", new AbstractAction(){ public void actionPerformed(ActionEvent e){ reload(); }});
-
-        // Ctrl+W or Esc => close
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl W"), "close");
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
-        root.getActionMap().put("close", new AbstractAction(){ public void actionPerformed(ActionEvent e){ closeDialog(); }});
-
-        // Alt+Left / Alt+Right for back/forward
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.ALT_DOWN_MASK), "back");
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK), "forward");
-        root.getActionMap().put("back", new AbstractAction(){ public void actionPerformed(ActionEvent e){ goBack(); }});
-        root.getActionMap().put("forward", new AbstractAction(){ public void actionPerformed(ActionEvent e){ goForward(); }});
-
-        // Etats init
-        updateControls();
-
-        // Focus initial sur le champ adresse pour saisie rapide
-        pack();
-        setLocationRelativeTo(owner);
-
-        // annoncer l'ouverture
         EventQueue.invokeLater(() -> {
-            addressField.requestFocusInWindow();
-            System.out.println("Navigateur ouvert. Entrez une adresse et appuyez sur Entrée. Ctrl+L pour revenir au champ adresse.");
+            resultList.requestFocusInWindow();
+            if (resultModel.size() > 0) resultList.setSelectedIndex(0);
         });
-
-
+        
     }
 
-    /** Navigue vers l'URL fournie et extrait les liens. */
-    public void navigateTo(String url) {
-        if (url == null || url.isBlank()) {
+    /** Charge les résultats Wikipédia à partir de l’URL donnée. */
+    private void loadWikipediaResults(String url) {
+        if (url == null || url.isBlank()) return;
+        System.out.println("Chargement des résultats depuis : " + url);
+
+        SwingWorker<List<String[]>, Void> wk = new SwingWorker<>() {
+            String error = null;
+
+            @Override
+            protected List<String[]> doInBackground() {
+                List<String[]> resultsList = new ArrayList<>();
+                try {
+                    Document fullDoc = Jsoup.connect(url)
+                            .userAgent("blindWriter/accessible-browser")
+                            .timeout(15000)
+                            .followRedirects(true)
+                            .get();
+
+                    Elements results = fullDoc.select(".mw-search-result-heading a");
+
+                    if (results.isEmpty()) {
+                        resultsList.add(new String[]{"Aucun résultat trouvé.", ""});
+                    } else {
+                        for (Element e : results) {
+                            String title = e.text();
+                            String href = e.absUrl("href");
+                            resultsList.add(new String[]{title, href});
+                        }
+                    }
+
+                } catch (Exception ex) {
+                    error = ex.getMessage();
+                }
+                return resultsList;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    if (error != null) {
+                        resultModel.clear();
+                        resultModel.addElement(new WikiResult("Erreur : " + error, null));
+                        Toolkit.getDefaultToolkit().beep();
+                        System.out.println("Erreur : " + error);
+                        return;
+                    }
+
+                    List<String[]> results = get();
+                    resultModel.clear();
+
+                    for (String[] pair : results) {
+                        String title = pair[0];
+                        String href = pair[1];
+                        resultModel.addElement(new WikiResult(title, href));
+                    }
+
+                    System.out.println(results.size() + " résultats chargés.");
+                    if (!resultModel.isEmpty()) {
+                        resultList.setSelectedIndex(0);
+                        resultList.ensureIndexIsVisible(0);
+                    }
+                    resultList.repaint();
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(HtmlBrowserDialog.this,
+                            "Erreur : " + ex.getMessage(),
+                            "Erreur de chargement",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+
+        wk.execute();
+    }
+
+    /** Insère le texte de l’article sélectionné dans le document. */
+    private void insertIntoEditor(JTextArea editorPane) {
+        WikiResult sel = resultList.getSelectedValue();
+        if (sel == null || sel.url == null || sel.url.isBlank()) {
             Toolkit.getDefaultToolkit().beep();
-            System.out.println("Aucune adresse fournie.");
+            System.out.println("Aucun résultat sélectionné.");
             return;
         }
-        if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("file:")) {
-            url = "https://" + url;
-        }
-        final String finalUrl = url;
-        statusLabel.setText("Chargement : " + finalUrl);
-        previewArea.setText("");
-        extractedLinks.clear();
-        updateControls();
-        System.out.println("Chargement de la page : " + finalUrl);
 
-        // Utiliser SwingWorker pour le téléchargement et la conversion (non bloquant UI)
+        String url = sel.url;
+        System.out.println("Téléchargement de l’article : " + url);
+
         SwingWorker<Void, Void> wk = new SwingWorker<>() {
             String converted = null;
-            String title = null;
             String error = null;
-            List<String> linksLocal = new ArrayList<>();
 
-            @Override protected Void doInBackground() {
+            @Override
+            protected Void doInBackground() {
                 try {
-                	// 1) Si c’est une page Wikipédia, on extrait seulement le contenu principal
-                	try {
-                	    Document fullDoc = Jsoup.connect(finalUrl)
-                	            .userAgent("blindWriter/accessible-browser")
-                	            .timeout(15000)
-                	            .followRedirects(true)
-                	            .get();
+                    Element content = Jsoup.connect(url)
+                            .userAgent("LisioWriter/accessible-browser")
+                            .timeout(15000)
+                            .followRedirects(true)
+                            .get()
+                            .selectFirst("#mw-content-text");
 
-                	    // Si l’URL contient "wikipedia.org", on ne garde que l’article
-                	    if (finalUrl.contains("wikipedia.org")) {
-                	        Element content = fullDoc.selectFirst("#mw-content-text");
-                	        if (content != null) {
-                	            // Supprime les éléments inutiles : menus, références, infobox, etc.
-                	            content.select(".mw-editsection, .reflist, .navbox, .infobox, .metadata, table, sup.reference").remove();
-                	            String mainHtml = content.html();
-                	            converted = HtmlImporter.importFromHtml(mainHtml);
-                	        } else {
-                	            converted = HtmlImporter.importFromUrl(finalUrl); // secours
-                	        }
-                	    } else {
-                	        // Autres sites : traitement normal
-                	        converted = HtmlImporter.importFromUrl(finalUrl);
-                	    }
-
-                	    // Titre
-                	    title = fullDoc.title();
-
-                	    // Liens internes de la page
-                	    Elements a = fullDoc.select("a[href]");
-                	    for (Element e : a) {
-                	        String href = e.absUrl("href");
-                	        if (!href.isBlank()) linksLocal.add(href);
-                	    }
-
-                	} catch (Exception ex) {
-                	    error = ex.getMessage();
-                	}
-
-
-                    // 2) Pour extraire titre & liens, on fait une requête Jsoup séparée
-                    try {
-                        Document doc = Jsoup.connect(finalUrl)
-                                .userAgent("blindWriter/accessible-browser")
-                                .timeout(15000)
-                                .followRedirects(true)
-                                .get();
-                        title = doc.title();
-                        Elements a = doc.select("a[href]");
-                        for (Element e : a) {
-                            String href = e.absUrl("href");
-                            if (href == null || href.isBlank()) href = e.attr("href");
-                            if (href != null && !href.isBlank()) linksLocal.add(href);
-                        }
-                    } catch (Exception ex) {
-                        // si l'extraction fail, on continue malgré tout (conversion peut avoir marché)
+                    if (content != null) {
+                        content.select(".mw-editsection, .reflist, .navbox, .infobox, .metadata, table, sup.reference").remove();
+                        String html = content.html();
+                        converted = HtmlImporter.importFromHtml(html);
                     }
-                } catch (Throwable t) {
-                    error = t.getMessage();
+                } catch (Exception ex) {
+                    error = ex.getMessage();
                 }
                 return null;
             }
 
-            @Override protected void done() {
+            @Override
+            protected void done() {
                 if (error != null) {
-                    previewArea.setText("Erreur de chargement : " + error);
-                    statusLabel.setText("Erreur");
-                    System.out.println("Erreur chargement : " + (error == null ? "inconnue" : error));
-                  
-                } else {
-                    previewArea.setText((title != null && !title.isBlank() ? ("#1. " + title + "\n\n") : "") + (converted == null ? "" : converted));
-                    previewArea.setCaretPosition(0);
-                    statusLabel.setText("Chargé : " + finalUrl);
-                    // remplir l'historique et les liens
-                    pushHistory(finalUrl);
-                    addressField.setText(finalUrl);
-                    extractedLinks = linksLocal;
-                    String announceMsg = "Page chargée.";
-                    if (title != null && !title.isBlank()) announceMsg += " Titre : " + title + ".";
-                    announceMsg += " " + extractedLinks.size() + " liens détectés.";
-                    System.out.println(announceMsg);
+                    JOptionPane.showMessageDialog(HtmlBrowserDialog.this, "Erreur lors du chargement : " + error);
+                    return;
                 }
-                updateControls();
+                try {
+                    javax.swing.text.Document doc = editorPane.getDocument();
+                    int pos = doc.getLength();
+
+                    // ✅ Récupérer le vrai titre Wikipédia depuis la balise <h1 id="firstHeading">
+                    String articleTitle = "Article Wikipédia";
+                    try {
+                        Document titleDoc = Jsoup.connect(url)
+                                .userAgent("LisioWriter/accessible-browser")
+                                .timeout(10000)
+                                .get();
+                        Element h1 = titleDoc.selectFirst("#firstHeading");
+                        if (h1 != null && !h1.text().isBlank()) {
+                            articleTitle = h1.text();
+                        }
+                    } catch (Exception ignore) {
+                        // en cas d’erreur, on garde le titre du lien
+                        if (sel.title != null && !sel.title.isBlank())
+                            articleTitle = sel.title;
+                    }
+
+                    // ✅ Formater le contenu en texte blindWriter (titre + contenu)
+                    String formatted = "#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
+                    
+                    doc.insertString(pos, formatted, null);
+                    editorPane.setCaretPosition(pos);
+                    System.out.println("✅ Article inséré : " + articleTitle);
+
+                    // ✅ Fermer la fenêtre et redonner le focus
+                    dispose();
+                    commandes.nameFile = articleTitle;
+                    SwingUtilities.invokeLater(() -> editorPane.requestFocusInWindow());
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         };
+
         wk.execute();
     }
+    
+    /** Classe interne représentant un résultat Wikipédia (titre + URL). */
+    private static class WikiResult {
+        final String title;
+        final String url;
 
-    private void pushHistory(String url) {
-        while (history.size() > historyIndex + 1) history.remove(history.size()-1);
-        history.add(url);
-        historyIndex = history.size() - 1;
-    }
-    private void goBack() {
-        if (historyIndex > 0) {
-            historyIndex--;
-            String u = history.get(historyIndex);
-            addressField.setText(u);
-            navigateTo(u);
-        } else {
-            Toolkit.getDefaultToolkit().beep();
-            System.out.println("Aucune page précédente.");
+        WikiResult(String title, String url) {
+            this.title = title;
+            this.url = url;
         }
-    }
-    private void goForward() {
-        if (historyIndex < history.size() - 1) {
-            historyIndex++;
-            String u = history.get(historyIndex);
-            addressField.setText(u);
-            navigateTo(u);
-        } else {
-            Toolkit.getDefaultToolkit().beep();
-            System.out.println("Aucune page suivante.");
-        }
-    }
-    private void reload() {
-        String u = addressField.getText().trim();
-        if (!u.isBlank()) navigateTo(u);
-    }
 
-    /** Insère le texte converti affiché dans l'éditeur principal (à la fin). */
-    private void insertIntoEditor(JTextArea editorPane) {
-        String t = previewArea.getText();
-        if (t == null || t.isBlank()) {
-            Toolkit.getDefaultToolkit().beep();
-            System.out.println("Rien à insérer.");
-            return;
-        }
-        try {
-            javax.swing.text.Document doc = editorPane.getDocument();
-            int pos = doc.getLength();
-            doc.insertString(pos, "\n\n" + t, null);
-            editorPane.setCaretPosition(pos);
-            //writer.blindWriter.setModified(true);
-            System.out.println("Page insérée dans le document.");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.out.println("Erreur lors de l'insertion : " + ex.getMessage());
-            JOptionPane.showMessageDialog(this, "Erreur insertion : " + ex.getMessage());
+        @Override
+        public String toString() {
+            // ce qui sera affiché dans la JList
+            return title;
         }
     }
 
-    private void openLinksDialog() {
-        if (extractedLinks == null || extractedLinks.isEmpty()) {
-            Toolkit.getDefaultToolkit().beep();
-            System.out.println("Aucun lien détecté sur cette page.");
-            return;
-        }
-
-        // Dialog listant les liens (numérotés). Permet d'ouvrir le lien sélectionné.
-        JDialog dlg = new JDialog(this, "Liens détectés", true);
-        DefaultListModel<String> model = new DefaultListModel<>();
-        for (int i = 0; i < extractedLinks.size(); i++) {
-            model.addElement((i+1) + ". " + extractedLinks.get(i));
-        }
-        JList<String> list = new JList<>(model);
-        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        list.getAccessibleContext().setAccessibleName("Liste des liens");
-        list.getAccessibleContext().setAccessibleDescription("Sélectionnez un lien et appuyez sur Entrée pour l'ouvrir dans le navigateur intégré.");
-
-        JScrollPane sp = new JScrollPane(list);
-        sp.setPreferredSize(new Dimension(800, 400));
-        dlg.getContentPane().add(sp, BorderLayout.CENTER);
-
-        // Bouton ouvrant le lien sélectionné
-        JButton openBtn = new JButton("Ouvrir (Entrée)");
-        openBtn.addActionListener(e -> {
-            int sel = list.getSelectedIndex();
-            if (sel >= 0) {
-                String url = extractedLinks.get(sel);
-                dlg.dispose();
-                // ouvrir la page choisie
-                navigateTo(url);
-            }
-        });
-        // close button
-        JButton cancel = new JButton("Annuler (Esc)");
-        cancel.addActionListener(e -> dlg.dispose());
-
-        JPanel p = new JPanel();
-        p.add(openBtn);
-        p.add(cancel);
-        dlg.getContentPane().add(p, BorderLayout.SOUTH);
-
-        // Key binding : Enter ouvre, Esc ferme
-        var rp = dlg.getRootPane();
-        rp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "open");
-        rp.getActionMap().put("open", new AbstractAction(){ public void actionPerformed(ActionEvent e){ openBtn.doClick(); }});
-        rp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
-        rp.getActionMap().put("close", new AbstractAction(){ public void actionPerformed(ActionEvent e){ cancel.doClick(); }});
-
-        dlg.pack();
-        dlg.setLocationRelativeTo(this);
-
-        // annonce avant affichage
-        System.out.println(extractedLinks.size() + " liens listés. Utilisez les flèches et appuyez sur Entrée pour ouvrir.");
-        dlg.setVisible(true);
-    }
-
-    private void updateControls() {
-        backBtn.setEnabled(historyIndex > 0);
-        forwardBtn.setEnabled(historyIndex < history.size() - 1);
-        reloadBtn.setEnabled(historyIndex >= 0);
-        linksBtn.setEnabled(extractedLinks != null && !extractedLinks.isEmpty());
-    }
-
-    private void closeDialog() {
-    	System.out.println("Navigateur fermé.");
-        dispose();
-    }
+    
 }

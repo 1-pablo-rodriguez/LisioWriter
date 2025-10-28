@@ -33,6 +33,7 @@ import javax.swing.undo.UndoManager;
 
 import act.ToggleEditAction;
 import dia.HtmlBrowserDialog;
+import dia.WikipediaSearchDialog;
 import writer.CaretStyler;
 import writer.ParagraphHighlighter;
 import writer.WordSelectOnShiftRight;
@@ -376,18 +377,19 @@ public class EditorFrame extends JFrame implements EditorApi {
     		);
     	
     	EditorFrame frame = this; // capture l'instance actuelle
-    	addKeyBinding(KeyEvent.VK_ENTER, InputEvent.ALT_DOWN_MASK, "openUrlAtCaret", new AbstractAction() {
-    	    @Override public void actionPerformed(ActionEvent e) {
-    	        String url = TextUtils.findUrlAtCaret(editorPane);
-    	        if (url == null) {
-    	            Toolkit.getDefaultToolkit().beep();
-    	            System.out.println("Aucun lien détecté sous le curseur.");
-    	            return;
-    	        }
-    	        // ouvre le navigateur intégré
-    	        SwingUtilities.invokeLater(() -> new HtmlBrowserDialog(frame,editorPane).navigateTo(url));
+    	addKeyBinding(KeyEvent.VK_ENTER, InputEvent.ALT_DOWN_MASK, "openWikipediaSearch", new AbstractAction() {
+    	    @Override
+    	    public void actionPerformed(ActionEvent e) {
+    	        SwingUtilities.invokeLater(() -> {
+    	            // Ouvre la fenêtre de recherche Wikipédia (saisie du mot)
+    	            WikipediaSearchDialog.open(frame, url -> {
+    	                // Quand l’utilisateur valide la recherche :
+    	                new HtmlBrowserDialog(frame, frame.getEditor(), url);
+    	            });
+    	        });
     	    }
     	});
+
 
 
 

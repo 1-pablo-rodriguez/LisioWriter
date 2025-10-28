@@ -368,8 +368,8 @@ public final class MenuBarFactory {
         	 var win = ctx.getWindow();
              if (win instanceof EditorFrame frame) {
             	 WikipediaSearchDialog.open(frame, url -> {
-             	    new dia.HtmlBrowserDialog(frame, frame.getEditor()).navigateTo(url);
-             	});
+            		    new dia.HtmlBrowserDialog(frame, frame.getEditor(), url);
+            		});
              }
         });
         
