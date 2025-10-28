@@ -22,7 +22,7 @@ public class bienvenueAffichage {
                 boolean editable = editorPane != null && editorPane.isEditable();
                 boolean liveSpell = commandes.verificationOrthoGr; // ta variable existante
 
-                message.append("BIENVENUE sur blindWriter (BWR) ↓");
+                message.append("BIENVENUE sur LisioWriter ↓");
                 message.append("\nVersion : ").append(AppInfo.getAppVersion()).append(" ↓");
                 message.append("\nFichier ouvert : ").append(fileName).append(" ↓");
                 message.append("\nDossier de travail : ").append(folder).append(" ↓");
