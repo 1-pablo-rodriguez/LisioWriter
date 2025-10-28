@@ -1,9 +1,9 @@
-# blindWriter
+# LisioWriter
 
 ![Language: French](https://img.shields.io/badge/lang-French-blue?style=flat-square&logo=google-translate)
 ![Platform: Windows](https://img.shields.io/badge/platform-Windows-lightgrey?style=flat-square&logo=windows)
 
-**blindWriter** est un logiciel de traitement de texte conçu spécialement pour les personnes **non-voyantes ou malvoyantes**.
+**LisioWriter** est un logiciel de traitement de texte conçu spécialement pour les personnes **non-voyantes ou malvoyantes**.
 Son interface est pensée pour être utilisée **entièrement au clavier** et reste compatible avec les lecteurs d’écran tels que **NVDA** ou **JAWS**.
 
 La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée de manière invisible, mais indiquée directement par de petits codes lisibles inspirés du **Markdown**.
@@ -11,11 +11,11 @@ La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée
 **Ces codes sont intégrés directement dans le texte**. Ils sont ensuite lus par le lecteur d’écran et transmis à la barre braille, ce qui permet à l’utilisateur de savoir exactement quelle mise en forme est appliquée.
 
 Ce logiciel s’adresse particulièrement aux étudiants de niveau post-bac, engagés dans des études supérieures, ainsi qu’à toute personne souhaitant rédiger des documents structurés de manière autonome malgré un handicap visuel.
-blindWriter facilite la production de rapports, mémoires, travaux universitaires et documents professionnels accessibles et correctement formatés.
+LisioWriter facilite la production de rapports, mémoires, travaux universitaires et documents professionnels accessibles et correctement formatés.
 
 ---
 
-## 📌 Exemple de code dans blindWriter
+## 📌 Exemple de code dans LisioWriter
 
 - **#P. Mon titre du document** : Indique mon titre pincipale de niveau hiérarchique corps de texte.
 - **#S. Un sous-titre** : Indique un sous-titre  de niveau hiérarchique corps de texte.
@@ -61,20 +61,20 @@ L’objectif est de fournir un outil qui favorise l’autonomie numérique, tout
   - Exportation en **PDF**
 - **Vérification orthographique intégrée** (basée sur *LanguageTool*).  
 - **Surlignage et tag preffix °° des erreurs et suggestion des corrections**.  
-- **Mode documentation blindWriter** : **ALT+A** permet de basculer sur la documentation et **ALT+B** permet de basculer sur son fichier.
+- **Mode documentation LisioWriter** : **ALT+A** permet de basculer sur la documentation et **ALT+B** permet de basculer sur son fichier.
 - **Navigateur et navigation** : Fenêtre simple pour la navigation par les titres.
 - **Marque page** : intégration de marque page et de note.
-- **Système de mise à jour automatique** : télécharge et installe la dernière version en arrière-plan.  
-- **Accessibilité vocale (SAPI)** : le programme parle pendant l’installation et les mises à jour.  
+- **Système de mise à jour automatique** : télécharge et installe la dernière version en arrière-plan (mode silencieux).  
+- **Recherche et insertion des articles de Wikipédia** : Recherche et insére les articles de Wikipédia dans l'éditeur.  
 
 ---
 
 ## 🧩 Installation
-⚠️ **Actuellement, blindWriter est uniquement disponible pour Windows.**  
+⚠️ **Actuellement, LisioWriter est uniquement disponible pour Windows.**  
 Une version multiplateforme (Linux, macOS) pourra être envisagée plus tard.
 
-1. Téléchargez la dernière version depuis la page [**Releases**](https://github.com/1-pablo-rodriguez/blindWriter/releases).  
-2. Exécutez le fichier `Installation_blindWriter_x.x.x.exe`.  
+1. Téléchargez la dernière version depuis la page [**Releases**](https://github.com/1-pablo-rodriguez/LisioWriter/releases).  
+2. Exécutez le fichier `Installation_LisioWriter_x.x.x.exe`.  
 3. Suivez les instructions vocales.  
 4. Un raccourci sera créé sur le bureau et dans le menu Démarrer.
 
@@ -82,7 +82,7 @@ Une version multiplateforme (Linux, macOS) pourra être envisagée plus tard.
 
 ## 🎹 Raccourcis clavier essentiels (aperçu)
 
-Le tableau ci-dessous illustre quelques fonctions pratiques de blindWriter accessibles au clavier :
+Le tableau ci-dessous illustre quelques fonctions pratiques de LisioWriter accessibles au clavier :
 
 | Raccourci      | Fonction               | Description                                                                 |
 |----------------|------------------------|-----------------------------------------------------------------------------|
@@ -91,7 +91,7 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de blindWriter acces
 | **Ctrl+F2**    | Insère/Supp. un marque page  | Insère ou supprime un marque-page associé à une note.          |
 | **F3 / Maj+F3**| Navigation par titres  | Passe rapidement au titre suivant ou au titre précédent.                    |
 | **F4 / Maj+F4**| Navigation par marque-page  | Passe rapidement au marque-page suivant ou au marque-page précédent.   |
-| **ALT+A**      | Documentation intégrée | Ouvre la documentation interne de blindWriter.                              |
+| **ALT+A**      | Documentation intégrée | Ouvre la documentation interne de LisioWriter.                              |
 | **F6**         | Navigateur de titres   | Ouvre le navigateur pour parcourir la structure du document.                |
 | **F7 / Maj F7** | Erreur suivante / précédente  | Sélectionne le mot ou le texte suivant ou préécédent contenant une faute ou erreur. |
 | **Ctrl+F7**    | Vérification du document   | Lance la vérification orthographique et grammaticale de tout le document.   |
@@ -119,7 +119,7 @@ Les menus sont conçus pour être **vocalisés** et **compatibles avec les barre
 
 Après la première installation, il est possible à l'utilisateur non-voyante de réaliser des mise à jour automatique.
 Dans le menu **Préférence**, les mises à jour se font via un fichier `updates.json` hébergé sur GitHub :  
-> `https://raw.githubusercontent.com/1-pablo-rodriguez/blindWriter/main/updates.json`
+> `https://raw.githubusercontent.com/1-pablo-rodriguez/LisioWriter/main/updates.json`
 
 **Les nouvelles versions sont téléchargées et installées automatiquement en mode silencieux** (aucune fenêtre s'affiche).
 
@@ -137,12 +137,12 @@ Vous pouvez :
 
 ## 👤 Auteur
 
-**blindWriter** a été développé par **Pablo Rodriguez** dans le cadre d’une démarche de recherche et d’innovation pédagogique visant à promouvoir **l’autonomie numérique des personnes non-voyantes ou malvoyantes**.  
+**LisioWriter** a été développé par **Pablo Rodriguez** dans le cadre d’une démarche de recherche et d’innovation pédagogique visant à promouvoir **l’autonomie numérique des personnes non-voyantes ou malvoyantes**.  
 
 Le logiciel a été expérimenté et validé auprès d’un étudiant en licence puis en master à **l’Université d’Artois**.  
 Cette phase de test a permis de mesurer l’accessibilité et l’ergonomie du logiciel, ainsi que sa capacité à répondre aux besoins effectifs des utilisateurs, tant dans le cadre **académique** que dans le milieu **professionnel** (stage de 2x4 mois sur les deux années de Master).
 
-Ces validations confirment la pertinence de blindWriter comme outil d’*inclusion numérique**, adapté tant à l’enseignement supérieur qu’à un **usage professionnel**.
+Ces validations confirment la pertinence de LisioWriter comme outil d’*inclusion numérique**, adapté tant à l’enseignement supérieur qu’à un **usage professionnel**.
 
 
 ---
@@ -154,7 +154,7 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 
 ---
 
-> 💡 *blindWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
+> 💡 *LisioWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
 
 
 
