@@ -14,6 +14,7 @@ public class readFileBlindWriter {
 
 	public boolean erreur = false;
 	
+	// Lecture d'un fichier BWR
 	public readFileBlindWriter(File selectedFile, EditorFrame parent) {
 		try {
             // Lecture du fichier et insertion dans le JTextArea
@@ -80,11 +81,7 @@ public class readFileBlindWriter {
 			e.printStackTrace();
 		}
 	}
-	
-
-
-    
-    
+	   
 	public boolean isErreur() {
 		return erreur;
 	}
