@@ -31,6 +31,7 @@ import dia.BoiteNonVoyant;
 import dia.BoiteRenameFile;
 import dia.BoiteSaveAs;
 import dia.HtmlBrowserDialog;
+import dia.WikipediaSearchDialog;
 import dia.boiteMeta;
 import dia.navigateurT1;
 import dia.ouvrirTxt;
@@ -355,7 +356,7 @@ public final class MenuBarFactory {
             ctx.setModified(false);
         });    
         
-        JMenuItem importHtml = createSimpleMenuItem("Importer HTML...", e -> {
+        JMenuItem importHtml = createSimpleMenuItem("Importer fichier HTML", e -> {
         	 var win = ctx.getWindow();
              if (win instanceof EditorFrame frame) {
             	 new dia.ouvrirHTML(frame);
@@ -363,22 +364,34 @@ public final class MenuBarFactory {
         	ctx.setModified(false);
         }); 
         
-        JMenuItem importHtmlBrower = createSimpleMenuItem("Importer Web...", e -> {
-            SwingUtilities.invokeLater(() -> new HtmlBrowserDialog(ctx.getWindow(), ctx.getEditor()));
+        JMenuItem importWikipedia = createSimpleMenuItem("Recherche Wikipedia", e -> {
+        	 var win = ctx.getWindow();
+             if (win instanceof EditorFrame frame) {
+            	 WikipediaSearchDialog.open(frame, url -> {
+             	    new dia.HtmlBrowserDialog(frame, frame.getEditor()).navigateTo(url);
+             	});
+             }
         });
+        
+//        JMenuItem importHtmlBrower = createSimpleMenuItem("Importer page WEB", e -> {
+//            SwingUtilities.invokeLater(() -> new HtmlBrowserDialog(ctx.getWindow(), ctx.getEditor()));
+//        });
 
        
         ctx.addItemChangeListener(open2Item);
         ctx.addItemChangeListener(openItem);
         ctx.addItemChangeListener(open3Item);
         ctx.addItemChangeListener(importHtml);
-        ctx.addItemChangeListener(importHtmlBrower);
+        ctx.addItemChangeListener(importWikipedia);
+//        ctx.addItemChangeListener(importHtmlBrower);
         
         fileMenu.add(open2Item);
         fileMenu.add(openItem);
         fileMenu.add(open3Item);
+        fileMenu.addSeparator();
+        fileMenu.add(importWikipedia);
         fileMenu.add(importHtml);
-        fileMenu.add(importHtmlBrower);
+//        fileMenu.add(importHtmlBrower);
         
         return fileMenu;
     }
