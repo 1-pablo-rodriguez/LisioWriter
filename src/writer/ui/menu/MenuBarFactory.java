@@ -337,7 +337,7 @@ public final class MenuBarFactory {
             }
         });
         
-        JMenuItem openItem = createSimpleMenuItem("Importer fichier texte",e -> {
+        JMenuItem openItem = createSimpleMenuItem("Importer fichier texte", e -> {
             System.out.println("Ouverture fichier .txt");
             var win = ctx.getWindow();
             if (win instanceof EditorFrame frame) {
@@ -355,8 +355,7 @@ public final class MenuBarFactory {
             ctx.setModified(false);
         });    
         
-        JMenuItem importHtml = new JMenuItem("Importer HTML...");
-        importHtml.addActionListener(e -> {
+        JMenuItem importHtml = createSimpleMenuItem("Importer HTML...", e -> {
         	 var win = ctx.getWindow();
              if (win instanceof EditorFrame frame) {
             	 new dia.ouvrirHTML(frame);
@@ -364,8 +363,7 @@ public final class MenuBarFactory {
         	ctx.setModified(false);
         }); 
         
-        JMenuItem importHtmlBrower = new JMenuItem("Importer Web...");
-        importHtmlBrower.addActionListener(e -> {
+        JMenuItem importHtmlBrower = createSimpleMenuItem("Importer Web...", e -> {
             SwingUtilities.invokeLater(() -> new HtmlBrowserDialog(ctx.getWindow(), ctx.getEditor()));
         });
 
