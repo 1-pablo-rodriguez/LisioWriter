@@ -4,7 +4,6 @@ package Import;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jsoup.Jsoup;
@@ -12,7 +11,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
-import org.jsoup.select.Elements;
 
 /**
 * Convertit un document HTML en markup "blindWriter".
@@ -26,13 +24,12 @@ import org.jsoup.select.Elements;
 */
 public final class HtmlImporter {
 
- // Options (tu peux en faire configurable)
- private static final String BOLD_OPEN = "**";
- private static final String BOLD_CLOSE = "**";
- private static final String ITALIC_OPEN = "^^";
- private static final String ITALIC_CLOSE = "^^";
- private static final String UNDERLINE_OPEN = "__";
- private static final String UNDERLINE_CLOSE = "__";
+	//=== Variables de classe ===
+	private static int compteurGras = 0;
+	private static int compteurItalique = 0;
+	private static int compteurSouligne = 0;
+	
+	
 
  public static String importFileToBlindWriter(File htmlFile, String baseUri) throws IOException {
      Document doc = Jsoup.parse(htmlFile, StandardCharsets.UTF_8.name(), baseUri == null ? "" : baseUri);
@@ -42,135 +39,189 @@ public final class HtmlImporter {
      return tidyOutput(out.toString());
  }
 
+ 
  private static void traverseChildren(Node node, StringBuilder out, int listDepth, AtomicInteger olCounter) {
-     List<Node> children = node.childNodes();
-     for (Node child : children) {
-         if (child instanceof TextNode) {
-             String t = ((TextNode) child).text();
-             // nettoie espaces multiples mais conserve retours raisonnables
-             out.append(normalizeInlineText(t));
-         } else if (child instanceof Element) {
-             Element e = (Element) child;
-             String tag = e.tagName().toLowerCase();
+	    for (Node child : node.childNodes()) {
 
-             switch (tag) {
-                 case "h1": case "h2": case "h3": case "h4": case "h5": case "h6":
-                     int level = Integer.parseInt(tag.substring(1));
-                     out.append("\n\n#").append(level).append(". ");
-                     // contenu inline du titre
-                     traverseChildren(e, out, 0, null);
-                     out.append("\n\n");
-                     break;
+	        // ——— Texte brut
+	        if (child instanceof TextNode) {
+	            out.append(normalizeInlineText(((TextNode) child).text()));
+	            continue;
+	        }
 
-                 case "p":
-                     out.append("\n");
-                     traverseChildren(e, out, 0, null);
-                     out.append("\n\n");
-                     break;
+	        // ——— Autre élément HTML
+	        if (!(child instanceof Element)) continue;
+	        Element e = (Element) child;
+	        String tag = e.tagName().toLowerCase();
 
-                 case "br":
-                     out.append("\n");
-                     break;
+	        // Cas spéciaux (titres, paragraphes, etc.)
+	        switch (tag) {
+	            case "h1": case "h2": case "h3": case "h4": case "h5": case "h6":
+	                int level = Integer.parseInt(tag.substring(1));
+	                out.append("\n\n#").append(level).append(". ");
+	                traverseChildren(e, out, 0, null);
+	                out.append("\n\n");
+	                continue;
 
-                 case "strong": case "b":
-                     out.append(BOLD_OPEN);
-                     traverseChildren(e, out, listDepth, olCounter);
-                     out.append(BOLD_CLOSE);
-                     break;
+	            case "p":
+	                out.append("\n");
+	                traverseChildren(e, out, 0, null);
+	                out.append("\n\n");
+	                continue;
 
-                 case "em": case "i":
-                     out.append(ITALIC_OPEN);
-                     traverseChildren(e, out, listDepth, olCounter);
-                     out.append(ITALIC_CLOSE);
-                     break;
+	            case "br":
+	                out.append("\n");
+	                continue;
 
-                 case "u":
-                     out.append(UNDERLINE_OPEN);
-                     traverseChildren(e, out, listDepth, olCounter);
-                     out.append(UNDERLINE_CLOSE);
-                     break;
+	            case "ul":
+	                traverseList(e, out, false, listDepth + 1);
+	                out.append("\n");
+	                continue;
 
-                 case "a": {
-                     String text = e.text();
-                     String href = e.absUrl("href");
-                     if (href == null || href.isEmpty()) href = e.attr("href");
-                     // format lisible pour lecteur d'écran : "texte (URL)"
-                     out.append(text);
-                     if (href != null && !href.isEmpty()) {
-                         out.append(" (").append(href).append(")");
-                     }
-                     break;
-                 }
+	            case "ol":
+	                traverseList(e, out, true, listDepth + 1);
+	                out.append("\n");
+	                continue;
 
-                 case "img": {
-                     String alt = e.attr("alt");
-                     String src = e.absUrl("src");
-                     if (src == null || src.isEmpty()) src = e.attr("src");
-                     out.append("\n[Image");
-                     if (alt != null && !alt.isEmpty()) out.append(": ").append(alt);
-                     if (src != null && !src.isEmpty()) out.append(" (").append(src).append(")");
-                     out.append("]\n");
-                     break;
-                 }
+	            case "a": {
+	                String text = e.text();
+	                String href = e.absUrl("href");
+	                if (href == null || href.isEmpty()) href = e.attr("href");
+	                out.append(text);
+	                if (href != null && !href.isEmpty()) {
+	                    out.append(" (").append(href).append(")");
+	                }
+	                continue;
+	            }
 
-                 case "ul":
-                     traverseList(e, out, false, listDepth + 1);
-                     out.append("\n");
-                     break;
+	            case "img": {
+	                String alt = e.attr("alt");
+	                String src = e.absUrl("src");
+	                if (src == null || src.isEmpty()) src = e.attr("src");
+	                out.append("\n[Image");
+	                if (alt != null && !alt.isEmpty()) out.append(": ").append(alt);
+	                if (src != null && !src.isEmpty()) out.append(" (").append(src).append(")");
+	                out.append("]\n");
+	                continue;
+	            }
+	        }
 
-                 case "ol":
-                     traverseList(e, out, true, listDepth + 1);
-                     out.append("\n");
-                     break;
+	        // ——— Pour les styles inline : b, i, u (ou imbriqués)
+	        int profondeur = countNestingDepth(e.outerHtml());
 
-                 case "pre":
-                     out.append("\n\n"); // bloc préformaté
-                     out.append(e.text());
-                     out.append("\n\n");
-                     break;
+	        if (profondeur >= 1) {
+	            // Choisir le format LisioWriter selon les compteurs détectés
+	            String open = "", close = "";
 
-                 case "table":
-                     // simplification : extraire texte ligne par ligne
-                     Elements rows = e.select("tr");
-                     for (Element r : rows) {
-                         Elements cols = r.select("th,td");
-                         boolean firstCol = true;
-                         for (Element c : cols) {
-                             if (!firstCol) out.append(" | ");
-                             out.append(c.text());
-                             firstCol = false;
-                         }
-                         out.append("\n");
-                     }
-                     out.append("\n");
-                     break;
+	            if (compteurGras > 0 && compteurItalique > 0 && compteurSouligne > 0) {
+	                open = "_*^"; close = "^*_";
+	            } else if (compteurGras > 0 && compteurItalique > 0) {
+	                open = "*^"; close = "^*";
+	            } else if (compteurGras > 0 && compteurSouligne > 0) {
+	                open = "_*"; close = "*_";
+	            } else if (compteurItalique > 0 && compteurSouligne > 0) {
+	                open = "_^"; close = "^_";
+	            } else if (compteurGras > 0) {
+	                open = "**"; close = "**";
+	            } else if (compteurItalique > 0) {
+	                open = "^^"; close = "^^";
+	            } else if (compteurSouligne > 0) {
+	                open = "__"; close = "__";
+	            }
 
-                 default:
-                     // Par défaut on descend dans l'arbre
-                     traverseChildren(e, out, listDepth, olCounter);
-             }
-         }
-     }
- }
+	            out.append(open);
+	            traverseChildren(e, out, listDepth, olCounter);
+	            out.append(close);
+	        } else {
+	            traverseChildren(e, out, listDepth, olCounter);
+	        }
+	    }
+	}
 
- private static void traverseList(Element listElement, StringBuilder out, boolean ordered, int depth) {
-     int index = 1;
-     for (Element li : listElement.children()) {
-         if (!li.tagName().equalsIgnoreCase("li")) continue;
-         // indentation selon profondeur
-         String indent = "    ".repeat(Math.max(0, depth - 1));
-         if (ordered) {
-             out.append(indent).append(index).append(". ");
-         } else {
-             out.append(indent).append("- ");
-         }
-         // contenu du li (peut contenir des sous-listes)
-         traverseChildren(li, out, depth, null);
-         out.append("\n");
-         // gérer sous-listes déjà traitées par traverseChildren
-         index++;
-     }
- }
+ 
+
+
+	/**
+	* Analyse un fragment HTML pour déterminer la profondeur d'imbrication
+	* et compter les balises de style rencontrées (b, i, u, etc.)
+	*
+	* @return 0 = aucune balise, 1 = simple, 2 = double, 3 = triple
+	*/
+	 public static int countNestingDepth(String html) {
+		    compteurGras = compteurItalique = compteurSouligne = 0;
+		    if (html == null || html.isBlank()) return 0;
+	
+		    final java.util.regex.Pattern TAG = java.util.regex.Pattern.compile("(?is)</?([a-z0-9]+)\\b[^>]*>");
+		    java.util.regex.Matcher m = TAG.matcher(html);
+	
+		    // ── Vérifie la toute première balise ───────────────────────────
+		    if (!m.find()) return 0;                     // pas de balise du tout
+		    String firstFull = m.group();                // ex: "<i>" ou "</b>"
+		    String firstTag  = m.group(1).toLowerCase(); // ex: "i" ou "b"
+	
+		    boolean isOpening = !firstFull.startsWith("</");
+		    boolean isStyleFirst = firstTag.equals("b") || firstTag.equals("strong")
+		                        || firstTag.equals("i") || firstTag.equals("em")
+		                        || firstTag.equals("u");
+	
+		    if (!isOpening || !isStyleFirst) return 0;   // 1ʳᵉ balise non-style -> rejet
+	
+		    // ── Recommence le parcours depuis le début ─────────────────────
+		    m = TAG.matcher(html);
+	
+		    int depth = 0, maxDepth = 0;
+		    while (m.find()) {
+		        String full = m.group();                  // balise complète
+		        String tag  = m.group(1).toLowerCase();   // nom de balise
+	
+		        // On ne compte que les balises de style
+		        boolean isStyle = false;
+		        switch (tag) {
+		            case "b":
+		            case "strong":
+		                compteurGras++;
+		                isStyle = true;
+		                break;
+		            case "i":
+		            case "em":
+		                compteurItalique++;
+		                isStyle = true;
+		                break;
+		            case "u":
+		                compteurSouligne++;
+		                isStyle = true;
+		                break;
+		        }
+	
+		        if (!isStyle) continue;                   // ignore autres balises
+	
+		        if (!full.startsWith("</")) depth++;      // ouverture style
+		        else depth--;                             // fermeture style
+	
+		        if (depth > maxDepth) maxDepth = depth;
+		    }
+	
+		    // limite à 3 (gras + italique + souligné)
+		    return Math.min(maxDepth, 3);
+		}
+
+ 
+	private static void traverseList(Element listElement, StringBuilder out, boolean ordered, int depth) {
+	    int index = 1;
+	    for (Element li : listElement.children()) {
+	        if (!li.tagName().equalsIgnoreCase("li")) continue;
+	        // 🔹 Format LisioWriter : "-." pour toutes les listes non ordonnées
+	        if (ordered) {
+	            out.append(index).append(". ");
+	        } else {
+	            out.append("-. ");
+	        }
+
+	        traverseChildren(li, out, depth, null);
+	        out.append("\n");
+	        index++;
+	    }
+	}
 
 	 private static String normalizeInlineText(String s) {
 	     // remplace plusieurs espaces par un seul, mais conserve les retours de ligne

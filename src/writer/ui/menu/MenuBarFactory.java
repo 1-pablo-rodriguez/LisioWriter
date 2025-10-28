@@ -364,7 +364,7 @@ public final class MenuBarFactory {
         	ctx.setModified(false);
         }); 
         
-        JMenuItem importWikipedia = createSimpleMenuItem("Recherche Wikipedia", e -> {
+        JMenuItem importWikipedia = createMenuItem("Recherche Wikipedia", KeyEvent.VK_F8, 0,e -> {
         	 var win = ctx.getWindow();
              if (win instanceof EditorFrame frame) {
             	 WikipediaSearchDialog.open(frame, url -> {
@@ -373,25 +373,18 @@ public final class MenuBarFactory {
              }
         });
         
-//        JMenuItem importHtmlBrower = createSimpleMenuItem("Importer page WEB", e -> {
-//            SwingUtilities.invokeLater(() -> new HtmlBrowserDialog(ctx.getWindow(), ctx.getEditor()));
-//        });
-
-       
         ctx.addItemChangeListener(open2Item);
         ctx.addItemChangeListener(openItem);
         ctx.addItemChangeListener(open3Item);
         ctx.addItemChangeListener(importHtml);
         ctx.addItemChangeListener(importWikipedia);
-//        ctx.addItemChangeListener(importHtmlBrower);
-        
+ 
         fileMenu.add(open2Item);
         fileMenu.add(openItem);
         fileMenu.add(open3Item);
+        fileMenu.add(importHtml);
         fileMenu.addSeparator();
         fileMenu.add(importWikipedia);
-        fileMenu.add(importHtml);
-//        fileMenu.add(importHtmlBrower);
         
         return fileMenu;
     }

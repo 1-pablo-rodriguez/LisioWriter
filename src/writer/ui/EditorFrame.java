@@ -377,7 +377,7 @@ public class EditorFrame extends JFrame implements EditorApi {
     		);
     	
     	EditorFrame frame = this; // capture l'instance actuelle
-    	addKeyBinding(KeyEvent.VK_ENTER, InputEvent.ALT_DOWN_MASK, "openWikipediaSearch", new AbstractAction() {
+    	addKeyBinding(KeyEvent.VK_F8, 0, "openWikipediaSearch", new AbstractAction() {
     	    @Override
     	    public void actionPerformed(ActionEvent e) {
     	        SwingUtilities.invokeLater(() -> {
