@@ -27,10 +27,10 @@ import org.jsoup.select.Elements;
 public final class HtmlImporter {
 
  // Options (tu peux en faire configurable)
- private static final String BOLD_OPEN = "*";
- private static final String BOLD_CLOSE = "*";
- private static final String ITALIC_OPEN = "_";
- private static final String ITALIC_CLOSE = "_";
+ private static final String BOLD_OPEN = "**";
+ private static final String BOLD_CLOSE = "**";
+ private static final String ITALIC_OPEN = "^^";
+ private static final String ITALIC_CLOSE = "^^";
  private static final String UNDERLINE_OPEN = "__";
  private static final String UNDERLINE_CLOSE = "__";
 
@@ -186,7 +186,7 @@ public final class HtmlImporter {
 	public static String importFromUrl(String url) throws IOException {
 	  // User-Agent pour éviter certains blocages
 	  Document doc = Jsoup.connect(url)
-	                      .userAgent("blindWriter/1.0 (+https://example.org)")
+	                      .userAgent("LisioWriter/1.0 (+https://example.org)")
 	                      .timeout(15000) // 15s
 	                      .followRedirects(true)
 	                      .get();

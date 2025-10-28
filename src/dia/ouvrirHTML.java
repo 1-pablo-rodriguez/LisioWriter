@@ -24,6 +24,7 @@ import javax.swing.text.Position;
 
 import Import.HtmlImporter;
 import writer.commandes;
+import writer.readFileBlindWriter;
 import writer.ui.EditorFrame;
 
 
@@ -358,8 +359,9 @@ public final class ouvrirHTML extends JDialog {
         // Fichier .html
         if (sel.isFile() && sel.getName().toLowerCase().endsWith(".html")) {
         	try {
-                HtmlImporter.importFileToBlindWriter(sel, sel.getParentFile().toURI().toString());
-                // append ou remplacer le document courant selon ton choix
+        		System.out.println("Lecture du fichier .html");
+        		String converted = HtmlImporter.importFileToBlindWriter(sel, sel.getParentFile().toURI().toString());
+        		parent.getEditor().getDocument().insertString(parent.getEditor().getDocument().getLength(), converted, null);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
