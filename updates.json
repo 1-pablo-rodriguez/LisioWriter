@@ -1,8 +1,8 @@
 {
   "channel": "stable",
-  "version": "1.0.0",
-  "url": "https://github.com/1-pablo-rodriguez/blindWriter/releases/download/V1.0.10/Installation_blindWriter_1.0.10.0.exe",
+  "version": "1.1.0",
+  "url": "https://github.com/1-pablo-rodriguez/LisioWriter/releases/download/V1.1.0/Installation_LisioWriter_1.1.0.0.exe",
   "sha256": "eb931d09c4b97927284592a40f365d96b5b90f0382691f45d43617b78c4f0f63",
-  "size": 261344230,
+  "size": 261334760,
   "releaseNotes": "Version 1.0.0"
 }
