@@ -30,13 +30,13 @@ import writer.util.AppInfo;
  */
 public class AutoUpdater {
 
-    private final String metadataUrl; // ex: https://raw.githubusercontent.com/1-pablo-rodriguez/blindWriter/refs/heads/main/updates.json
+    private final String metadataUrl; // ex: https://raw.githubusercontent.com/1-pablo-rodriguez/LisioWriter/refs/heads/main/updates.json
 
 	private final String currentVersion; // ex: "1.0.10"
 
     public AutoUpdater(String metadataUrl, String currentVersion) {
         this.metadataUrl = metadataUrl;
-        // utiliser la version passée en paramètre (fallback vers blindWriter si null)
+        // utiliser la version passée en paramètre (fallback vers LisioWriter si null)
         this.currentVersion = (currentVersion != null && !currentVersion.isBlank())
                               ? currentVersion
                               : AppInfo.getAppVersion();
@@ -131,7 +131,7 @@ public class AutoUpdater {
                 return null;
             }
 
-            Path tmp = Files.createTempFile("blindWriter-update-", ".exe");
+            Path tmp = Files.createTempFile("LisioWriter-update-", ".exe");
             System.out.println("[AutoUpdater] temp file: " + tmp.toAbsolutePath());
             try (InputStream in = resp.body();
                  OutputStream out = Files.newOutputStream(tmp, StandardOpenOption.TRUNCATE_EXISTING)) {
@@ -225,7 +225,7 @@ public class AutoUpdater {
      */
     public Process runInstallerSilent(Path installer) throws java.io.IOException {
         String exe = installer.toAbsolutePath().toString();
-        Path logDir = Path.of(System.getProperty("user.home"), "AppData", "Local", "blindWriter");
+        Path logDir = Path.of(System.getProperty("user.home"), "AppData", "Local", "LisioWriter");
         Files.createDirectories(logDir);
 
         return new ProcessBuilder(

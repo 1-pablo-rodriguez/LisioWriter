@@ -27,7 +27,7 @@ public class UpdateDialog extends JDialog {
     
     
     public UpdateDialog(Frame owner, AutoUpdater updater, AutoUpdater.UpdateInfo infoObj) {
-        super(owner, "Mise à jour blindWriter", true);
+        super(owner, "Mise à jour LisioWriter", true);
         this.updater = updater;
         this.infoObj = infoObj;
 

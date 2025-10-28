@@ -945,12 +945,12 @@ public final class MenuBarFactory {
 			@Override public void menuCanceled(MenuEvent e) {}
         }); 
         
-        JMenuItem afficheDocItem = createMenuItem("Doc. blindWriter", KeyEvent.VK_A, InputEvent.ALT_DOWN_MASK, e -> {
+        JMenuItem afficheDocItem = createMenuItem("Doc. LisoWriter", KeyEvent.VK_A, InputEvent.ALT_DOWN_MASK, e -> {
 	        ctx.sauvegardeTemporaire();             
 	        if (ctx instanceof EditorFrame f) f.setAffichage(Affiche.DOCUMENTATION);
 	        ctx.afficheDocumentation();
         });
-        afficheDocItem.getAccessibleContext().setAccessibleName("Documentation blindWriter");
+        afficheDocItem.getAccessibleContext().setAccessibleName("Documentation LisioWriter");
         
         JMenuItem afficheTextItem = createMenuItem("Votre texte", KeyEvent.VK_B, InputEvent.ALT_DOWN_MASK, e -> {
         	if (ctx instanceof EditorFrame f) f.setAffichage(Affiche.TEXTE);
@@ -1018,14 +1018,14 @@ public final class MenuBarFactory {
       	    // Récupérez la fenêtre parente (adapter editorPane si besoin)
       	    Window owner = SwingUtilities.getWindowAncestor(ctx.getEditor());
       	    String version = writer.util.AppInfo.getAppVersion();
-      	    dia.BoiteVersionNV.show(owner, "blindWriter " + version);
+      	    dia.BoiteVersionNV.show(owner, "LisioWriter " + version);
       	});
         
         JMenuItem majItem = createSimpleMenuItem("Mise à Jour", e -> {
       	    Toolkit.getDefaultToolkit().beep(); // feedback immédiat : début de la vérif
       	    new SwingWorker<AutoUpdater.UpdateInfo, Void>() {
       	        private final AutoUpdater updater =
-      	            new AutoUpdater("https://raw.githubusercontent.com/1-pablo-rodriguez/blindWriter/main/updates.json",
+      	            new AutoUpdater("https://raw.githubusercontent.com/1-pablo-rodriguez/LisioWriter/refs/heads/main/updates.json",
       	            		writer.util.AppInfo.getAppVersion());
 
       	        @Override protected AutoUpdater.UpdateInfo doInBackground() throws Exception {
