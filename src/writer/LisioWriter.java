@@ -8,7 +8,7 @@ import javax.swing.SwingUtilities;
 import writer.ui.EditorFrame;
 
 
-public class blindWriter extends writer.ui.EditorFrame {
+public class LisioWriter extends writer.ui.EditorFrame {
 
     private static final long serialVersionUID = 1L;
     public static int positionCurseurSauv = 0;
