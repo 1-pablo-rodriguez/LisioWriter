@@ -368,6 +368,8 @@ public final class ouvrirTxt extends JDialog {
         SwingUtilities.invokeLater(() -> {
             parent.requestFocus();
             parent.getEditor().requestFocusInWindow();
+        	// replacer le caret au tout début :
+    		parent.getEditor().setCaretPosition(0);
         });
         dispose();
     }
