@@ -65,7 +65,17 @@ L’objectif est de fournir un outil qui favorise l’autonomie numérique, tout
 - **Navigateur et navigation** : Fenêtre simple pour la navigation par les titres.
 - **Marque page** : intégration de marque page et de note.
 - **Système de mise à jour automatique** : télécharge et installe la dernière version en arrière-plan (mode silencieux).  
-- **Recherche et insertion des articles de Wikipédia** : Recherche et insére les articles de Wikipédia dans l'éditeur.  
+- 🪶 **Recherche et insertion d’articles Wikipédia** : trouvez, sélectionnez et insérez un article complet dans l’éditeur, déjà mis en forme et structuré.
+
+---
+
+## 🪶 Nouvelle fonctionnalité : intégration Wikipédia
+
+LisioWriter permet désormais de rechercher et d’importer directement des articles Wikipédia depuis l’éditeur.
+L’utilisateur saisit un mot-clé, parcourt les résultats, puis insère l’article choisi dans son document.
+
+Le contenu est automatiquement converti avec la structure et la mise en forme du texte d’origine :
+titres hiérarchisés, paragraphes, listes, liens et emphases sont traduits au format lisible et compatibles avec les lecteurs d’écran et barres braille.
 
 ---
 
@@ -111,6 +121,7 @@ Les menus sont conçus pour être **vocalisés** et **compatibles avec les barre
 - **iText** pour l’exportation PDF  
 - **Inno Setup** pour le programme d’installation et la mise à jour  
 - **SAPI** (Microsoft Speech API) pour la synthèse vocale pendant l’installation
+- -**MAVEN** 
 - **etc.**
 
 ---
