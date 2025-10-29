@@ -74,7 +74,6 @@ public class PdfExporter {
     }
 
     // ---------------- conversion markup -> HTML propre ----------------
-
     public static String convertMarkupToHtml(String text) {
         if (text == null) return "";
 
@@ -83,19 +82,39 @@ public class PdfExporter {
         StringBuilder paragraph = new StringBuilder();
         boolean paragraphOpen = false;
 
-        // === Déclarations pour les listes (en dehors de la boucle !) ===
-        final Pattern RE_OL = Pattern.compile("^(\\d+)\\.\\s+(.*)$");      // 1. Item
-        final Pattern RE_UL = Pattern.compile("^(?:-\\.|[-\\*])\\s+(.*)$"); // -. Item  ou  - / *
+        // === Listes (déclarations en dehors de la boucle) ===
+        final Pattern RE_OL = Pattern.compile("^(\\d+)\\.\\s+(.*)$");      // "1. Item"
+        final Pattern RE_UL = Pattern.compile("^(?:-\\.|[-\\*])\\s+(.*)$"); // "-. Item" ou "- Item" / "* Item"
         boolean inOl = false, inUl = false;
-        
-        
+
+        // === Notes @(...) ===
+        final Pattern RE_FOOTNOTE = Pattern.compile("@\\((.+?)\\)");
+        List<String> footnotes = new ArrayList<>();
+        int[] fnCounter = new int[]{0};
+
+        // Transforme tout texte en remplaçant @(...) par un renvoi numéroté (et collecte la note)
+        java.util.function.Function<String,String> replaceFootnotes = (String s) -> {
+            if (s == null || s.isEmpty()) return s;
+            Matcher m = RE_FOOTNOTE.matcher(s);
+            StringBuffer out = new StringBuffer();
+            while (m.find()) {
+                String noteText = applyInlineMarkers(escapeHtml(m.group(1)));
+                int idx = ++fnCounter[0];
+                footnotes.add(noteText);
+                String ref = "<sup class=\"fnref\"><a href=\"#fn" + idx + "\" id=\"fnref" + idx + "\">" + idx + "</a></sup>";
+                m.appendReplacement(out, Matcher.quoteReplacement(ref));
+            }
+            m.appendTail(out);
+            return out.toString();
+        };
+
         for (int i = 0; i < lines.length; i++) {
-        	String raw = lines[i];
+            String raw = lines[i];
             String trimmed = raw.trim();
-        	
-            // ==== Directives (fermer listes/paragraphe avant) ====
-            if (trimmed.equalsIgnoreCase("@sautDePage") 
-                || trimmed.equalsIgnoreCase("@saut de page") 
+
+            // ==== Directives : @saut... ====
+            if (trimmed.equalsIgnoreCase("@sautDePage")
+                || trimmed.equalsIgnoreCase("@saut de page")
                 || trimmed.startsWith("@saut")) {
                 if (inOl) { body.append("</ol>\n"); inOl = false; }
                 if (inUl) { body.append("</ul>\n"); inUl = false; }
@@ -106,8 +125,8 @@ public class PdfExporter {
                 body.append("<div style=\"page-break-after: always;\"></div>\n");
                 continue;
             }
-           
-            // ==== TOC (fermer listes/paragraphe avant) ====
+
+            // ==== Directive : @TOC... (le rendu réel est fait plus tard par insertTocIfRequested) ====
             if (trimmed.startsWith("@TOC")) {
                 if (inOl) { body.append("</ol>\n"); inOl = false; }
                 if (inUl) { body.append("</ul>\n"); inUl = false; }
@@ -115,139 +134,165 @@ public class PdfExporter {
                     body.append("<p>").append(paragraph).append("</p>\n");
                     paragraph.setLength(0); paragraphOpen = false;
                 }
-                // On garde la directive telle quelle dans un commentaire, l'analyse se fera ensuite
                 body.append("<!-- TOC_PLACEHOLDER ").append(escapeHtml(trimmed)).append(" -->\n");
                 continue;
             }
-            
-        	Matcher hMatcher = Pattern.compile("^#(\\d+)\\.\\s*(.*)$").matcher(raw);
-        	Matcher pMatcher = Pattern.compile("^#P\\.\\s*(.*)$").matcher(raw);
-        	Matcher sMatcher = Pattern.compile("^#S\\.\\s*(.*)$").matcher(raw);
 
-        	boolean isH = hMatcher.find();
-        	boolean isP = pMatcher.find();
-        	boolean isS = sMatcher.find();
+            // ==== Titres ====
+            Matcher hMatcher = Pattern.compile("^#(\\d+)\\.\\s*(.*)$").matcher(raw);
+            Matcher pMatcher = Pattern.compile("^#P\\.\\s*(.*)$").matcher(raw);
+            Matcher sMatcher = Pattern.compile("^#S\\.\\s*(.*)$").matcher(raw);
 
-        	
-            // ==== Titres : fermer d'abord les listes ouvertes ====
-        	if (isH || isP || isS) {
-        	    if (inOl) { body.append("</ol>\n"); inOl = false; }
-        	    if (inUl) { body.append("</ul>\n"); inUl = false; }
-        	    if (paragraphOpen) {
-        	        body.append("<p>").append(paragraph).append("</p>\n");
-        	        paragraph.setLength(0); paragraphOpen = false;
-        	    }
-        	    if (isH) {
-        	        int lvl = Math.max(1, Math.min(6, Integer.parseInt(hMatcher.group(1))));
-        	        String inside = applyInlineMarkers(escapeHtml(hMatcher.group(2)));
-        	        body.append("<h").append(lvl).append(">").append(inside).append("</h").append(lvl).append(">\n");
-        	    } else if (isP) {
-        	        String inside = applyInlineMarkers(escapeHtml(pMatcher.group(1)));
-        	        body.append("<h1>").append(inside).append("</h1>\n");
-        	    } else { // isS
-        	        String inside = applyInlineMarkers(escapeHtml(sMatcher.group(1)));
-        	        body.append("<h2>").append(inside).append("</h2>\n");
-        	    }
-        	    continue;
-        	}
+            boolean isH = hMatcher.find();
+            boolean isP = pMatcher.find();
+            boolean isS = sMatcher.find();
 
-        	// ==== Listes ====
-        	Matcher mOl = RE_OL.matcher(raw);
-        	Matcher mUl = RE_UL.matcher(raw);
+            if (isH || isP || isS) {
+                if (inOl) { body.append("</ol>\n"); inOl = false; }
+                if (inUl) { body.append("</ul>\n"); inUl = false; }
+                if (paragraphOpen) {
+                    body.append("<p>").append(paragraph).append("</p>\n");
+                    paragraph.setLength(0); paragraphOpen = false;
+                }
 
-        	if (mOl.matches()) {
-        	    if (paragraphOpen) {
-        	        body.append("<p>").append(paragraph).append("</p>\n");
-        	        paragraph.setLength(0); paragraphOpen = false;
-        	    }
-        	    if (inUl) { body.append("</ul>\n"); inUl = false; }
+                if (isH) {
+                    int lvl;
+                    try { lvl = Integer.parseInt(hMatcher.group(1)); } catch (Exception e) { lvl = 1; }
+                    if (lvl < 1) lvl = 1; if (lvl > 6) lvl = 6;
+                    String inside = replaceFootnotes.apply(
+                            applyInlineMarkers(escapeHtml(hMatcher.group(2))));
+                    body.append("<h").append(lvl).append(">").append(inside).append("</h").append(lvl).append(">\n");
+                } else if (isP) {
+                    String inside = replaceFootnotes.apply(
+                            applyInlineMarkers(escapeHtml(pMatcher.group(1))));
+                    body.append("<h1>").append(inside).append("</h1>\n");
+                } else { // isS
+                    String inside = replaceFootnotes.apply(
+                            applyInlineMarkers(escapeHtml(sMatcher.group(1))));
+                    body.append("<h2>").append(inside).append("</h2>\n");
+                }
+                continue;
+            }
 
-        	    int num = 1;
-        	    try { num = Integer.parseInt(mOl.group(1)); } catch (Exception ignore) {}
-        	    String li = applyInlineMarkers(escapeHtml(mOl.group(2)));
+            // ==== Listes ====
+            Matcher mOl = RE_OL.matcher(raw);
+            Matcher mUl = RE_UL.matcher(raw);
 
-        	    if (!inOl) {
-        	        body.append(num != 1 ? "<ol start=\"" + num + "\">\n" : "<ol>\n");
-        	        inOl = true;
-        	    }
-        	    body.append("<li>").append(li).append("</li>\n");
-        	    continue;
-        	}
+            if (mOl.matches()) {
+                if (paragraphOpen) {
+                    body.append("<p>").append(paragraph).append("</p>\n");
+                    paragraph.setLength(0); paragraphOpen = false;
+                }
+                if (inUl) { body.append("</ul>\n"); inUl = false; }
 
-        	if (mUl.matches()) {
-        	    if (paragraphOpen) {
-        	        body.append("<p>").append(paragraph).append("</p>\n");
-        	        paragraph.setLength(0); paragraphOpen = false;
-        	    }
-        	    if (inOl) { body.append("</ol>\n"); inOl = false; }
+                int num = 1;
+                try { num = Integer.parseInt(mOl.group(1)); } catch (Exception ignore) {}
+                String li = replaceFootnotes.apply(
+                        applyInlineMarkers(escapeHtml(mOl.group(2))));
 
-        	    if (!inUl) { body.append("<ul>\n"); inUl = true; }
-        	    String li = applyInlineMarkers(escapeHtml(mUl.group(1)));
-        	    body.append("<li>").append(li).append("</li>\n");
-        	    continue;
-        	}
+                if (!inOl) {
+                    body.append(num != 1 ? "<ol start=\"" + num + "\">\n" : "<ol>\n");
+                    inOl = true;
+                }
+                body.append("<li>").append(li).append("</li>\n");
+                continue;
+            }
 
-        	// ==== Ligne vide -> fermer les listes puis le paragraphe ====
-        	if (trimmed.isEmpty()) {
-        	    if (inOl) { body.append("</ol>\n"); inOl = false; }
-        	    if (inUl) { body.append("</ul>\n"); inUl = false; }
-        	    if (paragraphOpen) {
-        	        body.append("<p>").append(paragraph).append("</p>\n");
-        	        paragraph.setLength(0); paragraphOpen = false;
-        	    }
-        	    continue;
-        	}
+            if (mUl.matches()) {
+                if (paragraphOpen) {
+                    body.append("<p>").append(paragraph).append("</p>\n");
+                    paragraph.setLength(0); paragraphOpen = false;
+                }
+                if (inOl) { body.append("</ol>\n"); inOl = false; }
 
-        	// ==== Texte normal ====
-        	if (inOl) { body.append("</ol>\n"); inOl = false; }
-        	if (inUl) { body.append("</ul>\n"); inUl = false; }
+                if (!inUl) { body.append("<ul>\n"); inUl = true; }
+                String li = replaceFootnotes.apply(
+                        applyInlineMarkers(escapeHtml(mUl.group(1))));
+                body.append("<li>").append(li).append("</li>\n");
+                continue;
+            }
 
-        	String escaped = applyInlineMarkers(escapeHtml(raw));
-        	if (!paragraphOpen) {
-        	    paragraphOpen = true;
-        	    paragraph.append(escaped);
-        	} else {
-        	    paragraph.append("<br/>").append(escaped);
-        	}
+            // ==== Ligne vide -> close listes/paragraphe ====
+            if (trimmed.isEmpty()) {
+                if (inOl) { body.append("</ol>\n"); inOl = false; }
+                if (inUl) { body.append("</ul>\n"); inUl = false; }
+                if (paragraphOpen) {
+                    body.append("<p>").append(paragraph).append("</p>\n");
+                    paragraph.setLength(0); paragraphOpen = false;
+                }
+                continue;
+            }
+
+            // ==== Texte normal ====
+            if (inOl) { body.append("</ol>\n"); inOl = false; }
+            if (inUl) { body.append("</ul>\n"); inUl = false; }
+
+            String escaped = replaceFootnotes.apply(
+                    applyInlineMarkers(escapeHtml(raw)));
+            if (!paragraphOpen) {
+                paragraphOpen = true;
+                paragraph.append(escaped);
+            } else {
+                paragraph.append("<br/>").append(escaped);
+            }
         }
 
-        // Fin de fichier : fermer ce qui reste
+        // Fin : fermer ce qui reste
         if (inOl) body.append("</ol>\n");
         if (inUl) body.append("</ul>\n");
         if (paragraphOpen) {
             body.append("<p>").append(paragraph).append("</p>\n");
         }
 
+        // === Bloc Notes de fin de document ===
+        if (!footnotes.isEmpty()) {
+            body.append("<hr class=\"footnotes-sep\"/>");
+            body.append("<section class=\"footnotes\">");
+            body.append("<h3>Notes</h3>");
+            body.append("<ol>");
+            for (int i = 0; i < footnotes.size(); i++) {
+                int n = i + 1;
+                String noteHtml = footnotes.get(i);
+                body.append("<li id=\"fn").append(n).append("\">")
+                    .append(noteHtml)
+                    .append(" <a class=\"fn-backref\" href=\"#fnref").append(n).append("\">↩</a>")
+                    .append("</li>");
+            }
+            body.append("</ol>");
+            body.append("</section>\n");
+        }
 
+        // === CSS (inchangée si tu préfères) ===
         String css =
-        		  "body { font-family: 'DejaVu Sans', sans-serif; }"
-        		+ "h1 { font-size: 20pt; margin-top: 1em; }"
-        		+ "h2 { font-size: 18pt; margin-top: 0.9em; }"
-        		+ "h3 { font-size: 16pt; }"
-        		+ "p { margin: 0.4em 0; }"
-        		+ "u { text-decoration: underline; }"
-        		+ "ol, ul { margin: 0.5em 0 0.5em 1.5em; }"
-        		+ "ol { list-style: decimal; margin: 0.5em 0 0.5em 1.5em; }"
-        		+ "sub { vertical-align: sub; font-size: 0.8em; }"
-        		+ "sup { vertical-align: super; font-size: 0.8em; }"
-        		+ "@media print {"
-        		+ "  ul { list-style: none; margin: 0.5em 0 0.5em 1.6em; }"
-        		+ "  ul li { position: relative; padding-left: 0.90em; }"
-        		+ "  ul li::before {"
-        		+ "    content: ''; position: absolute; left: 0; top: 0.60em;"
-        		+ "    width: 0.34em; height: 0.34em; border-radius: 50%;"
-        		+ "    background-color: #000;"
-        		+ "  }"
-        		+ "}"
-        		+ "body.pdf ul { list-style: none; }"
-        		+ "body.pdf ul li { position: relative; padding-left: 0.90em; }"
-        		+ "body.pdf ul li::before {"
-        		+ "  content: '';\r\n"
-        		+ "  position: absolute; left: 0; top: 0.60em;"
-        		+ "  width: 0.34em; height: 0.34em; border-radius: 50%;"
-        		+ "  background-color: #000;"
-        		+ "}";
-
+              "body{font-family:'DejaVu Sans',sans-serif;}"
+            + "h1{font-size:20pt;margin:1em 0 .4em 0;}"
+            + "h2{font-size:18pt;margin:.9em 0 .35em 0;}"
+            + "h3{font-size:16pt;margin:.8em 0 .3em 0;}"
+            + "p{margin:.4em 0;}"
+            + "u{text-decoration:underline;}"
+            + "ol,ul{margin:.5em 0 .5em 1.5em;}"
+            + "ol{list-style:decimal;}"
+            + "ul{list-style:disc;}"
+            + ".footnotes{font-size:.9em;margin-top:1em;}"
+            + ".footnotes ol{margin:.5em 0 .5em 1.5em;}"
+            + ".footnotes li{margin:.25em 0;}"
+            + ".footnotes-sep{border:0;border-top:1px solid #ccc;margin:1.2em 0;}"
+            + ".fnref a,.fn-backref{text-decoration:none;}"
+            + ".fnref a{vertical-align:super;font-size:.8em;}"
+            + ".toc{margin:1em 0;}"
+            + ".toc h3{font-size:14pt;margin:0 0 .4em 0;}"
+            + ".toc ul{list-style:none;margin:0;padding:0;}"
+            + ".toc li{margin:.2em 0;}"
+            + ".toc .toc-lvl2{margin-left:1em;}"
+            + ".toc .toc-lvl3{margin-left:2em;}"
+            + "@media print{"
+            + "  ul{list-style:none;margin:.5em 0 .5em 1.6em;}"
+            + "  ul li{position:relative;padding-left:.90em;}"
+            + "  ul li::before{content:'';position:absolute;left:0;top:.60em;width:.34em;height:.34em;border-radius:50%;background-color:#000;}"
+            + "}"
+            + "body.pdf ul{list-style:none;}"
+            + "body.pdf ul li{position:relative;padding-left:.90em;}"
+            + "body.pdf ul li::before{content:'';position:absolute;left:0;top:.60em;width:.34em;height:.34em;border-radius:50%;background-color:#000;}";
 
         String html = "<!doctype html>\n<html>\n<head>\n<meta charset='utf-8'/>\n"
                     + "<style>" + css + "</style>\n"
@@ -257,6 +302,8 @@ public class PdfExporter {
         return html;
     }
 
+    
+   
     // ---------------- TOC: insertion simple ----------------
     // Attends qu'un <!-- TOC_PLACEHOLDER @TOC;... --> existe ; lit paramètres simples si fournis
     private static String insertTocIfRequested(String html) {
