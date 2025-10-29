@@ -25,39 +25,16 @@ LisioWriter intègre de nombreuses fonctionnalités de traitement de texte, mais
 
 ---
 
-## 📌 Quelques exemple de code LisioWriter
-
-LisioWriter utilise une syntaxe lisible inspirée du Markdown.  
-Chaque élément de mise en forme est représenté directement dans le texte pour être interprété par les lecteurs d’écran et les barres braille.
-
-```text
-#P. Mon titre du document       → Titre principal du document
-#S. Un sous-titre               → Sous-titre hiérarchique
-#1. Chapitre 1                  → Titre de niveau 1 (équiv. à <h1> ou Titre 1 sous Word)
-#2. Section secondaire          → Titre de niveau 2
-
-**mot en gras**                 → Texte en gras
-*^mot en italique^*             → Texte en italique
-__mots soulignés__              → Texte souligné
-_*mots gras soulignés*_         → Texte gras et souligné
-
-@saut de page                   → Saut de page manuel
-@(note de bas de page)          → Note de bas de page
-°°Faute                         → Indique une erreur orthographique
-```
-
----
-
 ## 🎯 Objectifs
 
-Permettre à toute personne **non-voyante** ou **déficiente visuelle** de rédiger, lire et mettre en forme des documents de manière fluide, rapide et indépendante, grâce à une interface accessible et simple d’utilisation.
+Permettre à toute personne **non-voyante** ou **déficiente visuelle** de rédiger, lire et mettre en forme des documents de manière fluide, rapide et indépendante, grâce à une interface **accessible** et **simple d’utilisation**.
 
 Le logiciel s’adresse en priorité :
 
 - aux **étudiants** non-voyants ou malvoyants engagés dans des **cursus post-bac**,
 - ainsi qu’aux **adultes** déjà expérimentés dans l’usage des **traitements de texte**.
 
-L’objectif est de fournir un outil qui favorise l’autonomie numérique, tout en restant proche des standards bureautiques connus (Word, Writer, Markdown), afin de faciliter l’apprentissage et **l’intégration dans les environnements éducatifs ou professionnels**.
+L’objectif est de fournir un outil qui favorise l’**autonomie numérique** et l'**inclusion**, tout en restant proche des **standards bureautiques** connus (Word, Writer, Markdown), afin de faciliter l’apprentissage et **l’intégration dans les environnements éducatifs ou professionnels**.
 
 ---
 
@@ -123,6 +100,29 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de LisioWriter acces
 
 Toutes les fonctions du logiciel sont accessibles **entièrement au clavier, sans souris**.  
 Les menus sont conçus pour être **vocalisés** et **compatibles avec les barres braille**, afin de garantir une accessibilité complète.
+
+---
+
+## 📌 Quelques exemple de code LisioWriter
+
+LisioWriter utilise une syntaxe lisible inspirée du Markdown.  
+Chaque élément de mise en forme est représenté directement dans le texte pour être interprété par les lecteurs d’écran et les barres braille.
+
+```text
+#P. Mon titre du document       → Titre principal du document
+#S. Un sous-titre               → Sous-titre hiérarchique
+#1. Chapitre 1                  → Titre de niveau 1 (équiv. à <h1> ou Titre 1 sous Word)
+#2. Section secondaire          → Titre de niveau 2
+
+**mot en gras**                 → Texte en gras
+*^mot en italique^*             → Texte en italique
+__mots soulignés__              → Texte souligné
+_*mots gras soulignés*_         → Texte gras et souligné
+
+@saut de page                   → Saut de page manuel
+@(note de bas de page)          → Note de bas de page
+°°Faute                         → Indique une erreur orthographique
+```
 
 ---
 
