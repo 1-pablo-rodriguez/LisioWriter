@@ -165,6 +165,12 @@ Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition 
 
 ---
 
+📚 **Mots-clés :**
+accessibilité, non-voyant, malvoyant, NVDA, JAWS, traitement de texte, braille, Java, Markdown, éducation inclusive, autonomie numérique
+
+
+---
+
 > 💡 *LisioWriter est avant tout un outil d’inclusion numérique, conçu pour que la rédaction, la lecture et la révision de documents soient accessibles à tous.*
 
 
