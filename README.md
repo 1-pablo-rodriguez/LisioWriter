@@ -105,7 +105,7 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de LisioWriter acces
 
 | Raccourci       | Fonction                    | Description                                                                 |
 |-----------------|-----------------------------|-----------------------------------------------------------------------------|
-| **Ctrl+F**      | Recherche                   | Outils de recherche intégrant des joker<br>- ? remplace un caractère<br>- * remplace des caractères <br>- ==Case rigoureuse |
+| **Ctrl+F**      | Recherche                   | Outils de recherche intégrant des joker<br> **?** remplace un caractère<br> **\*** remplace des caractères <br> **==** Case rigoureuse |
 | **F1**          | Informations                | Annonce des informations sur la fenêtre en cours ou sur l’ensemble du document. |
 | **F2**          | Lecture de titre            | Dans une fenêtre, annonce le titre du paragraphe et le titre suivant.      |
 | **Ctrl+F2**     | Insérer/Supprimer un marque-page | Insère ou supprime un marque-page associé à une note.                  |
