@@ -40,7 +40,7 @@ _*mots gras soulignés*_         → Texte gras et souligné
 @saut de page                   → Saut de page manuel
 @(note de bas de page)          → Note de bas de page
 °°Faute                         → Indique une erreur orthographique
-
+```text
 
 ---
 
