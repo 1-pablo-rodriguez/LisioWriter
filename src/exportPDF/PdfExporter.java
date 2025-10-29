@@ -145,7 +145,9 @@ public class PdfExporter {
 
             // listes simples
             Matcher numList = Pattern.compile("^1\\.\\s*(.*)$").matcher(raw);
-            Matcher dashList = Pattern.compile("^[-\\*]\\s*(.*)$").matcher(raw);
+            // Accepte "-." (LisioWriter), ou "-" / "*" classiques, et jette le point
+            Matcher dashList = Pattern.compile("^(?:-\\.|[-\\*])\\s+(.*)$").matcher(raw);
+
             if (numList.find()) {
                 if (paragraphOpen) {
                     body.append("<p>").append(paragraph.toString()).append("</p>\n");
@@ -192,14 +194,32 @@ public class PdfExporter {
             body.append("<p>").append(paragraph.toString()).append("</p>\n");
         }
 
-        // CSS de base
-        String css = "body { font-family: 'DejaVu Sans', sans-serif; }"
-                   + "h1 { font-size: 20pt; margin-top: 1em; }"
-                   + "h2 { font-size: 18pt; margin-top: 0.9em; }"
-                   + "h3 { font-size: 16pt; }"
-                   + "p { margin: 0.4em 0; }"
-                   + "u { text-decoration: underline; }"
-                   + "ol, ul { margin: 0.5em 0 0.5em 1.5em; }";
+        String css =
+        		  "body { font-family: 'DejaVu Sans', sans-serif; }"
+        		+ "h1 { font-size: 20pt; margin-top: 1em; }"
+        		+ "h2 { font-size: 18pt; margin-top: 0.9em; }"
+        		+ "h3 { font-size: 16pt; }"
+        		+ "p { margin: 0.4em 0; }"
+        		+ "u { text-decoration: underline; }"
+        		+ "ol, ul { margin: 0.5em 0 0.5em 1.5em; }"
+        		+ "@media print {"
+        		+ "  ul { list-style: none; margin: 0.5em 0 0.5em 1.6em; }"
+        		+ "  ul li { position: relative; padding-left: 0.90em; }"
+        		+ "  ul li::before {"
+        		+ "    content: ''; position: absolute; left: 0; top: 0.60em;"
+        		+ "    width: 0.34em; height: 0.34em; border-radius: 50%;"
+        		+ "    background-color: #000;"
+        		+ "  }"
+        		+ "}"
+        		+ "body.pdf ul { list-style: none; }"
+        		+ "body.pdf li { position: relative; padding-left: 0.90em; }"
+        		+ "body.pdf li::before {"
+        		+ "  content: ''; position: absolute; left: 0; top: 0.60em;"
+        		+ "  width: 0.34em; height: 0.34em; border-radius: 50%;"
+        		+ "  background-color: #000;"
+        		+ "}";
+
+
 
         String html = "<!doctype html>\n<html>\n<head>\n<meta charset='utf-8'/>\n"
                     + "<style>" + css + "</style>\n"
@@ -312,6 +332,9 @@ public class PdfExporter {
             }
         }
 
+        html = html.replaceFirst("(?i)<body(\\b[^>]*)>", "<body$1 class='pdf'>");
+
+        
         // --- Tentative 1 : useFont avec optionalTtfFontPath (si fourni) ---
         if (optionalTtfFontPath != null && !optionalTtfFontPath.trim().isEmpty()) {
             File f = new File(optionalTtfFontPath);
