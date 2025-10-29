@@ -83,120 +83,141 @@ public class PdfExporter {
         StringBuilder paragraph = new StringBuilder();
         boolean paragraphOpen = false;
 
+        // === Déclarations pour les listes (en dehors de la boucle !) ===
+        final Pattern RE_OL = Pattern.compile("^(\\d+)\\.\\s+(.*)$");      // 1. Item
+        final Pattern RE_UL = Pattern.compile("^(?:-\\.|[-\\*])\\s+(.*)$"); // -. Item  ou  - / *
+        boolean inOl = false, inUl = false;
+        
+        
         for (int i = 0; i < lines.length; i++) {
-            String raw = lines[i];
+        	String raw = lines[i];
             String trimmed = raw.trim();
-
-            // directives
-            if (trimmed.equalsIgnoreCase("@sautDePage") || trimmed.equalsIgnoreCase("@saut de page") || trimmed.startsWith("@saut")) {
+        	
+            // ==== Directives (fermer listes/paragraphe avant) ====
+            if (trimmed.equalsIgnoreCase("@sautDePage") 
+                || trimmed.equalsIgnoreCase("@saut de page") 
+                || trimmed.startsWith("@saut")) {
+                if (inOl) { body.append("</ol>\n"); inOl = false; }
+                if (inUl) { body.append("</ul>\n"); inUl = false; }
                 if (paragraphOpen) {
-                    body.append("<p>").append(paragraph.toString()).append("</p>\n");
+                    body.append("<p>").append(paragraph).append("</p>\n");
                     paragraph.setLength(0); paragraphOpen = false;
                 }
                 body.append("<div style=\"page-break-after: always;\"></div>\n");
                 continue;
             }
-
+           
+            // ==== TOC (fermer listes/paragraphe avant) ====
             if (trimmed.startsWith("@TOC")) {
+                if (inOl) { body.append("</ol>\n"); inOl = false; }
+                if (inUl) { body.append("</ul>\n"); inUl = false; }
                 if (paragraphOpen) {
-                    body.append("<p>").append(paragraph.toString()).append("</p>\n");
+                    body.append("<p>").append(paragraph).append("</p>\n");
                     paragraph.setLength(0); paragraphOpen = false;
                 }
-                // garder la directive intacte en placeholder, on la traitera après
+                // On garde la directive telle quelle dans un commentaire, l'analyse se fera ensuite
                 body.append("<!-- TOC_PLACEHOLDER ").append(escapeHtml(trimmed)).append(" -->\n");
                 continue;
             }
+            
+        	Matcher hMatcher = Pattern.compile("^#(\\d+)\\.\\s*(.*)$").matcher(raw);
+        	Matcher pMatcher = Pattern.compile("^#P\\.\\s*(.*)$").matcher(raw);
+        	Matcher sMatcher = Pattern.compile("^#S\\.\\s*(.*)$").matcher(raw);
 
-            // headings
-            Matcher hMatcher = Pattern.compile("^#(\\d+)\\.\\s*(.*)$").matcher(raw);
-            Matcher pMatcher = Pattern.compile("^#P\\.\\s*(.*)$").matcher(raw);
-            Matcher sMatcher = Pattern.compile("^#S\\.\\s*(.*)$").matcher(raw);
+        	boolean isH = hMatcher.find();
+        	boolean isP = pMatcher.find();
+        	boolean isS = sMatcher.find();
 
-            if (hMatcher.find()) {
-                if (paragraphOpen) {
-                    body.append("<p>").append(paragraph.toString()).append("</p>\n");
-                    paragraph.setLength(0); paragraphOpen = false;
-                }
-                int lvl = 1;
-                try { lvl = Integer.parseInt(hMatcher.group(1)); } catch (Exception e) { lvl = 1; }
-                if (lvl < 1) lvl = 1; if (lvl > 6) lvl = 6;
-                String inside = hMatcher.group(2);
-                String escaped = escapeHtml(inside);
-                escaped = applyInlineMarkers(escaped);
-                body.append("<h").append(lvl).append(">").append(escaped).append("</h").append(lvl).append(">\n");
-                continue;
-            } else if (pMatcher.find()) {
-                if (paragraphOpen) {
-                    body.append("<p>").append(paragraph.toString()).append("</p>\n");
-                    paragraph.setLength(0); paragraphOpen = false;
-                }
-                String inside = pMatcher.group(1);
-                String escaped = escapeHtml(inside);
-                escaped = applyInlineMarkers(escaped);
-                body.append("<h1>").append(escaped).append("</h1>\n");
-                continue;
-            } else if (sMatcher.find()) {
-                if (paragraphOpen) {
-                    body.append("<p>").append(paragraph.toString()).append("</p>\n");
-                    paragraph.setLength(0); paragraphOpen = false;
-                }
-                String inside = sMatcher.group(1);
-                String escaped = escapeHtml(inside);
-                escaped = applyInlineMarkers(escaped);
-                body.append("<h2>").append(escaped).append("</h2>\n");
-                continue;
-            }
+        	
+            // ==== Titres : fermer d'abord les listes ouvertes ====
+        	if (isH || isP || isS) {
+        	    if (inOl) { body.append("</ol>\n"); inOl = false; }
+        	    if (inUl) { body.append("</ul>\n"); inUl = false; }
+        	    if (paragraphOpen) {
+        	        body.append("<p>").append(paragraph).append("</p>\n");
+        	        paragraph.setLength(0); paragraphOpen = false;
+        	    }
+        	    if (isH) {
+        	        int lvl = Math.max(1, Math.min(6, Integer.parseInt(hMatcher.group(1))));
+        	        String inside = applyInlineMarkers(escapeHtml(hMatcher.group(2)));
+        	        body.append("<h").append(lvl).append(">").append(inside).append("</h").append(lvl).append(">\n");
+        	    } else if (isP) {
+        	        String inside = applyInlineMarkers(escapeHtml(pMatcher.group(1)));
+        	        body.append("<h1>").append(inside).append("</h1>\n");
+        	    } else { // isS
+        	        String inside = applyInlineMarkers(escapeHtml(sMatcher.group(1)));
+        	        body.append("<h2>").append(inside).append("</h2>\n");
+        	    }
+        	    continue;
+        	}
 
-            // listes simples
-            Matcher numList = Pattern.compile("^1\\.\\s*(.*)$").matcher(raw);
-            // Accepte "-." (LisioWriter), ou "-" / "*" classiques, et jette le point
-            Matcher dashList = Pattern.compile("^(?:-\\.|[-\\*])\\s+(.*)$").matcher(raw);
+        	// ==== Listes ====
+        	Matcher mOl = RE_OL.matcher(raw);
+        	Matcher mUl = RE_UL.matcher(raw);
 
-            if (numList.find()) {
-                if (paragraphOpen) {
-                    body.append("<p>").append(paragraph.toString()).append("</p>\n");
-                    paragraph.setLength(0); paragraphOpen = false;
-                }
-                String inside = numList.group(1);
-                String escaped = escapeHtml(inside);
-                escaped = applyInlineMarkers(escaped);
-                body.append("<ol><li>").append(escaped).append("</li></ol>\n");
-                continue;
-            } else if (dashList.find()) {
-                if (paragraphOpen) {
-                    body.append("<p>").append(paragraph.toString()).append("</p>\n");
-                    paragraph.setLength(0); paragraphOpen = false;
-                }
-                String inside = dashList.group(1);
-                String escaped = escapeHtml(inside);
-                escaped = applyInlineMarkers(escaped);
-                body.append("<ul><li>").append(escaped).append("</li></ul>\n");
-                continue;
-            }
+        	if (mOl.matches()) {
+        	    if (paragraphOpen) {
+        	        body.append("<p>").append(paragraph).append("</p>\n");
+        	        paragraph.setLength(0); paragraphOpen = false;
+        	    }
+        	    if (inUl) { body.append("</ul>\n"); inUl = false; }
 
-            // ligne vide => fin paragraphe
-            if (trimmed.isEmpty()) {
-                if (paragraphOpen) {
-                    body.append("<p>").append(paragraph.toString()).append("</p>\n");
-                    paragraph.setLength(0); paragraphOpen = false;
-                }
-                continue;
-            }
+        	    int num = 1;
+        	    try { num = Integer.parseInt(mOl.group(1)); } catch (Exception ignore) {}
+        	    String li = applyInlineMarkers(escapeHtml(mOl.group(2)));
 
-            // ligne normale -> accumuler dans paragraphe
-            String escaped = escapeHtml(raw);
-            escaped = applyInlineMarkers(escaped);
-            if (!paragraphOpen) {
-                paragraphOpen = true;
-                paragraph.append(escaped);
-            } else {
-                paragraph.append("<br/>").append(escaped);
-            }
+        	    if (!inOl) {
+        	        body.append(num != 1 ? "<ol start=\"" + num + "\">\n" : "<ol>\n");
+        	        inOl = true;
+        	    }
+        	    body.append("<li>").append(li).append("</li>\n");
+        	    continue;
+        	}
+
+        	if (mUl.matches()) {
+        	    if (paragraphOpen) {
+        	        body.append("<p>").append(paragraph).append("</p>\n");
+        	        paragraph.setLength(0); paragraphOpen = false;
+        	    }
+        	    if (inOl) { body.append("</ol>\n"); inOl = false; }
+
+        	    if (!inUl) { body.append("<ul>\n"); inUl = true; }
+        	    String li = applyInlineMarkers(escapeHtml(mUl.group(1)));
+        	    body.append("<li>").append(li).append("</li>\n");
+        	    continue;
+        	}
+
+        	// ==== Ligne vide -> fermer les listes puis le paragraphe ====
+        	if (trimmed.isEmpty()) {
+        	    if (inOl) { body.append("</ol>\n"); inOl = false; }
+        	    if (inUl) { body.append("</ul>\n"); inUl = false; }
+        	    if (paragraphOpen) {
+        	        body.append("<p>").append(paragraph).append("</p>\n");
+        	        paragraph.setLength(0); paragraphOpen = false;
+        	    }
+        	    continue;
+        	}
+
+        	// ==== Texte normal ====
+        	if (inOl) { body.append("</ol>\n"); inOl = false; }
+        	if (inUl) { body.append("</ul>\n"); inUl = false; }
+
+        	String escaped = applyInlineMarkers(escapeHtml(raw));
+        	if (!paragraphOpen) {
+        	    paragraphOpen = true;
+        	    paragraph.append(escaped);
+        	} else {
+        	    paragraph.append("<br/>").append(escaped);
+        	}
         }
 
+        // Fin de fichier : fermer ce qui reste
+        if (inOl) body.append("</ol>\n");
+        if (inUl) body.append("</ul>\n");
         if (paragraphOpen) {
-            body.append("<p>").append(paragraph.toString()).append("</p>\n");
+            body.append("<p>").append(paragraph).append("</p>\n");
         }
+
 
         String css =
         		  "body { font-family: 'DejaVu Sans', sans-serif; }"
@@ -206,6 +227,7 @@ public class PdfExporter {
         		+ "p { margin: 0.4em 0; }"
         		+ "u { text-decoration: underline; }"
         		+ "ol, ul { margin: 0.5em 0 0.5em 1.5em; }"
+        		+ "ol { list-style: decimal; margin: 0.5em 0 0.5em 1.5em; }"
         		+ "sub { vertical-align: sub; font-size: 0.8em; }"
         		+ "sup { vertical-align: super; font-size: 0.8em; }"
         		+ "@media print {"
@@ -218,13 +240,13 @@ public class PdfExporter {
         		+ "  }"
         		+ "}"
         		+ "body.pdf ul { list-style: none; }"
-        		+ "body.pdf li { position: relative; padding-left: 0.90em; }"
-        		+ "body.pdf li::before {"
-        		+ "  content: ''; position: absolute; left: 0; top: 0.60em;"
+        		+ "body.pdf ul li { position: relative; padding-left: 0.90em; }"
+        		+ "body.pdf ul li::before {"
+        		+ "  content: '';\r\n"
+        		+ "  position: absolute; left: 0; top: 0.60em;"
         		+ "  width: 0.34em; height: 0.34em; border-radius: 50%;"
         		+ "  background-color: #000;"
         		+ "}";
-
 
 
         String html = "<!doctype html>\n<html>\n<head>\n<meta charset='utf-8'/>\n"
