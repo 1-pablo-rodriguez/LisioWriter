@@ -106,7 +106,7 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de LisioWriter acces
 | **F4 / Maj+F4**| Navigation par marque-page  | Passe rapidement au marque-page suivant ou au marque-page précédent.   |
 | **ALT+A**      | Documentation intégrée | Ouvre la documentation interne de LisioWriter.                              |
 | **F6**         | Navigateur de titres   | Ouvre le navigateur pour parcourir la structure du document.                |
-| **F7 / Maj F7** | Erreur suivante / précédente  | Sélectionne le mot ou le texte suivant ou préécédent contenant une faute ou erreur. |
+| **F7 / Maj F7** | Erreur suivante / précédente  | Sélectionne le mot ou le texte suivant ou précédent<br>contenant une faute ou erreur. |
 | **Ctrl+F7**    | Vérification du document   | Lance la vérification orthographique et grammaticale de tout le document.   |
 | **F8**         | Article Wikipédia       | Insérer dans l'éditeur des articles Wikipédia structurés<br>avec sa mise en forme et sa structure.   |
 
