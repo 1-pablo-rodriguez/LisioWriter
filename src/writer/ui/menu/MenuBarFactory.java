@@ -5,7 +5,6 @@ package writer.ui.menu;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -13,8 +12,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -30,7 +27,6 @@ import dia.BoiteNewDocument;
 import dia.BoiteNonVoyant;
 import dia.BoiteRenameFile;
 import dia.BoiteSaveAs;
-import dia.HtmlBrowserDialog;
 import dia.WikipediaSearchDialog;
 import dia.boiteMeta;
 import dia.navigateurT1;
@@ -202,8 +198,7 @@ public final class MenuBarFactory {
     }
 
     //Menu Edition
-    @SuppressWarnings("serial")
-	private static JMenu menuEdition(EditorApi ctx) {
+    private static JMenu menuEdition(EditorApi ctx) {
     	JMenu editionMenu = new JMenu("Édition");
     	editionMenu.setFont(new Font("Segoe UI", Font.PLAIN, 18));
     	editionMenu.setMnemonic(KeyEvent.VK_E); // Utiliser ALT+e pour ouvrir le menu
@@ -226,34 +221,30 @@ public final class MenuBarFactory {
             @Override public void menuCanceled(MenuEvent e) {}
         });
     	
-    	JMenuItem undoItem = new JMenuItem(ctx.getUndoAction());
-    	JMenuItem redoItem = new JMenuItem(ctx.getRedoAction());
+    	JMenuItem undoItem = createSimpleMenuItem("Annule",e -> {
+    		ctx.getUndoAction();
+    	});
+    	
+    	JMenuItem redoItem = createSimpleMenuItem("Retire",e -> {
+    		ctx.getRedoAction();
+    	});
     	
     	JMenuItem edition = new JMenuItem(new act.ToggleEditAction(ctx.getEditor()));
     	edition.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK));
     	edition.setFont(new Font("Segoe UI", Font.PLAIN, 18));
     	editionMenu.add(edition);
 
-    	Action actCheckDoc = new AbstractAction("Vérifier tout le document") {
-     		  @Override public void actionPerformed(ActionEvent e) {
-     			 new act.actCheckDoc(ctx);
-     		  }
-     		};
-     		
- 		Action actCheckWindow = new AbstractAction("Vérifier la sélection / le paragraphe") {
- 	 		  @Override public void actionPerformed(ActionEvent e) {
- 	 			 new act.actCheckWindow(ctx);
- 	 		  }
- 	 		};
-
-     	 // Vérification de tout le document	
-     	 JMenuItem checkAll = new JMenuItem(actCheckDoc);
-     	 checkAll.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F7, InputEvent.CTRL_DOWN_MASK));
-        
-     	 // Vérification du paragraphe
-    	JMenuItem checkSel = new JMenuItem(actCheckWindow);
-    	checkSel.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F7,
-    	        InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
+    	// Vérification de tout le document
+    	 JMenuItem checkAll = createMenuItem("Vérifier tout le document", KeyEvent.VK_F7, InputEvent.CTRL_DOWN_MASK, e -> {
+             System.out.println("Vérification document");
+             new act.actCheckDoc(ctx);
+         }); 
+    	 
+    	// Vérification du paragraphe
+    	 JMenuItem checkSel = createMenuItem("Vérifier la sélection / le paragraphe", KeyEvent.VK_F7, InputEvent.SHIFT_DOWN_MASK, e -> {
+             System.out.println("Vérification paragraphe");
+             new act.actCheckWindow(ctx);
+         }); 
 
 		// Nettoyer les soulignements, et prefix °°
 		JMenuItem clear = createSimpleMenuItem("RAZ vérification",e -> { 
