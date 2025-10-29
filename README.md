@@ -3,7 +3,7 @@
 ![Language: French](https://img.shields.io/badge/lang-French-blue?style=flat-square&logo=google-translate)
 ![Platform: Windows](https://img.shields.io/badge/platform-Windows-lightgrey?style=flat-square&logo=windows)
 
-**LisioWriter** est un logiciel de traitement de texte conçu spécialement pour les personnes **non-voyantes ou malvoyantes**.
+**LisioWriter** est un **logiciel de traitement de texte** conçu spécialement pour les personnes **non-voyantes ou malvoyantes**.
 Son interface est pensée pour être utilisée **entièrement au clavier** et reste compatible avec les lecteurs d’écran tels que **NVDA** ou **JAWS**.
 
 La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée de manière invisible, mais indiquée directement par de petits codes lisibles inspirés du **Markdown**.
