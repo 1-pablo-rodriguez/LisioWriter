@@ -23,22 +23,24 @@ LisioWriter facilite la production de rapports, mémoires, travaux universitaire
 
 ## 📌 Exemple de code dans LisioWriter
 
-- **#P. Mon titre du document** : Indique mon titre pincipale de niveau hiérarchique corps de texte.
-- **#S. Un sous-titre** : Indique un sous-titre  de niveau hiérarchique corps de texte.
-- **#1. Un titre** : Indique un titre de chapitre de niveau hiérachique 1 (équivalent à **Titre 1** sous Writer , Word, ou bien la balise **\<H1\>Titre<\H1\>** dans une page web).
-- **#2. Un titre** : Indique un titre de niveau hiérarchique 2.
-- **etc.**
+LisioWriter utilise une syntaxe lisible inspirée du Markdown.  
+Chaque élément de mise en forme est représenté directement dans le texte pour être interprété par les lecteurs d’écran et les barres braille.
 
-- **\*\*mot en gras\*\*** : Indique des mots en gras.
-- **\*^mot en italique^\*** : Indique des mots en italique.
-- **\_\_mots soulignés\_\_** : Indique des mots soulignés.
-- **\_\*mots gras soulignés\*\_** : Indique des mots gras soulignés.
-- **etc.**
+```text
+#P. Mon titre du document       → Titre principal du document
+#S. Un sous-titre               → Sous-titre hiérarchique
+#1. Chapitre 1                  → Titre de niveau 1 (équiv. à <h1> ou Titre 1 sous Word)
+#2. Section secondaire          → Titre de niveau 2
 
-- **@saut de page** : Indique un saut de page.
-- **@(note de bas de page)** : Indique une note de bas de page.
-- °°**Faute** : Indique une erreur orthographique ou grammaticale.
-- **etc.**
+**mot en gras**                 → Texte en gras
+*^mot en italique^*             → Texte en italique
+__mots soulignés__              → Texte souligné
+_*mots gras soulignés*_         → Texte gras et souligné
+
+@saut de page                   → Saut de page manuel
+@(note de bas de page)          → Note de bas de page
+°°Faute                         → Indique une erreur orthographique
+
 
 ---
 
