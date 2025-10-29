@@ -1,4 +1,4 @@
-# ![Démonstration de LisioWriter](docs/Lisiowriter.png) LisioWriter
+# ![Démonstration de LisioWriter](docs/blindWriter.png) LisioWriter
 
 ![Language: French](https://img.shields.io/badge/lang-French-blue?style=flat-square&logo=google-translate)
 ![Platform: Windows](https://img.shields.io/badge/platform-Windows-lightgrey?style=flat-square&logo=windows)
