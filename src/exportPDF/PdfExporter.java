@@ -50,6 +50,10 @@ public class PdfExporter {
         // combinaisons underline+bold / underline+italic
         escaped = escaped.replaceAll("(?s)_\\*(.*?)\\*_", "<u><strong>$1</strong></u>");
         escaped = escaped.replaceAll("(?s)_\\^(.*?)\\^_", "<u><em>$1</em></u>");
+        
+        // subscript / superscript : _¨...¨_ et ^¨...¨^   (¨ = U+00A8)
+        escaped = escaped.replaceAll("(?s)_\u00A8(.*?)\u00A8_", "<sub>$1</sub>");
+        escaped = escaped.replaceAll("(?s)\\^\u00A8(.*?)\u00A8\\^", "<sup>$1</sup>");
 
         // bold, italic, underline
         escaped = escaped.replaceAll("(?s)\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
@@ -202,6 +206,8 @@ public class PdfExporter {
         		+ "p { margin: 0.4em 0; }"
         		+ "u { text-decoration: underline; }"
         		+ "ol, ul { margin: 0.5em 0 0.5em 1.5em; }"
+        		+ "sub { vertical-align: sub; font-size: 0.8em; }"
+        		+ "sup { vertical-align: super; font-size: 0.8em; }"
         		+ "@media print {"
         		+ "  ul { list-style: none; margin: 0.5em 0 0.5em 1.6em; }"
         		+ "  ul li { position: relative; padding-left: 0.90em; }"
