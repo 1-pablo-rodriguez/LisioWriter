@@ -16,7 +16,7 @@ La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée
 Ce logiciel s’adresse particulièrement aux étudiants de niveau post-bac, engagés dans des études supérieures, ainsi qu’à toute personne souhaitant rédiger des documents structurés de manière autonome malgré un handicap visuel.
 LisioWriter facilite la production de rapports, mémoires, travaux universitaires et documents professionnels accessibles et correctement formatés.
 
-![Démonstration de LisioWriter](docs/demo-lisiowriter.png)
+![Démonstration de LisioWriter](docs/demo-lisiowriter.jpg)
 
 ---
 
