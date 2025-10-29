@@ -207,31 +207,38 @@ public final class MarkdownOdfExporter {
 
 
 
-         // 3) Listes numérotées
-            m = OL.matcher(line);
-            if (m.matches()) {
-                String itemTxt = m.group(2).trim();
+            // 3) Listes numérotées
+	        m = OL.matcher(line);
+	        if (m.matches()) {
+	            String itemTxt = m.group(2).trim();
+	
+	            if (listState != ListKind.ORDERED) {
+	                if (listState != ListKind.NONE) {
+	                    currentList = null;
+	                    listState = ListKind.NONE;
+	                }
+	                // ✅ Crée un style de liste numérotée s’il n’existe pas encore
+	                String orderedStyleName = ensureListStyle(odt, true);
+	
+	                currentList = odt.getContentRoot().newTextListElement();
+	                currentList.setTextStyleNameAttribute(orderedStyleName); // ✅ associe le style
+	                listState = ListKind.ORDERED;
+	            }
+	
+	            TextListItemElement item = currentList.newTextListItemElement();
+	            TextPElement p = item.newTextPElement();
+	
+	            if (pageBreakForNextParagraph) {
+	                applyBreakBefore(odt, p);
+	                pageBreakForNextParagraph = false;
+	            }
+	            if (!itemTxt.isEmpty()) {
+	                appendInlineRuns(contentDom, p, itemTxt, odt, footnoteCounterRef(footnoteCounter));
+	                footnoteCounter = footnoteCounterRef(footnoteCounter).get();
+	            }
+	            continue;
+	        }
 
-                if (listState != ListKind.ORDERED) {
-                	if (listState != ListKind.NONE) { currentList = null; listState = ListKind.NONE; }
-                    // ⬇️ crée la liste via le parent (root) pour qu’elle soit correctement attachée
-                    currentList = odt.getContentRoot().newTextListElement();
-                    listState = ListKind.ORDERED;
-                }
-
-                // ⬇️ crée l’item et le paragraphe via le parent, pas via contentDom
-                TextListItemElement item = currentList.newTextListItemElement();
-                TextPElement p = item.newTextPElement();
-                if (pageBreakForNextParagraph) {
-                    applyBreakBefore(odt, p);
-                    pageBreakForNextParagraph = false;
-                }
-                if (!itemTxt.isEmpty()) {
-                    appendInlineRuns(contentDom, p, itemTxt, odt, footnoteCounterRef(footnoteCounter));
-                    footnoteCounter = footnoteCounterRef(footnoteCounter).get();
-                }
-                continue;
-            }
 
 
          // 4) Listes à puces
@@ -330,6 +337,106 @@ public final class MarkdownOdfExporter {
 	         "sub 58%"
 	         );
     }
+
+    /** Crée ou récupère un style de liste (numérotée ou à puces). */
+    private static String ensureListStyle(OdfTextDocument odt, boolean ordered) throws Exception {
+        String styleName = ordered ? "BW_ListOrdered" : "BW_ListUnordered";
+
+        var cdom = odt.getContentDom(); // on garde le dom sous la main
+        var autoStyles = cdom.getAutomaticStyles();
+        var existing = autoStyles.getListStyle(styleName);
+        if (existing != null) return styleName;
+
+        // Style de liste
+        org.odftoolkit.odfdom.incubator.doc.text.OdfTextListStyle listStyle =
+            autoStyles.newListStyle(styleName);
+
+        if (ordered) {
+            // === Liste numérotée niveau 1 ===
+            org.odftoolkit.odfdom.dom.element.text.TextListLevelStyleNumberElement num =
+                listStyle.newTextListLevelStyleNumberElement("1", 1);
+            num.setStyleNumFormatAttribute("1");
+            num.setStyleNumSuffixAttribute(".");
+
+            // Propriétés du niveau
+            org.odftoolkit.odfdom.dom.element.style.StyleListLevelPropertiesElement props =
+                num.newStyleListLevelPropertiesElement();
+
+            // Mode requis pour activer la tabulation
+            props.setAttributeNS(
+                "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
+                "text:list-level-position-and-space-mode",
+                "label-alignment"
+            );
+
+            // ✅ Crée explicitement <style:list-level-label-alignment> via le DOM
+            org.odftoolkit.odfdom.dom.element.style.StyleListLevelLabelAlignmentElement align =
+                cdom.newOdfElement(
+                    org.odftoolkit.odfdom.dom.element.style.StyleListLevelLabelAlignmentElement.class
+                );
+            props.appendChild(align);
+
+            // Attributs sur le nœud d’alignement
+            align.setAttributeNS(
+                "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
+                "text:label-followed-by", "listtab"
+            );
+            align.setAttributeNS(
+                "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
+                "text:list-tab-stop-position", "1cm"
+            );
+            align.setAttributeNS(
+                "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0",
+                "fo:text-indent", "-0.5cm"
+            );
+            align.setAttributeNS(
+                "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0",
+                "fo:margin-left", "1cm"
+            );
+
+        } else {
+            // === Liste à puces niveau 1 ===
+            org.odftoolkit.odfdom.dom.element.text.TextListLevelStyleBulletElement bullet =
+                listStyle.newTextListLevelStyleBulletElement("•", 1);
+            bullet.setStyleNumSuffixAttribute(" ");
+
+            org.odftoolkit.odfdom.dom.element.style.StyleListLevelPropertiesElement props =
+                bullet.newStyleListLevelPropertiesElement();
+
+            props.setAttributeNS(
+                "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
+                "text:list-level-position-and-space-mode",
+                "label-alignment"
+            );
+
+            org.odftoolkit.odfdom.dom.element.style.StyleListLevelLabelAlignmentElement align =
+                cdom.newOdfElement(
+                    org.odftoolkit.odfdom.dom.element.style.StyleListLevelLabelAlignmentElement.class
+                );
+            props.appendChild(align);
+
+            align.setAttributeNS(
+                "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
+                "text:label-followed-by", "listtab"
+            );
+            align.setAttributeNS(
+                "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
+                "text:list-tab-stop-position", "1cm"
+            );
+            align.setAttributeNS(
+                "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0",
+                "fo:text-indent", "-0.5cm"
+            );
+            align.setAttributeNS(
+                "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0",
+                "fo:margin-left", "1cm"
+            );
+        }
+
+        return styleName;
+    }
+
+
 
     private static void applyBreakBefore(OdfTextDocument odt, TextPElement p) throws Exception {
         // 1) Style de base déjà présent (Title / Heading / Text_20_body, etc.)

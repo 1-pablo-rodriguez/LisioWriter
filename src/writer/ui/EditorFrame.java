@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -44,7 +43,6 @@ import writer.editor.InsertUnorderedBulletAction;
 import writer.model.Affiche;
 import writer.spell.SpellCheckLT;
 import writer.util.IconLoader;
-import writer.util.TextUtils;
 
 @SuppressWarnings("serial")
 public class EditorFrame extends JFrame implements EditorApi {
@@ -64,7 +62,8 @@ public class EditorFrame extends JFrame implements EditorApi {
   	public static int positionCurseurSauv = 0;
   	// --- Zoom éditeur ---
  	private static String EDITOR_FONT_FAMILY = "Arial";
- 	private static int    EDITOR_FONT_SIZE   = 42;
+ 	@SuppressWarnings("unused")
+	private static int    EDITOR_FONT_SIZE   = 42;
  	private static final int FONT_MIN = 14, FONT_MAX = 130, FONT_STEP = 2;
   	private float editorFontSize = 34f;
   	private final JScrollPane scrollPane;
