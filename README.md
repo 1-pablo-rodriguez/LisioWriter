@@ -1,4 +1,4 @@
-# ![Démonstration de LisioWriter](docs/blindWriter.png) LisioWriter
+# ![Démonstration de LisioWriter](docs/LisioWriter.png) LisioWriter
 
 ![Language: French](https://img.shields.io/badge/lang-French-blue?style=flat-square&logo=google-translate)
 ![Platform: Windows](https://img.shields.io/badge/platform-Windows-lightgrey?style=flat-square&logo=windows)
@@ -19,7 +19,7 @@ LisioWriter permet **d'importer et/ou d'exporter** au formats **Ms Word**, **Lib
 Ce logiciel s’adresse particulièrement aux **étudiants de niveau post-bac**, engagés dans des études supérieures, ainsi qu’à toute personne souhaitant rédiger des documents structurés de manière autonome malgré un handicap visuel.
 LisioWriter facilite la production de rapports, mémoires, travaux universitaires et documents professionnels accessibles et correctement formatés.
 
-![Démonstration de LisioWriter](docs/demo-lisiowriter.jpg)
+![Démonstration de LisioWriter](docs/demo.png)
 
 ---
 
