@@ -14,7 +14,7 @@ La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée
 
 **Ces codes sont intégrés directement dans le texte**. Ils sont ensuite lus par le lecteur d’écran et transmis à la barre braille, ce qui permet à l’utilisateur de savoir exactement quelle mise en forme est appliquée.
 
-LisioWriter permet **d'importer et/ou d'exporter** au formats **Ms Word**, **LibreOffice Writer**, **HTML**, et **texte brut** depuis son editeur de texte.
+LisioWriter permet **d'importer et/ou d'exporter** au formats **Ms Word**, **LO Writer**, **HTML**, et **texte brut** depuis son editeur de texte.
 
 Ce logiciel s’adresse particulièrement aux **étudiants de niveau post-bac**, engagés dans des études supérieures, ainsi qu’à toute personne souhaitant rédiger des documents structurés de manière autonome malgré un handicap visuel.
 LisioWriter facilite la production de rapports, mémoires, travaux universitaires et documents professionnels accessibles et correctement formatés.
