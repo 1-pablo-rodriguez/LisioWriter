@@ -19,6 +19,8 @@ LisioWriter permet **d'importer et/ou d'exporter** au formats **Ms Word**, **LO 
 Ce logiciel s’adresse particulièrement aux **étudiants de niveau post-bac**, engagés dans des études supérieures, ainsi qu’à toute personne souhaitant rédiger des documents structurés de manière autonome malgré un handicap visuel.
 LisioWriter facilite la production de rapports, mémoires, travaux universitaires et documents professionnels accessibles et correctement formatés.
 
+LisioWriter intègre de nombreuses fonctionnalités de traitement de texte, mais aussi de nouvelles, spécialement conçues pour les personnes non-voyantes ou malvoyantes.
+
 ![Démonstration de LisioWriter](docs/demo.png)
 
 ---
