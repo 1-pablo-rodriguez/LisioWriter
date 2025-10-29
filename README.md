@@ -93,22 +93,22 @@ Une version multiplateforme (Linux, macOS) pourra être envisagée plus tard.
 
 ---
 
-## 🎹 Raccourcis clavier partiques
+## 🎹 Raccourcis clavier pratiques
 
 Le tableau ci-dessous illustre quelques fonctions pratiques de LisioWriter accessibles au clavier :
 
-| Raccourci      | Fonction               | Description                                                                 |
-|----------------|------------------------|-----------------------------------------------------------------------------|
-| **F1**         | Informations           | Annonce des informations sur la fenêtre en cours ou sur l’ensemble du document. |
-| **F2**         | Lecture de titre       | Dans une fenêtre, affiche le titre du paragraphe et affiche le titre suivant.   |
-| **Ctrl+F2**    | Insère/Supp. un marque page  | Insère ou supprime un marque-page associé à une note.          |
-| **F3 / Maj+F3**| Navigation par titres  | Passe rapidement au titre suivant ou au titre précédent.                    |
-| **F4 / Maj+F4**| Navigation par marque-page  | Passe rapidement au marque-page suivant ou au marque-page précédent.   |
-| **ALT+A**      | Documentation intégrée | Ouvre la documentation interne de LisioWriter.                              |
-| **F6**         | Navigateur de titres   | Ouvre le navigateur pour parcourir la structure du document.                |
-| **F7 / Maj F7** | Erreur suivante / précédente  | Sélectionne le mot ou le texte suivant ou précédent<br>contenant une faute ou erreur. |
-| **Ctrl+F7**    | Vérification du document   | Lance la vérification orthographique et grammaticale de tout le document.   |
-| **F8**         | Article Wikipédia       | Insérer dans l'éditeur des articles Wikipédia structurés<br>avec sa mise en forme et sa structure.   |
+| Raccourci       | Fonction                    | Description                                                                 |
+|-----------------|-----------------------------|-----------------------------------------------------------------------------|
+| **F1**          | Informations                | Annonce des informations sur la fenêtre en cours ou sur l’ensemble du document. |
+| **F2**          | Lecture de titre            | Dans une fenêtre, annonce le titre du paragraphe et le titre suivant.      |
+| **Ctrl+F2**     | Insérer/Supprimer un marque-page | Insère ou supprime un marque-page associé à une note.                  |
+| **F3 / Maj+F3** | Navigation par titres       | Passe rapidement au titre suivant ou au titre précédent.                   |
+| **F4 / Maj+F4** | Navigation par marque-page  | Passe rapidement au marque-page suivant ou au marque-page précédent.       |
+| **Alt+A**       | Documentation intégrée      | Ouvre la documentation interne de LisioWriter.                             |
+| **F6**          | Navigateur de titres        | Ouvre le navigateur pour parcourir la structure du document.               |
+| **F7 / Maj+F7** | Erreur suivante / précédente | Sélectionne le mot ou le texte suivant ou précédent<br>contenant une faute ou une erreur. |
+| **Ctrl+F7**     | Vérification du document    | Lance la vérification orthographique et grammaticale de tout le document.  |
+| **F8**          | Article Wikipédia           | Insère dans l’éditeur des articles Wikipédia structurés<br>avec leur mise en forme et leur hiérarchie. |
 
 Toutes les fonctions du logiciel sont accessibles **entièrement au clavier, sans souris**.  
 Les menus sont conçus pour être **vocalisés** et **compatibles avec les barres braille**, afin de garantir une accessibilité complète.
