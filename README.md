@@ -14,7 +14,7 @@ La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée
 
 **Ces codes sont intégrés directement dans le texte**. Ils sont ensuite lus par le lecteur d’écran et transmis à la barre braille, ce qui permet à l’utilisateur de savoir exactement quelle mise en forme est appliquée.
 
-LisioWriter permet **d'importer et/ou d'exporter** au formats **Ms Word**, **LO Writer**, **HTML**, et **texte brut** depuis son editeur de texte.
+LisioWriter permet **d'importer et/ou d'exporter** dans les formats **Word**, **Writer**, **HTML**, et **texte brut** depuis son editeur de texte.
 
 Ce logiciel s’adresse particulièrement aux **étudiants de niveau post-bac**, engagés dans des études supérieures, ainsi qu’à toute personne souhaitant rédiger des documents structurés de manière autonome malgré un handicap visuel.
 LisioWriter facilite la production de rapports, mémoires, travaux universitaires et documents professionnels accessibles et correctement formatés.
@@ -162,13 +162,11 @@ Vous pouvez :
 
 ## 👤 Auteur
 
-**LisioWriter** a été développé par **Pablo Rodriguez** dans le cadre d’une démarche de recherche et d’innovation pédagogique visant à promouvoir **l’autonomie numérique des personnes non-voyantes ou malvoyantes**.  
-
-Le logiciel a été expérimenté et validé auprès d’un étudiant en licence puis en master à **l’Université d’Artois**.  
+**LisioWriter** a été développé par **Pablo Rodriguez** (enseignant d'informatique à l'université d'Artois) dans le cadre d’une démarche de **recherche et d’innovation pédagogique** visant à promouvoir **l’autonomie numérique des personnes non-voyantes ou malvoyantes**.  
+Le logiciel a été expérimenté et validé auprès d’**un étudiant non-voyant** en licence puis en master à **l’Université d’Artois**.  
 Cette phase de test a permis de mesurer l’accessibilité et l’ergonomie du logiciel, ainsi que sa capacité à répondre aux besoins effectifs des utilisateurs, tant dans le cadre **académique** que dans le milieu **professionnel** (stage de 2x4 mois sur les deux années de Master).
 
-Ces validations confirment la pertinence de LisioWriter comme outil d’*inclusion numérique**, adapté tant à l’enseignement supérieur qu’à un **usage professionnel**.
-
+Ces validations confirment la pertinence de LisioWriter comme outil d’**inclusion numérique**, adapté tant à l’enseignement supérieur qu’à un **usage professionnel**.
 
 ---
 
