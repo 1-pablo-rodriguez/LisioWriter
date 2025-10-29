@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -43,6 +44,10 @@ import writer.editor.InsertUnorderedBulletAction;
 import writer.model.Affiche;
 import writer.spell.SpellCheckLT;
 import writer.util.IconLoader;
+
+import javax.swing.*;
+import javax.swing.text.*;
+import java.awt.datatransfer.*;
 
 @SuppressWarnings("serial")
 public class EditorFrame extends JFrame implements EditorApi {
@@ -145,6 +150,59 @@ public class EditorFrame extends JFrame implements EditorApi {
 
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK), "Redo");
         am.put("Redo", redoAction);
+        
+        // Key binding: TAB et Shift+TAB pour saisir à la place [Tab]
+        im.put(KeyStroke.getKeyStroke("TAB"), "bw-insert-tab-tag");
+        im.put(KeyStroke.getKeyStroke("shift TAB"), "bw-insert-tab-tag");
+        am.put("bw-insert-tab-tag", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+            	editorPane.replaceSelection("[tab] ");
+            }
+        });
+        
+        // Récupère l’action Backspace par défaut (supprime le caractère précédent)
+        Action defaultBackspace = this.editorPane.getActionMap().get(DefaultEditorKit.deletePrevCharAction);
+
+		// Remappe BACK_SPACE vers notre action “intelligente”
+        this.editorPane.getInputMap().put(KeyStroke.getKeyStroke("BACK_SPACE"), "bw-smart-backspace");
+		
+        this.editorPane.getActionMap().put("bw-smart-backspace", new AbstractAction() {
+		    @Override public void actionPerformed(ActionEvent e) {
+		        try {
+		            int selStart = editorPane.getSelectionStart();
+		            int selEnd   = editorPane.getSelectionEnd();
+		
+		            // 1) S'il y a une sélection, on la supprime comme d'habitude
+		            if (selEnd > selStart) {
+		            	editorPane.replaceSelection("");
+		                return;
+		            }
+		
+		            // 2) Aucun texte sélectionné : on regarde si juste avant le caret il y a "[tab]"
+		            int pos = editorPane.getCaretPosition();
+		            if (pos >= 5) {
+		                String prev = editorPane.getDocument().getText(pos - 5, 5);
+		                if ("[tab]".equals(prev)) {
+		                	editorPane.getDocument().remove(pos - 5, 5); // supprime tout le bloc
+		                    return;
+		                }
+		            }
+		
+		            // 3) Sinon, comportement normal du Backspace
+		            if (defaultBackspace != null) {
+		                defaultBackspace.actionPerformed(e);
+		            } else {
+		                // fallback minimal si l’action par défaut est introuvable
+		                if (pos > 0) editorPane.getDocument().remove(pos - 1, 1);
+		            }
+		        } catch (BadLocationException ex) {
+		            // ignore en pratique
+		        }
+		    }
+		});
+        
+        // Fitre automatique pour que toute tabulation soit ue comme [Tab] dans l'éditeur.
+        enableVisibleTabs(this.editorPane);
 
         // --- BARRE DE MENUS ---
         setJMenuBar(writer.ui.menu.MenuBarFactory.create(this));
@@ -160,9 +218,12 @@ public class EditorFrame extends JFrame implements EditorApi {
   	        SwingUtilities.invokeLater(() -> ensureWordVisibleWithMargin(108, 108)); // 108 px à gauche/droite, 108 px en vertical
   	    });
     	
-        // --- FOCUS INITAIL ---
+        // --- FOCUS INITIAL ---
         SwingUtilities.invokeLater(this.editorPane::requestFocusInWindow);
 
+        // Le TAB ne doit pas changer le focus lorsque le focus est dans l'éditeur
+        this.editorPane.setFocusTraversalKeysEnabled(false);
+        
     	// --- Setup de la frame ---
     	setupEditorPane();
     	
@@ -906,6 +967,89 @@ public class EditorFrame extends JFrame implements EditorApi {
         }
     }
     
+    public static void enableVisibleTabs(JTextComponent editor) {
+        // 1) Le TAB ne doit pas déplacer le focus
+        editor.setFocusTraversalKeysEnabled(false);
+
+        // 2) Quand l'utilisateur TAPE TAB -> insérer "[tab]"
+        InputMap im = editor.getInputMap(JComponent.WHEN_FOCUSED);
+        ActionMap am = editor.getActionMap();
+
+        im.put(KeyStroke.getKeyStroke("TAB"), "bw-insert-tab-tag");
+        im.put(KeyStroke.getKeyStroke("shift TAB"), "bw-insert-tab-tag");
+        am.put("bw-insert-tab-tag", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                editor.replaceSelection("[tab]");
+            }
+        });
+
+        // 3) Intercepter COLLER (Ctrl+V, Shift+Insert)
+        im.put(KeyStroke.getKeyStroke("ctrl V"), "bw-paste-visible-tabs");
+        im.put(KeyStroke.getKeyStroke("shift INSERT"), "bw-paste-visible-tabs");
+        am.put("bw-paste-visible-tabs", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                try {
+                    Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+                    if (cb.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
+                        String s = (String) cb.getData(DataFlavor.stringFlavor);
+                        s = mapTabs(s);             // \t -> [tab]
+                        editor.replaceSelection(s);
+                        return;
+                    }
+                } catch (Exception ignore) {}
+                // Fallback : comportement standard
+                editor.paste();
+            }
+        });
+
+        // 4) TransferHandler : couvre menu contextuel / DnD / coller système
+        final TransferHandler baseTH = editor.getTransferHandler(); // garde l'existant
+        editor.setTransferHandler(new TransferHandler() {
+            @Override
+            public boolean canImport(JComponent comp, DataFlavor[] flavors) {
+                // on accepte comme le handler existant
+                return baseTH == null || baseTH.canImport(comp, flavors);
+            }
+            @Override
+            public boolean importData(JComponent comp, Transferable t) {
+                try {
+                    if (t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                        String s = (String) t.getTransferData(DataFlavor.stringFlavor);
+                        s = mapTabs(s);
+                        // insère à la position du caret
+                        editor.replaceSelection(s);
+                        return true;
+                    }
+                } catch (Exception ignore) {}
+                return baseTH != null && baseTH.importData(comp, t);
+            }
+        });
+
+        // 5) DocumentFilter : couvre insertions programmées, replace, etc.
+        Document doc = editor.getDocument();
+        if (doc instanceof AbstractDocument ad) {
+            ad.setDocumentFilter(new DocumentFilter() {
+                @Override
+                public void insertString(FilterBypass fb, int offs, String str, AttributeSet a)
+                        throws BadLocationException {
+                    super.insertString(fb, offs, mapTabs(str), a);
+                }
+                @Override
+                public void replace(FilterBypass fb, int offs, int len, String str, AttributeSet a)
+                        throws BadLocationException {
+                    super.replace(fb, offs, len, mapTabs(str), a);
+                }
+            });
+        }
+    }
+
+    // Utilitaire centralisé
+    private static String mapTabs(String s) {
+        return (s == null) ? null : s.replace("\t", "[tab] ");
+    }
+
+
+   
     
 
  	

@@ -220,84 +220,64 @@ public final class MarkdownOOXMLExporter {
         InlineToken(K k, String c) { kind = k; content = c; }
     }
 
-    private static void appendInlineRuns(XWPFDocument doc, XWPFParagraph p, String text, IntBox footCounter) {
-        List<InlineToken> tokens = tokenizeInline(text);
-        for (InlineToken tk : tokens) {
-            switch (tk.kind) {
-                case TEXT: {
-                    if (!tk.content.isEmpty()) {
-                        XWPFRun r = p.createRun();
-                        r.setText(tk.content);
-                    }
-                    break;
+   private static void appendInlineRuns(XWPFDocument doc, XWPFParagraph p, String text, IntBox footCounter) {
+    List<InlineToken> tokens = tokenizeInline(text);
+    for (InlineToken tk : tokens) {
+        switch (tk.kind) {
+            case TEXT: {
+                if (!tk.content.isEmpty()) {
+                    appendStyledTextWithTabs(p, tk.content, false, false, null, null);
                 }
-                case BOLDITALIC: {
-                    XWPFRun r = p.createRun();
-                    r.setBold(true); r.setItalic(true);
-                    r.setText(tk.content);
-                    break;
-                }
-                case BOLD: {
-                    XWPFRun r = p.createRun();
-                    r.setBold(true);
-                    r.setText(tk.content);
-                    break;
-                }
-                case UNDERLINE: {
-                    XWPFRun r = p.createRun();
-                    r.setUnderline(UnderlinePatterns.SINGLE);
-                    r.setText(tk.content);
-                    break;
-                }
-                case UNDERBOLD: {
-                    XWPFRun r = p.createRun();
-                    r.setBold(true);
-                    r.setUnderline(UnderlinePatterns.SINGLE);
-                    r.setText(tk.content);
-                    break;
-                }
-                case UNDERITALIC: {
-                    XWPFRun r = p.createRun();
-                    r.setItalic(true);
-                    r.setUnderline(UnderlinePatterns.SINGLE);
-                    r.setText(tk.content);
-                    break;
-                }
-                case ITALIC: {
-                    XWPFRun r = p.createRun();
-                    r.setItalic(true);
-                    r.setText(tk.content);
-                    break;
-                }
-                case EXPOSANT: {
-                    XWPFRun r = p.createRun();
-                    r.setText(tk.content);
-                    r.setSubscript(VerticalAlign.SUPERSCRIPT);
-                    break;
-                }
-                case INDICE: {
-                    XWPFRun r = p.createRun();
-                    r.setText(tk.content);
-                    r.setSubscript(VerticalAlign.SUBSCRIPT);
-                    break;
-                }
-                case FOOTNOTE: {
-                    // 1) Insère la référence dans le paragraphe courant
-                    XWPFRun refRun = p.createRun();
-                    // Ajout de la référence via CTR low-level
-                    refRun.getCTR().addNewFootnoteReference().setId(BigInteger.valueOf(footCounter.get()));
-                    // 2) Crée la note et son contenu
-                    XWPFFootnote fn = doc.createFootnote();
-                    fn.getCTFtnEdn().setId(BigInteger.valueOf(footCounter.get()));
-                    XWPFParagraph fp = fn.createParagraph();
-                    XWPFRun fr = fp.createRun();
-                    fr.setText(tk.content);
-                    footCounter.inc();
-                    break;
-                }
+                break;
+            }
+            case BOLDITALIC: {
+                appendStyledTextWithTabs(p, tk.content, true, true, null, null);
+                break;
+            }
+            case BOLD: {
+                appendStyledTextWithTabs(p, tk.content, true, false, null, null);
+                break;
+            }
+            case UNDERLINE: {
+                appendStyledTextWithTabs(p, tk.content, false, false, UnderlinePatterns.SINGLE, null);
+                break;
+            }
+            case UNDERBOLD: {
+                appendStyledTextWithTabs(p, tk.content, true, false, UnderlinePatterns.SINGLE, null);
+                break;
+            }
+            case UNDERITALIC: {
+                appendStyledTextWithTabs(p, tk.content, false, true, UnderlinePatterns.SINGLE, null);
+                break;
+            }
+            case ITALIC: {
+                appendStyledTextWithTabs(p, tk.content, false, true, null, null);
+                break;
+            }
+            case EXPOSANT: {
+                appendStyledTextWithTabs(p, tk.content, false, false, null, VerticalAlign.SUPERSCRIPT);
+                break;
+            }
+            case INDICE: {
+                appendStyledTextWithTabs(p, tk.content, false, false, null, VerticalAlign.SUBSCRIPT);
+                break;
+            }
+            case FOOTNOTE: {
+                // 1) référence de note
+                XWPFRun refRun = p.createRun();
+                refRun.getCTR().addNewFootnoteReference().setId(BigInteger.valueOf(footCounter.get()));
+                // 2) corps de la note
+                XWPFFootnote fn = doc.createFootnote();
+                fn.getCTFtnEdn().setId(BigInteger.valueOf(footCounter.get()));
+                XWPFParagraph fp = fn.createParagraph();
+                // le texte de la note peut aussi contenir [tab]
+                appendStyledTextWithTabs(fp, tk.content, false, false, null, null);
+                footCounter.inc();
+                break;
             }
         }
     }
+}
 
     // Tokenizer inline (calqué sur ton ODT)
     private static List<InlineToken> tokenizeInline(String src) {
@@ -476,6 +456,30 @@ public final class MarkdownOOXMLExporter {
         ensureParaStyle(doc, "Heading5", "heading 5", 4);
     }
 
-
+    /** Version “stylée” : applique bold/italic/underline/verticalAlign à chaque fragment + aux tabs. */
+    private static void appendStyledTextWithTabs(XWPFParagraph p, String text, boolean bold, boolean italic, 
+    		UnderlinePatterns underline, VerticalAlign vAlign ) {
+        String[] parts = text.split("\\[tab\\]", -1);
+        for (int i = 0; i < parts.length; i++) {
+            if (!parts[i].isEmpty()) {
+                XWPFRun r = p.createRun();
+                if (bold) r.setBold(true);
+                if (italic) r.setItalic(true);
+                if (underline != null) r.setUnderline(underline);
+                if (vAlign != null) r.setSubscript(vAlign);
+                r.setText(parts[i]);
+            }
+            if (i < parts.length - 1) {
+                XWPFRun rt = p.createRun();
+                if (bold) rt.setBold(true);
+                if (italic) rt.setItalic(true);
+                if (underline != null) rt.setUnderline(underline);
+                if (vAlign != null) rt.setSubscript(vAlign);
+                rt.addTab(); // vrai tab
+            }
+        }
+    }
+    
+    
 
 }

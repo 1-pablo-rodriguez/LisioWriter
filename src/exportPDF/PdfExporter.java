@@ -159,16 +159,13 @@ public class PdfExporter {
                     int lvl;
                     try { lvl = Integer.parseInt(hMatcher.group(1)); } catch (Exception e) { lvl = 1; }
                     if (lvl < 1) lvl = 1; if (lvl > 6) lvl = 6;
-                    String inside = replaceFootnotes.apply(
-                            applyInlineMarkers(escapeHtml(hMatcher.group(2))));
+                    String inside = renderInline(hMatcher.group(2), replaceFootnotes);
                     body.append("<h").append(lvl).append(">").append(inside).append("</h").append(lvl).append(">\n");
                 } else if (isP) {
-                    String inside = replaceFootnotes.apply(
-                            applyInlineMarkers(escapeHtml(pMatcher.group(1))));
+                    String inside = renderInline(pMatcher.group(1), replaceFootnotes);
                     body.append("<h1>").append(inside).append("</h1>\n");
                 } else { // isS
-                    String inside = replaceFootnotes.apply(
-                            applyInlineMarkers(escapeHtml(sMatcher.group(1))));
+                    String inside = renderInline(sMatcher.group(1), replaceFootnotes);
                     body.append("<h2>").append(inside).append("</h2>\n");
                 }
                 continue;
@@ -187,9 +184,7 @@ public class PdfExporter {
 
                 int num = 1;
                 try { num = Integer.parseInt(mOl.group(1)); } catch (Exception ignore) {}
-                String li = replaceFootnotes.apply(
-                        applyInlineMarkers(escapeHtml(mOl.group(2))));
-
+                String li = renderInline(mOl.group(2), replaceFootnotes);
                 if (!inOl) {
                     body.append(num != 1 ? "<ol start=\"" + num + "\">\n" : "<ol>\n");
                     inOl = true;
@@ -206,8 +201,7 @@ public class PdfExporter {
                 if (inOl) { body.append("</ol>\n"); inOl = false; }
 
                 if (!inUl) { body.append("<ul>\n"); inUl = true; }
-                String li = replaceFootnotes.apply(
-                        applyInlineMarkers(escapeHtml(mUl.group(1))));
+                String li = renderInline(mUl.group(1), replaceFootnotes);
                 body.append("<li>").append(li).append("</li>\n");
                 continue;
             }
@@ -227,8 +221,7 @@ public class PdfExporter {
             if (inOl) { body.append("</ol>\n"); inOl = false; }
             if (inUl) { body.append("</ul>\n"); inUl = false; }
 
-            String escaped = replaceFootnotes.apply(
-                    applyInlineMarkers(escapeHtml(raw)));
+            String escaped = renderInline(raw, replaceFootnotes);
             if (!paragraphOpen) {
                 paragraphOpen = true;
                 paragraph.append(escaped);
@@ -285,6 +278,7 @@ public class PdfExporter {
             + ".toc li{margin:.2em 0;}"
             + ".toc .toc-lvl2{margin-left:1em;}"
             + ".toc .toc-lvl3{margin-left:2em;}"
+            + " .bw-tab{display:inline-block;width:2em;}" 
             + "@media print{"
             + "  ul{list-style:none;margin:.5em 0 .5em 1.6em;}"
             + "  ul li{position:relative;padding-left:.90em;}"
@@ -814,7 +808,7 @@ public class PdfExporter {
         }
     }
     
- // Essaie plusieurs chemins/majuscules/minuscules sur le classpath
+    // Essaie plusieurs chemins/majuscules/minuscules sur le classpath
     private static InputStream openResourceFlex(String... candidates) {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         for (String p : candidates) {
@@ -828,6 +822,23 @@ public class PdfExporter {
         }
         return null;
     }
+    
+    // Remplace [tab] par un span HTML neutre (facile à styler en PDF/HTML)
+    private static String replaceVisibleTabs(String s) {
+        if (s == null) return null;
+        return s.replace("[tab]", "<span class=\"bw-tab\"></span>");
+    }
+
+    // Chaîne d’enrichissement inline standard : escape → mise en forme → notes → [tab]
+    private static String renderInline(String raw,
+                                       java.util.function.Function<String,String> replaceFootnotesFn) {
+        String x = escapeHtml(raw);
+        x = applyInlineMarkers(x);
+        x = replaceFootnotesFn.apply(x);
+        x = replaceVisibleTabs(x);
+        return x;
+    }
+
 
 
 }

@@ -27,8 +27,8 @@ public class bienvenueAffichage {
                 message.append("\nFichier ouvert : ").append(fileName).append(" ↓");
                 message.append("\nDossier de travail : ").append(folder).append(" ↓");
                 message.append(editable ? "\nMode éditable. ↓" : "Mode en lecture seule. ↓");
-                message.append(liveSpell ? "\nVérif. frappe activée. ↓"
-                                         : "\nVérif. frappe désactivée. ↓");
+                message.append(liveSpell ? "\nVérif. frappe activée."
+                                         : "\nVérif. frappe désactivée.");
         } catch (Exception ignore) {
             // on évite toute exception dans ce chemin d’annonce
             message = new StringBuilder("Informations indisponibles pour le moment.");
