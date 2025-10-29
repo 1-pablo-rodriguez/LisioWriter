@@ -21,7 +21,7 @@ LisioWriter facilite la production de rapports, mémoires, travaux universitaire
 
 ---
 
-## 📌 Exemple de code dans LisioWriter
+## 📌 Quelques exemple de code markdown dans LisioWriter
 
 LisioWriter utilise une syntaxe lisible inspirée du Markdown.  
 Chaque élément de mise en forme est représenté directement dans le texte pour être interprété par les lecteurs d’écran et les barres braille.
