@@ -502,65 +502,63 @@ public final class MarkdownOdfExporter {
         switch (tk.kind) {
 
             case TEXT: {
-                if (!tk.content.isEmpty()) {
-                    paragraph.appendChild(w3c.createTextNode(tk.content));
-                }
+            	appendTextWithTabsToParagraph(dom, paragraph, tk.content);
                 break;
             }
 
             case BOLDITALIC: {
                 var span = paragraph.newTextSpanElement();
                 span.setTextStyleNameAttribute(SPAN_BOLDITALIC);
-                span.appendChild(w3c.createTextNode(tk.content));
+                appendTextWithTabsToSpan(dom, span, tk.content);
                 break;
             }
 
             case BOLD: {
                 var span = paragraph.newTextSpanElement();
                 span.setTextStyleNameAttribute(SPAN_BOLD);
-                span.appendChild(w3c.createTextNode(tk.content));
+                appendTextWithTabsToSpan(dom, span, tk.content);
                 break;
             }
 
             case UNDERLINE: {
                 var span = paragraph.newTextSpanElement();
                 span.setTextStyleNameAttribute(SPAN_UNDER);
-                span.appendChild(w3c.createTextNode(tk.content));
+                appendTextWithTabsToSpan(dom, span, tk.content);
                 break;
             }
             
             case UNDERBOLD: {
                 var span = paragraph.newTextSpanElement();
                 span.setTextStyleNameAttribute(SPAN_UNDERBOLD);
-                span.appendChild(w3c.createTextNode(tk.content));
+                appendTextWithTabsToSpan(dom, span, tk.content);
                 break;
             }
             
             case UNDERITALIC: {
                 var span = paragraph.newTextSpanElement();
                 span.setTextStyleNameAttribute(SPAN_UNDERITALIC);
-                span.appendChild(w3c.createTextNode(tk.content));
+                appendTextWithTabsToSpan(dom, span, tk.content);
                 break;
             }
 
             case ITALIC: {
                 var span = paragraph.newTextSpanElement();
                 span.setTextStyleNameAttribute(SPAN_ITALIC);
-                span.appendChild(w3c.createTextNode(tk.content));
+                appendTextWithTabsToSpan(dom, span, tk.content);
                 break;
             }
             
             case EXPOSANT: {
                 var span = paragraph.newTextSpanElement();
                 span.setTextStyleNameAttribute(SPAN_EXPOSANT);
-                span.appendChild(w3c.createTextNode(tk.content));
+                appendTextWithTabsToSpan(dom, span, tk.content);
                 break;
             }
             
             case INDICE: {
                 var span = paragraph.newTextSpanElement();
                 span.setTextStyleNameAttribute(SPAN_INDICE);
-                span.appendChild(w3c.createTextNode(tk.content));
+                appendTextWithTabsToSpan(dom, span, tk.content);
                 break;
             }
 
@@ -824,6 +822,45 @@ public final class MarkdownOdfExporter {
 	}
 
     
+ // Insère du texte qui peut contenir [tab] dans un PARAGRAPHE <text:p>
+    private static void appendTextWithTabsToParagraph(
+            org.odftoolkit.odfdom.pkg.OdfFileDom dom,
+            org.odftoolkit.odfdom.dom.element.text.TextPElement p,
+            String text) {
+
+        if (text == null || text.isEmpty()) return;
+        org.w3c.dom.Document w3c = (org.w3c.dom.Document) dom;
+
+        String[] parts = text.split("\\[tab\\]", -1);
+        for (int i = 0; i < parts.length; i++) {
+            if (!parts[i].isEmpty()) {
+                p.appendChild(w3c.createTextNode(parts[i]));
+            }
+            if (i < parts.length - 1) {
+                p.newTextTabElement(); // <text:tab/>
+            }
+        }
+    }
+
+    // Insère du texte qui peut contenir [tab] dans un SPAN <text:span>
+    private static void appendTextWithTabsToSpan(
+            org.odftoolkit.odfdom.pkg.OdfFileDom dom,
+            org.odftoolkit.odfdom.dom.element.text.TextSpanElement span,
+            String text) {
+
+        if (text == null || text.isEmpty()) return;
+        org.w3c.dom.Document w3c = (org.w3c.dom.Document) dom;
+
+        String[] parts = text.split("\\[tab\\]", -1);
+        for (int i = 0; i < parts.length; i++) {
+            if (!parts[i].isEmpty()) {
+                span.appendChild(w3c.createTextNode(parts[i]));
+            }
+            if (i < parts.length - 1) {
+                span.newTextTabElement(); // <text:tab/>
+            }
+        }
+    }
 
 
 

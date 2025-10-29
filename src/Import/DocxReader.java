@@ -10,6 +10,7 @@ import org.apache.poi.xwpf.usermodel.IBodyElement;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.*;
 
 /**
  * DocxReader : extrait texte structuré depuis un .docx en conservant
@@ -176,7 +177,7 @@ public class DocxReader {
             if (ilvl != null) {
                 try { level = ilvl.intValue(); } catch (Exception ignored) {}
             }
-            for (int i = 0; i < level; ++i) sb.append("\t");
+            for (int i = 0; i < level; ++i) sb.append("[tab]");
 
             if (isBullet) {
                 sb.append("-. ");
@@ -190,13 +191,14 @@ public class DocxReader {
         // 5) parcourir les runs
         java.util.List<org.apache.poi.xwpf.usermodel.XWPFRun> runs = null;
         try { runs = p.getRuns(); } catch (Exception ignored) { runs = null; }
-        
+
         boolean wrotePageBreakInThisPara = false;
-        
-        if (runs != null) {
+        boolean hadVisibleText = false; // <-- pour savoir si on a réussi à écrire quelque chose
+
+        if (runs != null && !runs.isEmpty()) {
             for (org.apache.poi.xwpf.usermodel.XWPFRun run : runs) {
-                // 5.a) texte du run + styles
-            	String text = getRunVisibleText(run);  // n’inclut pas [footnoteRef:1]
+                // 5.a) texte du run + styles  (getRunVisibleText mappe déjà \t -> [tab] et compte <w:tab/>)
+                String text = getRunVisibleText(run);
                 TextStyle ts = new TextStyle();
                 try { ts.bold = run.isBold(); } catch (Exception ignored) {}
                 try { ts.italic = run.isItalic(); } catch (Exception ignored) {}
@@ -204,10 +206,12 @@ public class DocxReader {
                     org.apache.poi.xwpf.usermodel.UnderlinePatterns u = run.getUnderline();
                     ts.underline = (u != null && u != org.apache.poi.xwpf.usermodel.UnderlinePatterns.NONE);
                 } catch (Exception ignored) {}
+
                 if (text != null && !text.isEmpty()) {
                     sb.append(wrapWithMarkers(text, ts));
+                    hadVisibleText = true; // <-- on a écrit du contenu
                 }
-                
+
                 // Détection des sauts de page manuels dans CE run (<w:br w:type="page"/>)
                 try {
                     org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR ctr = run.getCTR();
@@ -215,21 +219,16 @@ public class DocxReader {
                     for (int i = 0; i < n; i++) {
                         org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBr br = ctr.getBrArray(i);
                         if (br != null && br.isSetType()) {
-                            // t vaut LINE, PAGE, COLUMN, etc.
-                            org.openxmlformats.schemas.wordprocessingml.x2006.main.STBrType.Enum t = br.getType();
+                            var t = br.getType();
                             if (t == org.openxmlformats.schemas.wordprocessingml.x2006.main.STBrType.PAGE) {
-                                appendPageBreakLine(sb); // -> écrit "@saut de page\n" proprement
+                                appendPageBreakLine(sb);
                                 wrotePageBreakInThisPara = true;
                             }
                         }
-                        // Si tu voulais traiter d'autres cas :
-                        // else if (t == STBrType.COLUMN) { /* colonne: ignorer ou gérer */ }
-                        // else { /* simple saut de ligne: sb.append('\n'); */ }
                     }
                 } catch (Exception ignored) {}
 
                 // 5.b) références de notes de bas de page dans CE run
-                // (les runs qui portent une note n'ont souvent pas de texte, d'où l'étape 5.a indépendante)
                 try {
                     org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR ctr = run.getCTR();
                     java.util.List<org.openxmlformats.schemas.wordprocessingml.x2006.main.CTFtnEdnRef> refs =
@@ -240,14 +239,24 @@ public class DocxReader {
                             String note = extractFootnoteInlineText(doc, id);
                             if (!note.isBlank()) {
                                 sb.append("@(").append(note).append(")");
+                                hadVisibleText = true;
                             }
                         }
                     }
-                } catch (Exception ignored) {
-                    // ne jamais casser l'import sur cas exotique
-                }
+                } catch (Exception ignored) {}
             }
         }
+
+        // 🔁 Fallback : si on n'a rien écrit depuis les runs, relire le paragraphe en entier
+        // (compte aussi les <w:tab/> qui ne sont pas dans <w:t>)
+        if (!hadVisibleText) {
+            String vis = paragraphToVisible(p);   // <-- ton helper existant
+            if (!vis.isEmpty()) {
+                sb.append(vis);
+                hadVisibleText = true;
+            }
+        }
+
          
         boolean sectionForcesNextPage = false;
         try {
@@ -377,17 +386,26 @@ public class DocxReader {
     private static String getRunVisibleText(org.apache.poi.xwpf.usermodel.XWPFRun run) {
         if (run == null) return "";
         StringBuilder sb = new StringBuilder();
-        // Ne lit QUE les <w:t> (texte visible), pas les footnoteReference.
+
+        // 1) texte visible (<w:t>) avec éventuels \t
         int tCount = run.getCTR().sizeOfTArray();
         for (int i = 0; i < tCount; i++) {
             String part = run.getText(i);
-            if (part != null && !part.isEmpty()) sb.append(part);
+            if (part != null && !part.isEmpty()) {
+                // mappe \t -> [tab]
+                sb.append(part.replace("\t", "[tab]"));
+            }
         }
-        // (facultatif) gérer les tabulations et retours ligne du run :
-        // for (int i = 0; i < run.getCTR().sizeOfTabArray(); i++) sb.append("\t");
-        // for (int i = 0; i < run.getCTR().sizeOfBrArray();  i++) sb.append("\n");
+
+        // 2) tabs explicites <w:tab/> au sein du run
+        int tabCount = run.getCTR().sizeOfTabArray();
+        for (int i = 0; i < tabCount; i++) {
+            sb.append("[tab]");
+        }
+
         return sb.toString();
     }
+
 
     private static void appendPageBreakLine(StringBuilder sb) {
         int len = sb.length();
@@ -407,5 +425,25 @@ public class DocxReader {
         if (it) return "^^" + text + "^^";
         if (u) return "__" + text + "__";
         return text;
+    }
+    
+    private static String paragraphToVisible(XWPFParagraph p){
+        StringBuilder sb = new StringBuilder();
+        for (IRunElement re : p.getIRuns()){
+            if (re instanceof XWPFRun r){
+                // texte du run (remplacer les \t)
+                String t = r.text();
+                if (t != null && !t.isEmpty()){
+                    sb.append(t.replace("\t", "[tab]"));
+                }
+                // tabs explicites <w:tab/> contenus dans le CTR
+                var ctr = r.getCTR();
+                if (ctr != null){
+                    int tabs = ctr.sizeOfTabArray();
+                    for (int i=0;i<tabs;i++) sb.append("[tab]");
+                }
+            }
+        }
+        return sb.toString();
     }
 }
