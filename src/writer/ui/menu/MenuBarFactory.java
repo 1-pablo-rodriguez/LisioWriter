@@ -32,6 +32,7 @@ import dia.boiteMeta;
 import dia.navigateurT1;
 import dia.ouvrirTxt;
 import exportODF.MarkdownOdfExporter;
+import exportOOXML.MarkdownOOXMLExporter;
 import exportPDF.PdfExporter;
 import exporterHTML.HtmlExporter;
 import maj.AutoUpdater;
@@ -666,9 +667,29 @@ public final class MenuBarFactory {
 			}
         });
         
+        JMenuItem exportDocItem = createSimpleMenuItem("Exporter en .DOCX (Word)", e -> {
+            System.out.println("Export au format DOCX Word"); // Debugger
+            //ExportODFWriter();
+            try {
+            	writer.spell.SpellCheckLT spell = ctx.getSpell();
+            	if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
+            	java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor());
+            	MarkdownOOXMLExporter.export(ctx.getEditor().getText(), new File(commandes.currentDirectory + "/" + commandes.nameFile+".docx"));
+            	StringBuilder msg = new StringBuilder();
+                msg.append("Info. Exportation terminé."
+                		+ "\nFichier : " + commandes.nameFile+".docx"
+                		+ "\nDossier : " + commandes.currentDirectory);
+                dia.InfoDialog.show(owner, "Exportation", msg.toString());
+            } catch (Exception e1) {
+				e1.printStackTrace();
+			}
+        });
+        
         JMenuItem exportPDFItem = createSimpleMenuItem("Exporter en .PDF", e -> {
             System.out.println("Export au format PDF"); // Debugger
 			try {
+				writer.spell.SpellCheckLT spell = ctx.getSpell();
+				if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
 				String html = PdfExporter.convertMarkupToHtml(ctx.getEditor().getText());
 				
 				// construire proprement le chemin de sortie
@@ -698,6 +719,8 @@ public final class MenuBarFactory {
         JMenuItem exportHTMLItem = createSimpleMenuItem("Exporter en .HTML", e -> {
             System.out.println("Export au format HTML"); // Debugger
             try {
+            	writer.spell.SpellCheckLT spell = ctx.getSpell();
+            	if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
                 String html = PdfExporter.convertMarkupToHtml(ctx.getEditor().getText());
 
                 // Construire le outPath proprement selon le type de commandes.currentDirectory
@@ -731,10 +754,12 @@ public final class MenuBarFactory {
 
        
         ctx.addItemChangeListener(exportItem);
+        ctx.addItemChangeListener(exportDocItem);
         ctx.addItemChangeListener(exportPDFItem);
         ctx.addItemChangeListener(exportHTMLItem);
         
         fileMenu.add(exportItem);
+        fileMenu.add(exportDocItem);
         fileMenu.add(exportPDFItem);
         fileMenu.add(exportHTMLItem);
         
