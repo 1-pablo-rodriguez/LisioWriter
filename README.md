@@ -2,7 +2,7 @@
 
 ![Language: French](https://img.shields.io/badge/lang-French-blue?style=flat-square&logo=google-translate)
 ![Platform: Windows](https://img.shields.io/badge/platform-Windows-lightgrey?style=flat-square&logo=windows)
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
 ![License](https://img.shields.io/badge/license-GPL--3.0-green)
 
 
