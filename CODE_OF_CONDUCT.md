@@ -1,6 +1,6 @@
 # Code de conduite
 
-Le code de conduite de blindWriter est inspiré du **Code de conduite de la communauté Ruby**.
+Le code de conduite de LisioWriter est inspiré du **Code de conduite de la communauté Ruby**.
 
 - Les participants toléreront les opinions divergentes.  
 - Ils doivent veiller à ce que leur langage et leurs actes soient exempts d'attaques personnelles et de remarques désobligeantes.  
