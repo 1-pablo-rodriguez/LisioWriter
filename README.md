@@ -54,11 +54,11 @@ L’objectif est de fournir un outil qui favorise l’**autonomie numérique** e
 - **Navigateur et navigation** : Fenêtre simple pour la navigation par les titres.
 - **Marque page** : intégration de marque page et de note.
 - **Système de mise à jour automatique** : télécharge et installe la dernière version en arrière-plan (mode silencieux).  
-- 🪶 **Recherche et insertion d’articles Wikipédia** : trouvez, sélectionnez et insérez un article complet dans l’éditeur, déjà mis en forme et structuré.
+- 🪶 **Recherche et insertion d’articles Wikipédia** : recherche, sélectionne et insére un article complet dans l’éditeur, déjà mis en forme et structuré.
 
 ---
 
-## ![Démonstration de LisioWriter](docs/wikipedia.png) Nouvelle fonctionnalité : intégration Wikipédia
+## ![Démonstration de LisioWriter](docs/wikipedia.png) Nouvelle fonctionnalité : intégration de Wikipédia
 
 LisioWriter permet désormais de rechercher et d’importer directement des articles Wikipédia depuis l’éditeur.
 L’utilisateur saisit un mot-clé, parcourt les résultats, puis insère l’article choisi dans son document.
