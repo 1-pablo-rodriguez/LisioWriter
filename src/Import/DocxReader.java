@@ -15,6 +15,8 @@ import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.w3c.dom.Node;
+import org.apache.poi.xwpf.usermodel.XWPFHyperlinkRun;
+
 
 
 /**
@@ -201,49 +203,79 @@ public class DocxReader {
         boolean hadVisibleText = false; // <-- pour savoir si on a réussi à écrire quelque chose
 
         if (runs != null && !runs.isEmpty()) {
-            for (org.apache.poi.xwpf.usermodel.XWPFRun run : runs) {
-                // 5.a) texte du run + styles  (getRunVisibleText mappe déjà \t -> [tab] et compte <w:tab/>)
+            int i = 0;
+            while (i < runs.size()) {
+                XWPFRun run = runs.get(i);
+
+                // === 🟦 Cas spécial : lien hypertexte ===
+                if (run instanceof XWPFHyperlinkRun hrun) {
+                    String url = null;
+                    try {
+                        if (hrun.getHyperlink(doc) != null)
+                            url = hrun.getHyperlink(doc).getURL();
+                    } catch (Exception ignored) {}
+                    if ((url == null || url.isBlank()) && hrun.getHyperlinkId() != null) {
+                        try {
+                            var link = doc.getHyperlinkByID(hrun.getHyperlinkId());
+                            if (link != null) url = link.getURL();
+                        } catch (Exception ignored) {}
+                    }
+
+                    // Fusionner tous les runs du même lien
+                    StringBuilder linkText = new StringBuilder();
+                    while (i < runs.size()) {
+                        XWPFRun r = runs.get(i);
+                        if (r instanceof XWPFHyperlinkRun hr2) {
+                            String u2 = null;
+                            try {
+                                if (hr2.getHyperlink(doc) != null)
+                                    u2 = hr2.getHyperlink(doc).getURL();
+                                if ((u2 == null || u2.isBlank()) && hr2.getHyperlinkId() != null) {
+                                    var link = doc.getHyperlinkByID(hr2.getHyperlinkId());
+                                    if (link != null) u2 = link.getURL();
+                                }
+                            } catch (Exception ignored) {}
+                            if (url != null && url.equals(u2)) {
+                                if (hr2.text() != null) linkText.append(hr2.text());
+                                i++;
+                                continue;
+                            }
+                        }
+                        break;
+                    }
+
+                    String text = normalizeSpaces(linkText.toString());
+                    if (!text.isBlank() && url != null && !url.isBlank()) {
+                        sb.append("@[").append(text).append(": ").append(url).append("]");
+                        hadVisibleText = true;
+                    }
+                    continue; // saute les runs déjà fusionnés
+                }
+
+                // === 🟩 Cas général : run normal ===
                 String text = getRunVisibleText(run);
                 TextStyle ts = new TextStyle();
                 try { ts.bold = run.isBold(); } catch (Exception ignored) {}
                 try { ts.italic = run.isItalic(); } catch (Exception ignored) {}
                 try {
-                    org.apache.poi.xwpf.usermodel.UnderlinePatterns u = run.getUnderline();
+                    var u = run.getUnderline();
                     ts.underline = (u != null && u != org.apache.poi.xwpf.usermodel.UnderlinePatterns.NONE);
                 } catch (Exception ignored) {}
 
                 if (text != null && !text.isEmpty()) {
-                    String styled = wrapWithMarkers(text, ts); // gras/italique/souligné
-                    styled = wrapSuperSub(styled, run);        // <-- AJOUT : exposant/indice ^¨…¨^ / _¨…¨_
+                    String styled = wrapWithMarkers(text, ts);
+                    styled = wrapSuperSub(styled, run);
                     sb.append(styled);
-                    hadVisibleText = true; // on a écrit du contenu
+                    hadVisibleText = true;
                 }
 
-
-                // Détection des sauts de page manuels dans CE run (<w:br w:type="page"/>)
+                // === 🟨 Notes de bas de page ===
                 try {
-                    org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR ctr = run.getCTR();
-                    int n = ctr.sizeOfBrArray();
-                    for (int i = 0; i < n; i++) {
-                        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBr br = ctr.getBrArray(i);
-                        if (br != null && br.isSetType()) {
-                            var t = br.getType();
-                            if (t == org.openxmlformats.schemas.wordprocessingml.x2006.main.STBrType.PAGE) {
-                                appendPageBreakLine(sb);
-                                wrotePageBreakInThisPara = true;
-                            }
-                        }
-                    }
-                } catch (Exception ignored) {}
-
-                // 5.b) références de notes de bas de page dans CE run
-                try {
-                    org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR ctr = run.getCTR();
-                    java.util.List<org.openxmlformats.schemas.wordprocessingml.x2006.main.CTFtnEdnRef> refs =
-                            ctr.getFootnoteReferenceList();
+                    var ctr = run.getCTR();
+                    var refs = ctr.getFootnoteReferenceList();
                     if (refs != null && !refs.isEmpty()) {
-                        for (org.openxmlformats.schemas.wordprocessingml.x2006.main.CTFtnEdnRef r : refs) {
-                            java.math.BigInteger id = r.getId();
+                        for (var r : refs) {
+                            var id = r.getId();
                             String note = extractFootnoteInlineText(doc, id);
                             if (!note.isBlank()) {
                                 sb.append("@(").append(note).append(")");
@@ -252,8 +284,12 @@ public class DocxReader {
                         }
                     }
                 } catch (Exception ignored) {}
+
+                i++;
             }
         }
+
+
 
         // 🔁 Fallback : si on n'a rien écrit depuis les runs, relire le paragraphe en entier
         // (compte aussi les <w:tab/> qui ne sont pas dans <w:t>)
@@ -363,7 +399,7 @@ public class DocxReader {
         return cur;
     }
 
-    private static String extractFootnoteInlineText(XWPFDocument doc, java.math.BigInteger id) {
+	private static String extractFootnoteInlineText(XWPFDocument doc, java.math.BigInteger id) {
         if (doc == null || id == null) return "";
         try {
             org.apache.poi.xwpf.usermodel.XWPFFootnote fn = doc.getFootnoteByID(id.intValue());
