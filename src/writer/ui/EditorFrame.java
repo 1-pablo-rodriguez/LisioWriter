@@ -20,7 +20,6 @@ import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 import javax.swing.MenuSelectionManager;
@@ -53,7 +52,7 @@ import java.awt.datatransfer.*;
 public class EditorFrame extends JFrame implements EditorApi {
 
     // === CHAMPS PRINCIPAUX ===
-    private final JTextArea editorPane = new JTextArea();
+    private final JTextPane editorPane = new JTextPane(); // Migration vers private JTextPane editor;
     private final UndoManager undoManager = new UndoManager();
     private final Action undoAction;
     private final Action redoAction;
@@ -82,6 +81,9 @@ public class EditorFrame extends JFrame implements EditorApi {
 
         // --- CONFIGURATION DE L'ÉDITEUR ---
         scrollPane = new JScrollPane(editorPane);
+        // Pour forcer le wrap vertical proprement dans le viewport :
+        editorPane.setEditorKit(new WrapEditorKit());
+        
         getContentPane().add(scrollPane, BorderLayout.CENTER);
 
         // Attache le gestionnaire Undo/Redo
@@ -92,7 +94,7 @@ public class EditorFrame extends JFrame implements EditorApi {
                 updateUndoRedoState();
             }
         });
-
+        
         // --- ICON APP ----
         setIconImage(IconLoader.load(Icons.APP).getImage());
 
@@ -109,6 +111,7 @@ public class EditorFrame extends JFrame implements EditorApi {
                 updateUndoRedoState();
             }
         };
+        this.undoManager.setLimit(10000);
         
         // ---  Correcteur en temps réel désactivé ---
         try {
@@ -243,15 +246,8 @@ public class EditorFrame extends JFrame implements EditorApi {
      	setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
     
-    
-    
     // --- CONFIGURATION EDITORPANE ---
-  	public void setupEditorPane() {
-  		// Autorise ou n'autorise pas les retour à la ligne
-  	    this.editorPane.setLineWrap(true);
-  	    // Autorise les retour à la ligne mais ne coupe pas les mots
-  	    this.editorPane.setWrapStyleWord(true);
-  	    
+  	public void setupEditorPane() { 	    
   	    // --- Apparence & confort de saisie (on GARDE) ---
   	    this.editorPane.setForeground(Color.WHITE);
   	    this.editorPane.setBackground(new Color(45, 45, 45));
@@ -270,11 +266,6 @@ public class EditorFrame extends JFrame implements EditorApi {
   	    commandes.nameFile = commandes.nodeblindWriter.getAttributs().get("filename");
   	    this.editorPane.setCaretPosition(0);
 
-  	    this.editorPane.getDocument().addUndoableEditListener(e -> {
-  	        undoManager.addEdit(e.getEdit());
-  	        updateUndoRedoState();
-  	    });
-  	    this.undoManager.setLimit(10000);
   	    // marquer le doc comme "modifié" à la moindre modification utilisateur
   	    this.editorPane.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
   	       @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { setModified(true); }
@@ -283,13 +274,10 @@ public class EditorFrame extends JFrame implements EditorApi {
   	   });
 
 
-  	   // --- AJOUTE LES CLASS QUI PERMETTENT LES LISTES ---
+  	   // --- AJOUTE LES CLASS QUI PERMETTENT LES LISTES PUCES OU NULEROTES ---
   	    this.editorPane.getAccessibleContext().setAccessibleName("Zone de texte.");
   	    ((AbstractDocument) editorPane.getDocument()).setDocumentFilter(new AutoListContinuationFilter(this.editorPane));
 
-		// --- IMPLEMENTATION DES LISTES NUMEROTES ---
-		((AbstractDocument) this.editorPane.getDocument())
-		    .setDocumentFilter(new AutoListContinuationFilter(this.editorPane));
 
   	}
     
@@ -449,10 +437,6 @@ public class EditorFrame extends JFrame implements EditorApi {
     	        });
     	    }
     	});
-
-
-
-
     }
     
 
@@ -461,7 +445,7 @@ public class EditorFrame extends JFrame implements EditorApi {
     public JFrame getWindow() { return this; }
 
     @Override
-    public JTextArea getEditor() { return this.editorPane; }
+    public javax.swing.text.JTextComponent getEditor() { return this.editorPane; }
 
     @Override
 	public JScrollPane getScrollPane() { return this.scrollPane; }

@@ -1,11 +1,11 @@
 package writer.editor; // ou writer.text selon ton organisation
 
-import javax.swing.JTextArea;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.Element;
+import javax.swing.text.JTextComponent;
 import javax.swing.text.Utilities;
 
 /**
@@ -15,10 +15,10 @@ import javax.swing.text.Utilities;
  */
 public final class AutoListContinuationFilter extends DocumentFilter {
 
-	private final JTextArea area;
+	private final JTextComponent area;
     private boolean renumbering = false; // garde-fou contre les réentrées
 
-    public AutoListContinuationFilter(JTextArea area) {
+    public AutoListContinuationFilter(JTextComponent area) {
         this.area = area;
     }
 

@@ -6,7 +6,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.filechooser.FileSystemView;
 
 import xml.node;
@@ -195,7 +195,7 @@ public class commandes {
     
     
     // Sauvegarde temporaire du node blindWriter
-    public static void sauvFile(JTextArea editor) {
+    public static void sauvFile(JTextPane editor) {
     	commandes.texteDocument = editor.getText();
     	 sauvFile = new node();
     	 sauvFile.setNameNode("blindWriter");

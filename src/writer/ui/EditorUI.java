@@ -1,6 +1,8 @@
 package writer.ui;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
+
 import java.awt.*;
 
 /**
@@ -19,7 +21,7 @@ public final class EditorUI {
      */
     public static void installInto(EditorFrame frame) {
         // --- Crée l’éditeur et le ScrollPane
-        JTextArea editor = frame.getEditor();
+        JTextComponent editor = frame.getEditor();
         JScrollPane scroll = new JScrollPane(editor);
 
         // --- Mise en page

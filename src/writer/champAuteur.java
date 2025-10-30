@@ -1,13 +1,13 @@
 package writer;
 
-import javax.swing.JTextArea;
+import javax.swing.text.JTextComponent;
 
 import writer.ui.EditorFrame;
 
 public class champAuteur {
 	
 	public champAuteur(EditorFrame frame) {
-		JTextArea editorPane = frame.getEditor();
+		JTextComponent editorPane = frame.getEditor();
 //		outils.removeCarriageReturns(blindWriter.editorPane.getText());
 		int positionCurseur = editorPane.getCaretPosition();
 		String selectedText = editorPane.getSelectedText();
