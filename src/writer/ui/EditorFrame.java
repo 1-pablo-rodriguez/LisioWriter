@@ -170,39 +170,72 @@ public class EditorFrame extends JFrame implements EditorApi {
         this.editorPane.getInputMap().put(KeyStroke.getKeyStroke("BACK_SPACE"), "bw-smart-backspace");
 		
         this.editorPane.getActionMap().put("bw-smart-backspace", new AbstractAction() {
-		    @Override public void actionPerformed(ActionEvent e) {
-		        try {
-		            int selStart = editorPane.getSelectionStart();
-		            int selEnd   = editorPane.getSelectionEnd();
-		
-		            // 1) S'il y a une sélection, on la supprime comme d'habitude
-		            if (selEnd > selStart) {
-		            	editorPane.replaceSelection("");
-		                return;
-		            }
-		
-		            // 2) Aucun texte sélectionné : on regarde si juste avant le caret il y a "[tab]"
-		            int pos = editorPane.getCaretPosition();
-		            if (pos >= 5) {
-		                String prev = editorPane.getDocument().getText(pos - 5, 5);
-		                if ("[tab]".equals(prev)) {
-		                	editorPane.getDocument().remove(pos - 5, 5); // supprime tout le bloc
-		                    return;
-		                }
-		            }
-		
-		            // 3) Sinon, comportement normal du Backspace
-		            if (defaultBackspace != null) {
-		                defaultBackspace.actionPerformed(e);
-		            } else {
-		                // fallback minimal si l’action par défaut est introuvable
-		                if (pos > 0) editorPane.getDocument().remove(pos - 1, 1);
-		            }
-		        } catch (BadLocationException ex) {
-		            // ignore en pratique
-		        }
-		    }
-		});
+            @Override public void actionPerformed(ActionEvent e) {
+                try {
+                    int selStart = editorPane.getSelectionStart();
+                    int selEnd   = editorPane.getSelectionEnd();
+
+                    // 1️⃣ Supprime normalement s’il y a une sélection
+                    if (selEnd > selStart) {
+                        editorPane.replaceSelection("");
+                        return;
+                    }
+
+                    int pos = editorPane.getCaretPosition();
+                    javax.swing.text.Document doc = editorPane.getDocument();
+
+                    // 2️⃣ Supprimer un bloc [tab]
+                    if (pos >= 5) {
+                        String prev = doc.getText(pos - 5, 5);
+                        if ("[tab]".equals(prev)) {
+                            doc.remove(pos - 5, 5);
+                            return;
+                        }
+                    }
+
+                    // 3️⃣ Récupérer le début de la ligne actuelle
+                    int lineStart = javax.swing.text.Utilities.getRowStart(editorPane, pos);
+                    if (lineStart >= 0) {
+                        int lineLen = pos - lineStart;
+                        String prefix = doc.getText(lineStart, Math.min(lineLen, 8)); // on lit les 8 premiers caractères max
+
+                        // === Supprime la puce '-. ' ===
+                        if (prefix.startsWith("-. ")) {
+                            doc.remove(lineStart, 3);
+                            return;
+                        }
+
+                        // === Supprime un titre numéroté (#1. , #2. , etc.) ===
+                        // Match début de ligne "#<nombre>. "
+                        if (prefix.matches("^#\\d+\\.\\s")) {
+                            java.util.regex.Matcher m = java.util.regex.Pattern.compile("^#\\d+\\.\\s").matcher(prefix);
+                            if (m.find()) {
+                                doc.remove(lineStart, m.end());
+                                return;
+                            }
+                        }
+
+                        // === Supprime un titre spécial (#P. , #S. ) ===
+                        if (prefix.matches("^#([PS])\\.\\s")) {
+                            doc.remove(lineStart, 4);
+                            return;
+                        }
+                    }
+
+                    // 4️⃣ Fallback : suppression standard
+                    if (defaultBackspace != null) {
+                        defaultBackspace.actionPerformed(e);
+                    } else if (pos > 0) {
+                        doc.remove(pos - 1, 1);
+                    }
+
+                } catch (BadLocationException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+
         
         // Fitre automatique pour que toute tabulation soit ue comme [Tab] dans l'éditeur.
         enableVisibleTabs(this.editorPane);
