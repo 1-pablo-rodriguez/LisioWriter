@@ -6,6 +6,8 @@ import javax.swing.AbstractAction;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 
+import writer.ui.text.Lines;
+
 public class VersBas extends AbstractAction{
 
 	private static final long serialVersionUID = 1L;
@@ -23,7 +25,7 @@ public class VersBas extends AbstractAction{
             // Récupérer la position actuelle du curseur
             int caretPosition = this.editorPane.getCaretPosition();
             // Obtenir l'index de la ligne actuelle du curseur
-            int currentLine = this.editorPane.getLineOfOffset(caretPosition);
+            int currentLine = Lines.getLineOfOffset(this.editorPane, caretPosition);
 
             // Récupérer le texte complet
             String text = this.editorPane.getText();
@@ -35,7 +37,7 @@ public class VersBas extends AbstractAction{
             for (int i = currentLine+1; i < lines.length; i++) {
                 if (lines[i].trim().startsWith("#")) {
                     // Récupérer la position du curseur au début de cette ligne
-                    cursorPosition = this.editorPane.getLineStartOffset(i);
+                	cursorPosition = Lines.getLineStartOffset(this.editorPane, i);
                     break;
                 }
             }

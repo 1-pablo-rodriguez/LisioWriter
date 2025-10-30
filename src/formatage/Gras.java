@@ -1,6 +1,5 @@
 package formatage;
 
-import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
@@ -16,7 +15,7 @@ public class Gras {
     }
     
     public void appliquer() {
-    	JTextArea editor = ctx.getEditor();
+    	JTextComponent editor = ctx.getEditor();
     	
         final JTextComponent area = editor;
         if (area == null) return;

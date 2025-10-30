@@ -1,10 +1,10 @@
 package formatage;
 
-import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Utilities;
+
 import writer.ui.EditorApi;
 
 public class Italique {
@@ -14,7 +14,7 @@ public class Italique {
         this.ctx = ctx;
     }
     public void appliquer() {
-    	JTextArea editor = ctx.getEditor();
+    	JTextComponent editor = ctx.getEditor();
     	
         final JTextComponent area = editor;
         if (area == null) return;
