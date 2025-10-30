@@ -22,8 +22,10 @@ LisioWriter facilite la production de rapports, mémoires, travaux universitaire
 LisioWriter intègre de nombreuses fonctionnalités de traitement de texte, mais aussi de nouvelles, spécialement conçues pour les personnes non-voyantes ou malvoyantes.
 
 ### Capture écran
+
 Export d’un document Microsoft Word (.docx) vers LisioWriter.
 Les titres, listes, mises en forme (gras, italique, souligné), indices/exposants, tabulations et notes de bas de page sont importés et rendus sous forme de codes LisioWriter directement dans l’éditeur.
+
 Résultat : une structure entièrement lisible au clavier, compatible NVDA/JAWS et cohérente sur la barre braille.
 
 ![Démonstration de LisioWriter](docs/demo.png)
