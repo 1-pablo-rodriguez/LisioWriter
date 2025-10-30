@@ -261,7 +261,6 @@ public class EditorFrame extends JFrame implements EditorApi {
   	    //editorPane.setFont(new Font("Arial", Font.PLAIN, 34));
   	    applyEditorFont();
   	    String Texte = commandes.nodeblindWriter.retourneFirstEnfant("contentText").getContenuAvecTousLesContenusDesEnfants();
-  	    Texte = "";
   	    this.editorPane.setText(Texte);
   	    commandes.nameFile = commandes.nodeblindWriter.getAttributs().get("filename");
   	    this.editorPane.setCaretPosition(0);

@@ -1,6 +1,7 @@
 package writer;
 
 import writer.ui.EditorApi;
+import writer.ui.text.Lines;
 
 public class tableMatieres {
 	
@@ -18,7 +19,7 @@ public class tableMatieres {
         
 		if(selectedText==null) {
 			 String newText = "@TOC;niveau_max=5;Titre=Table des matières";
-			 editor.replaceRange(newText, positionCurseur, positionCurseur);
+			 Lines.replaceRange(editor, newText, positionCurseur, positionCurseur);
 			 editor.setCaretPosition(positionCurseur);
 		}else {
 			//"Vous ne pouvez pas sélectionner un mot ou un texte pour insérer la table des matières."

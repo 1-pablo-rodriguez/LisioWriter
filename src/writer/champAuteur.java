@@ -3,6 +3,7 @@ package writer;
 import javax.swing.text.JTextComponent;
 
 import writer.ui.EditorFrame;
+import writer.ui.text.Lines;
 
 public class champAuteur {
 	
@@ -14,7 +15,7 @@ public class champAuteur {
         
 		if(selectedText==null) {
 			 String newText = "@Auteur";
-             editorPane.replaceRange(newText, positionCurseur, positionCurseur);
+			 Lines.replaceRange(editorPane, newText, positionCurseur, positionCurseur);
              editorPane.setCaretPosition(positionCurseur);
              //"Le champs auteur est inséré."
 		}else {
