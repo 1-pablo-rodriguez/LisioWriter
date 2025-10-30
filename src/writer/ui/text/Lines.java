@@ -117,4 +117,77 @@ public final class Lines {
         int b = Math.max(c.getSelectionStart(), c.getSelectionEnd());
         replaceRange(c, str, a, b);
     }
+    
+    
+    /**
+     * Insère 'str' à la position 'pos' comme JTextArea.insert.
+     * - Si str est null, rien n’est inséré.
+     * - Le caret est placé juste après le texte inséré.
+     */
+    public static void insert(JTextComponent c, String str, int pos) {
+        if (c == null || str == null || str.isEmpty()) return;
+
+        Document doc = c.getDocument();
+        int len = doc.getLength();
+        int p = Math.max(0, Math.min(pos, len));
+
+        try {
+            doc.insertString(p, str, null);
+            c.setCaretPosition(p + str.length());
+        } catch (BadLocationException ex) {
+            java.awt.Toolkit.getDefaultToolkit().beep();
+        }
+    }
+
+    /**
+     * Ajoute 'str' à la fin du document (équivalent simple de JTextArea.append).
+     * Place le caret après le texte ajouté.
+     */
+    public static void append(JTextComponent c, String str) {
+        if (c == null || str == null || str.isEmpty()) return;
+        Document doc = c.getDocument();
+        insert(c, str, doc.getLength());
+    }
+
+    /**
+     * Supprime la plage [start, end) si elle est valide.
+     * Le caret est placé à 'start'.
+     */
+    public static void deleteRange(JTextComponent c, int start, int end) {
+        if (c == null) return;
+        Document doc = c.getDocument();
+        int len = doc.getLength();
+        int a = Math.max(0, Math.min(start, end));
+        int b = Math.max(0, Math.max(start, end));
+        a = Math.min(a, len);
+        b = Math.min(b, len);
+        if (b <= a) return;
+
+        try {
+            doc.remove(a, b - a);
+            c.setCaretPosition(a);
+        } catch (BadLocationException ex) {
+            java.awt.Toolkit.getDefaultToolkit().beep();
+        }
+    }
+
+    /**
+     * Récupère le texte de [start, end) en sécurité.
+     */
+    public static String getTextRange(JTextComponent c, int start, int end) {
+        if (c == null) return "";
+        Document doc = c.getDocument();
+        int len = doc.getLength();
+        int a = Math.max(0, Math.min(start, end));
+        int b = Math.max(0, Math.max(start, end));
+        a = Math.min(a, len);
+        b = Math.min(b, len);
+        if (b <= a) return "";
+        try {
+            return doc.getText(a, b - a);
+        } catch (BadLocationException ex) {
+            return "";
+        }
+    }
+    
 }
