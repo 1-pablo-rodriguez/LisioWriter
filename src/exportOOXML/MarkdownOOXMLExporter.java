@@ -8,16 +8,20 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.poi.openxml4j.opc.PackageRelationship;
 import org.apache.poi.xwpf.usermodel.UnderlinePatterns;
 import org.apache.poi.xwpf.usermodel.VerticalAlign;
 import org.apache.poi.xwpf.usermodel.XWPFAbstractNum;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFFootnote;
+import org.apache.poi.xwpf.usermodel.XWPFHyperlinkRun;
 import org.apache.poi.xwpf.usermodel.XWPFNumbering;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRelation;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFStyles;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTAbstractNum;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTHyperlink;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTLvl;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STNumberFormat;
 
@@ -51,6 +55,8 @@ public final class MarkdownOOXMLExporter {
     private static final Pattern FOOTNOTE         = Pattern.compile("@\\((.+?)\\)");
     private static final Pattern EXPOSANT         = Pattern.compile("\\^¨(.+?)¨\\^");
     private static final Pattern INDICE           = Pattern.compile("_¨(.+?)¨_");
+    
+    private static final Pattern LINK = Pattern.compile("@\\[([^:]+?):\\s*(https?://[^\\]]+)\\]");
 
     private enum ListKind { NONE, ORDERED, UNORDERED }
 
@@ -214,70 +220,64 @@ public final class MarkdownOOXMLExporter {
     }
 
     // Styles inline -> runs
-    private enum K { TEXT, BOLD, ITALIC, UNDERLINE, BOLDITALIC, UNDERBOLD, UNDERITALIC, EXPOSANT, INDICE, FOOTNOTE }
+    private enum K { TEXT, BOLD, ITALIC, UNDERLINE, BOLDITALIC, UNDERBOLD, UNDERITALIC, EXPOSANT, INDICE, FOOTNOTE, LINK }
     private static final class InlineToken {
         final K kind; final String content;
         InlineToken(K k, String c) { kind = k; content = c; }
     }
 
-   private static void appendInlineRuns(XWPFDocument doc, XWPFParagraph p, String text, IntBox footCounter) {
-    List<InlineToken> tokens = tokenizeInline(text);
-    for (InlineToken tk : tokens) {
-        switch (tk.kind) {
-            case TEXT: {
-                if (!tk.content.isEmpty()) {
-                    appendStyledTextWithTabs(p, tk.content, false, false, null, null);
+	private static void appendInlineRuns(XWPFDocument doc, XWPFParagraph p, String text, IntBox footCounter) {
+		List<InlineToken> tokens = tokenizeInline(text);
+		if (tokens.isEmpty()) return;
+        
+
+        for (InlineToken tk : tokens) {
+        	if (tk.content == null || tk.content.isBlank()) continue;
+            switch (tk.kind) {
+                case TEXT -> appendStyledTextWithTabs(p, tk.content, false, false, null, null);
+                case BOLDITALIC -> appendStyledTextWithTabs(p, tk.content, true, true, null, null);
+                case BOLD -> appendStyledTextWithTabs(p, tk.content, true, false, null, null);
+                case UNDERLINE -> appendStyledTextWithTabs(p, tk.content, false, false, UnderlinePatterns.SINGLE, null);
+                case UNDERBOLD -> appendStyledTextWithTabs(p, tk.content, true, false, UnderlinePatterns.SINGLE, null);
+                case UNDERITALIC -> appendStyledTextWithTabs(p, tk.content, false, true, UnderlinePatterns.SINGLE, null);
+                case ITALIC -> appendStyledTextWithTabs(p, tk.content, false, true, null, null);
+                case EXPOSANT -> appendStyledTextWithTabs(p, tk.content, false, false, null, VerticalAlign.SUPERSCRIPT);
+                case INDICE -> appendStyledTextWithTabs(p, tk.content, false, false, null, VerticalAlign.SUBSCRIPT);
+                case FOOTNOTE -> {
+                    XWPFRun refRun = p.createRun();
+                    refRun.getCTR().addNewFootnoteReference().setId(BigInteger.valueOf(footCounter.get()));
+                    XWPFFootnote fn = doc.createFootnote();
+                    fn.getCTFtnEdn().setId(BigInteger.valueOf(footCounter.get()));
+                    XWPFParagraph fp = fn.createParagraph();
+                    appendStyledTextWithTabs(fp, tk.content, false, false, null, null);
+                    footCounter.inc();
                 }
-                break;
-            }
-            case BOLDITALIC: {
-                appendStyledTextWithTabs(p, tk.content, true, true, null, null);
-                break;
-            }
-            case BOLD: {
-                appendStyledTextWithTabs(p, tk.content, true, false, null, null);
-                break;
-            }
-            case UNDERLINE: {
-                appendStyledTextWithTabs(p, tk.content, false, false, UnderlinePatterns.SINGLE, null);
-                break;
-            }
-            case UNDERBOLD: {
-                appendStyledTextWithTabs(p, tk.content, true, false, UnderlinePatterns.SINGLE, null);
-                break;
-            }
-            case UNDERITALIC: {
-                appendStyledTextWithTabs(p, tk.content, false, true, UnderlinePatterns.SINGLE, null);
-                break;
-            }
-            case ITALIC: {
-                appendStyledTextWithTabs(p, tk.content, false, true, null, null);
-                break;
-            }
-            case EXPOSANT: {
-                appendStyledTextWithTabs(p, tk.content, false, false, null, VerticalAlign.SUPERSCRIPT);
-                break;
-            }
-            case INDICE: {
-                appendStyledTextWithTabs(p, tk.content, false, false, null, VerticalAlign.SUBSCRIPT);
-                break;
-            }
-            case FOOTNOTE: {
-                // 1) référence de note
-                XWPFRun refRun = p.createRun();
-                refRun.getCTR().addNewFootnoteReference().setId(BigInteger.valueOf(footCounter.get()));
-                // 2) corps de la note
-                XWPFFootnote fn = doc.createFootnote();
-                fn.getCTFtnEdn().setId(BigInteger.valueOf(footCounter.get()));
-                XWPFParagraph fp = fn.createParagraph();
-                // le texte de la note peut aussi contenir [tab]
-                appendStyledTextWithTabs(fp, tk.content, false, false, null, null);
-                footCounter.inc();
-                break;
+                case LINK -> {
+                    String[] parts = tk.content.split(":", 2);
+                    if (parts.length == 2) {
+                        String label = parts[0].trim();
+                        String url = parts[1].trim();
+                        try {
+                            XWPFHyperlinkRun linkRun = createHyperlinkRun(p, url);
+                            linkRun.setText(label);
+                            linkRun.setColor("0000FF");
+                            linkRun.setUnderline(UnderlinePatterns.SINGLE);
+                        } catch (Exception e) {
+                            XWPFRun r = p.createRun();
+                            r.setText(label + " (" + url + ")");
+                        }
+                    } else {
+                        appendStyledTextWithTabs(p, tk.content, false, false, null, null);
+                    }
+                }
+
+
+
+                
             }
         }
     }
-}
+
 
     // Tokenizer inline (calqué sur ton ODT)
     private static List<InlineToken> tokenizeInline(String src) {
@@ -302,8 +302,9 @@ public final class MarkdownOOXMLExporter {
                 case 6: out.add(new InlineToken(K.FOOTNOTE, best.inner)); break;     // @(...)
                 case 7: out.add(new InlineToken(K.EXPOSANT, best.inner)); break;     // ^¨ ¨^
                 case 8: out.add(new InlineToken(K.INDICE, best.inner)); break;       // _¨ ¨_
+                case 9: out.add(new InlineToken(K.LINK, best.inner)); break;
             }
-            idx = best.end;
+            idx = Math.max(idx + 1, best.end);
         }
         return out;
     }
@@ -323,13 +324,22 @@ public final class MarkdownOOXMLExporter {
             ITALIC.matcher(s),           // 5
             FOOTNOTE.matcher(s),         // 6
             EXPOSANT.matcher(s),         // 7
-            INDICE.matcher(s)            // 8
+            INDICE.matcher(s),            // 8
+            LINK.matcher(s)              // 9
         };
         Match best = null;
         for (int k = 0; k < ms.length; k++) {
             Matcher m = ms[k];
             if (m.find(from)) {
-                Match cur = new Match(k, m.start(), m.end(), m.group(1));
+            	String inner;
+            	if (k == 9 && m.groupCount() >= 2) {
+            	    // Pour les liens, on garde "titre: url"
+            	    inner = m.group(1).trim() + ": " + m.group(2).trim();
+            	} else {
+            	    inner = m.group(1);
+            	}
+            	Match cur = new Match(k, m.start(), m.end(), inner);
+
                 if (best == null || cur.start < best.start) best = cur;
             }
         }
@@ -480,6 +490,24 @@ public final class MarkdownOOXMLExporter {
         }
     }
     
+
+
+    private static XWPFHyperlinkRun createHyperlinkRun(XWPFParagraph paragraph, String uri) {
+        // 1️⃣ Ajoute une relation externe "hyperlink" dans le document principal
+        String rId = paragraph.getDocument().getPackagePart()
+                .addExternalRelationship(uri, XWPFRelation.HYPERLINK.getRelation())
+                .getId();
+
+        // 2️⃣ Crée le nœud <w:hyperlink r:id="...">
+        CTHyperlink ctHyperlink = paragraph.getCTP().addNewHyperlink();
+        ctHyperlink.setId(rId);
+        ctHyperlink.addNewR(); // crée le premier run à l’intérieur
+
+        // 3️⃣ Retourne un vrai XWPFHyperlinkRun
+        return new XWPFHyperlinkRun(ctHyperlink, ctHyperlink.getRArray(0), paragraph);
+    }
+
+   
     
 
 }
