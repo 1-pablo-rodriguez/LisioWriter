@@ -67,6 +67,8 @@ Le contenu est automatiquement converti avec la structure et la mise en forme du
 titres hiérarchisés, paragraphes, listes, liens et emphases sont traduits au format lisible et compatibles avec les lecteurs d’écran et barres braille.
 Les menus et autres éléments qui ne sont pas du contenu de l'article ne sont pas importés dans l'éditeur de LisioWriter.
 
+![Démonstration de LisioWriter](docs/demo.gif)
+
 ---
 
 ## 🧩 Installation
