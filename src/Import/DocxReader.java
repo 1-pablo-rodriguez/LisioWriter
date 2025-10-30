@@ -5,12 +5,17 @@ import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.namespace.QName;
+
 import org.apache.poi.xwpf.usermodel.BodyElementType;
 import org.apache.poi.xwpf.usermodel.IBodyElement;
+import org.apache.poi.xwpf.usermodel.IRunElement;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.apache.poi.xwpf.usermodel.*;
+import org.w3c.dom.Node;
+
 
 /**
  * DocxReader : extrait texte structuré depuis un .docx en conservant
@@ -208,9 +213,12 @@ public class DocxReader {
                 } catch (Exception ignored) {}
 
                 if (text != null && !text.isEmpty()) {
-                    sb.append(wrapWithMarkers(text, ts));
-                    hadVisibleText = true; // <-- on a écrit du contenu
+                    String styled = wrapWithMarkers(text, ts); // gras/italique/souligné
+                    styled = wrapSuperSub(styled, run);        // <-- AJOUT : exposant/indice ^¨…¨^ / _¨…¨_
+                    sb.append(styled);
+                    hadVisibleText = true; // on a écrit du contenu
                 }
+
 
                 // Détection des sauts de page manuels dans CE run (<w:br w:type="page"/>)
                 try {
@@ -383,27 +391,48 @@ public class DocxReader {
                 .trim();
     }
 
+    @SuppressWarnings("deprecation")
     private static String getRunVisibleText(org.apache.poi.xwpf.usermodel.XWPFRun run) {
         if (run == null) return "";
-        StringBuilder sb = new StringBuilder();
+        StringBuilder out = new StringBuilder();
 
-        // 1) texte visible (<w:t>) avec éventuels \t
-        int tCount = run.getCTR().sizeOfTArray();
-        for (int i = 0; i < tCount; i++) {
-            String part = run.getText(i);
-            if (part != null && !part.isEmpty()) {
-                // mappe \t -> [tab]
-                sb.append(part.replace("\t", "[tab]"));
-            }
+        var ctr = run.getCTR();
+        var cur = ctr.newCursor();
+
+        if (cur.toFirstChild()) {
+            do {
+                if (!cur.isStart()) continue;               // on ne traite que les START
+                QName qn = cur.getName();
+                String local = (qn != null) ? qn.getLocalPart() : null;
+
+                if ("t".equals(local)) {
+                    // Lire le texte de <w:t> sans getTextContent (non supporté par XMLBeans)
+                    Node tNode = cur.getDomNode(); 
+                    StringBuilder txt = new StringBuilder();
+                    for (Node c = tNode.getFirstChild(); c != null; c = c.getNextSibling()) {
+                        short type = c.getNodeType();
+                        if (type == Node.TEXT_NODE || type == Node.CDATA_SECTION_NODE) {
+                            String v = c.getNodeValue();
+                            if (v != null && !v.isEmpty()) txt.append(v);
+                        }
+                    }
+                    if (txt.length() > 0) {
+                        out.append(txt.toString().replace("\t", "[tab]"));
+                    }
+                }
+                else if ("tab".equals(local)) {
+                    out.append("[tab]");
+                }
+                else if ("br".equals(local) || "footnoteReference".equals(local)) {
+                    // ignoré ici (saut de page/ligne et ref de note gérés ailleurs si besoin)
+
+                }
+
+            } while (cur.toNextSibling());
         }
+        cur.dispose();
 
-        // 2) tabs explicites <w:tab/> au sein du run
-        int tabCount = run.getCTR().sizeOfTabArray();
-        for (int i = 0; i < tabCount; i++) {
-            sb.append("[tab]");
-        }
-
-        return sb.toString();
+        return out.toString();
     }
 
 
@@ -446,4 +475,76 @@ public class DocxReader {
         }
         return sb.toString();
     }
+    
+    @SuppressWarnings("deprecation")
+	private static String wrapSuperSub(String text, XWPFRun run) {
+        if (text == null || text.isEmpty() || run == null) return text;
+
+        // 1) Essai API haut-niveau (si dispo sur ta version)
+        try {
+            // Certaines versions ont getSubscript(), d'autres getVerticalAlignment()
+            try {
+                org.apache.poi.xwpf.usermodel.VerticalAlign va =
+                    (org.apache.poi.xwpf.usermodel.VerticalAlign)
+                    XWPFRun.class.getMethod("getSubscript").invoke(run);
+                if (va == org.apache.poi.xwpf.usermodel.VerticalAlign.SUPERSCRIPT) {
+                    return "^¨" + text + "¨^";
+                } else if (va == org.apache.poi.xwpf.usermodel.VerticalAlign.SUBSCRIPT) {
+                    return "_¨" + text + "¨_";
+                }
+            } catch (NoSuchMethodException ignore) {
+                try {
+                    org.apache.poi.xwpf.usermodel.VerticalAlign va =
+                        (org.apache.poi.xwpf.usermodel.VerticalAlign)
+                        XWPFRun.class.getMethod("getVerticalAlignment").invoke(run);
+                    if (va == org.apache.poi.xwpf.usermodel.VerticalAlign.SUPERSCRIPT) {
+                        return "^¨" + text + "¨^";
+                    } else if (va == org.apache.poi.xwpf.usermodel.VerticalAlign.SUBSCRIPT) {
+                        return "_¨" + text + "¨_";
+                    }
+                } catch (NoSuchMethodException ignoreToo) {
+                    // pass -> on descend au fallback XML
+                }
+            }
+        } catch (Throwable ignoreAll) {
+            // on tombera sur le fallback XML
+        }
+
+        // 2) Fallback bas-niveau: lire <w:vertAlign w:val="...">
+     // 2) Fallback bas-niveau: lire <w:vertAlign w:val="..."> via XmlCursor
+        try {
+            var ctr = run.getCTR();
+            if (ctr != null && ctr.isSetRPr()) {
+                var rpr = ctr.getRPr();
+                org.apache.xmlbeans.XmlCursor xc = rpr.newCursor();
+                if (xc.toFirstChild()) {
+                    do {
+                        if (!xc.isStart()) continue;
+                        javax.xml.namespace.QName qn = xc.getName();
+                        if (qn != null && "vertAlign".equals(qn.getLocalPart())) {
+                            String val = xc.getAttributeText(
+                                new javax.xml.namespace.QName(
+                                    "http://schemas.openxmlformats.org/wordprocessingml/2006/main", "val"
+                                )
+                            );
+                            if ("superscript".equalsIgnoreCase(val)) {
+                                xc.dispose();
+                                return "^¨" + text + "¨^";
+                            } else if ("subscript".equalsIgnoreCase(val)) {
+                                xc.dispose();
+                                return "_¨" + text + "¨_";
+                            }
+                            break;
+                        }
+                    } while (xc.toNextSibling());
+                }
+                xc.dispose();
+            }
+        } catch (Throwable ignore) { /* ne casse jamais l’import */ }
+
+
+        return text; // normal
+    }
+
+
 }
