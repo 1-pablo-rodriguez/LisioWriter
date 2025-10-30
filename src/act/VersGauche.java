@@ -3,16 +3,17 @@ package act;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
+import writer.ui.text.Lines;
 
 public class VersGauche extends AbstractAction{
 
 	private static final long serialVersionUID = 1L;
-	private final JTextArea editorPane;
+	private final JTextComponent editorPane;
 
 	// Constructeur
-	public VersGauche(JTextArea editorPane) {
+	public VersGauche(JTextComponent editorPane) {
 	    super("VersGauche");
 	    this.editorPane = editorPane;
 	}
@@ -24,12 +25,12 @@ public class VersGauche extends AbstractAction{
 	        int caretPosition = this.editorPane.getCaretPosition();
 	        
 	        // Obtenir l'index de la ligne actuelle
-	        int currentLine = this.editorPane.getLineOfOffset(caretPosition);
+	        int currentLine = Lines.getLineOfOffset(editorPane, caretPosition);
 
 	        // Vérifier que la ligne actuelle existe
 	        if (currentLine >= 0) {
 	            // Calculer la position de début de la ligne actuelle
-	            int lineStartOffset = this.editorPane.getLineStartOffset(currentLine);
+	        	int lineStartOffset = Lines.getLineStartOffset(editorPane, currentLine);
 	            
 	            // Placer le curseur au début de la ligne
 	            this.editorPane.setCaretPosition(lineStartOffset);

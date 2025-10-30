@@ -1,6 +1,6 @@
 package writer;
 
-import javax.swing.JTextArea;
+import javax.swing.text.JTextComponent;
 
 import writer.ui.EditorFrame;
 import writer.util.AppInfo;
@@ -11,7 +11,7 @@ public class bienvenueAffichage {
 	public bienvenueAffichage(EditorFrame frame) {
         StringBuilder message = new StringBuilder(128);
 
-        JTextArea editorPane = frame.getEditor();
+        JTextComponent editorPane = frame.getEditor();
         try {
 
                 String fileName = (commandes.nameFile != null && !commandes.nameFile.isBlank())

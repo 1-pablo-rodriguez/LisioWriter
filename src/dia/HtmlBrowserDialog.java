@@ -19,11 +19,11 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.text.JTextComponent;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -42,7 +42,7 @@ public class HtmlBrowserDialog extends JDialog {
     private final JList<WikiResult> resultList = new JList<>(resultModel);
 
 
-    public HtmlBrowserDialog(JFrame owner, JTextArea editorPane, String searchUrl) {
+    public HtmlBrowserDialog(JFrame owner, JTextComponent editorPane, String searchUrl) {
         super(owner, "Résultats Wikipédia", true);
         setLayout(new BorderLayout(6, 6));
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -204,7 +204,7 @@ public class HtmlBrowserDialog extends JDialog {
     }
 
     /** Insère le texte de l’article sélectionné dans le document. */
-    private void insertIntoEditor(JTextArea editorPane) {
+    private void insertIntoEditor(JTextComponent editorPane) {
         WikiResult sel = resultList.getSelectedValue();
         if (sel == null || sel.url == null || sel.url.isBlank()) {
             Toolkit.getDefaultToolkit().beep();
