@@ -5,6 +5,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -18,35 +21,34 @@ import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
-import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.Document;
+import javax.swing.text.DocumentFilter;
+import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoManager;
 
-import act.ToggleEditAction;
-import dia.HtmlBrowserDialog;
-import dia.WikipediaSearchDialog;
 import writer.CaretStyler;
 import writer.ParagraphHighlighter;
 import writer.WordSelectOnShiftRight;
 import writer.commandes;
 import writer.bookmark.BookmarkManager;
 import writer.editor.AutoListContinuationFilter;
-import writer.editor.InsertUnorderedBulletAction;
 import writer.model.Affiche;
 import writer.spell.SpellCheckLT;
 import writer.util.IconLoader;
-
-import javax.swing.*;
-import javax.swing.text.*;
-import java.awt.datatransfer.*;
+import writer.ui.editor.*;
 
 @SuppressWarnings("serial")
 public class EditorFrame extends JFrame implements EditorApi {
@@ -166,76 +168,10 @@ public class EditorFrame extends JFrame implements EditorApi {
         // Récupère l’action Backspace par défaut (supprime le caractère précédent)
         Action defaultBackspace = this.editorPane.getActionMap().get(DefaultEditorKit.deletePrevCharAction);
 
-		// Remappe BACK_SPACE vers notre action “intelligente”
+        // Remappe BACK_SPACE vers notre action intelligente
         this.editorPane.getInputMap().put(KeyStroke.getKeyStroke("BACK_SPACE"), "bw-smart-backspace");
-		
-        this.editorPane.getActionMap().put("bw-smart-backspace", new AbstractAction() {
-            @Override public void actionPerformed(ActionEvent e) {
-                try {
-                    int selStart = editorPane.getSelectionStart();
-                    int selEnd   = editorPane.getSelectionEnd();
-
-                    // 1️⃣ Supprime normalement s’il y a une sélection
-                    if (selEnd > selStart) {
-                        editorPane.replaceSelection("");
-                        return;
-                    }
-
-                    int pos = editorPane.getCaretPosition();
-                    javax.swing.text.Document doc = editorPane.getDocument();
-
-                    // 2️⃣ Supprimer un bloc [tab]
-                    if (pos >= 5) {
-                        String prev = doc.getText(pos - 5, 5);
-                        if ("[tab]".equals(prev)) {
-                            doc.remove(pos - 5, 5);
-                            return;
-                        }
-                    }
-
-                    // 3️⃣ Récupérer le début de la ligne actuelle
-                    int lineStart = javax.swing.text.Utilities.getRowStart(editorPane, pos);
-                    if (lineStart >= 0) {
-                        int lineLen = pos - lineStart;
-                        String prefix = doc.getText(lineStart, Math.min(lineLen, 8)); // on lit les 8 premiers caractères max
-
-                        // === Supprime la puce '-. ' ===
-                        if (prefix.startsWith("-. ")) {
-                            doc.remove(lineStart, 3);
-                            return;
-                        }
-
-                        // === Supprime un titre numéroté (#1. , #2. , etc.) ===
-                        // Match début de ligne "#<nombre>. "
-                        if (prefix.matches("^#\\d+\\.\\s")) {
-                            java.util.regex.Matcher m = java.util.regex.Pattern.compile("^#\\d+\\.\\s").matcher(prefix);
-                            if (m.find()) {
-                                doc.remove(lineStart, m.end());
-                                return;
-                            }
-                        }
-
-                        // === Supprime un titre spécial (#P. , #S. ) ===
-                        if (prefix.matches("^#([PS])\\.\\s")) {
-                            doc.remove(lineStart, 4);
-                            return;
-                        }
-                    }
-
-                    // 4️⃣ Fallback : suppression standard
-                    if (defaultBackspace != null) {
-                        defaultBackspace.actionPerformed(e);
-                    } else if (pos > 0) {
-                        doc.remove(pos - 1, 1);
-                    }
-
-                } catch (BadLocationException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
-
-
+        this.editorPane.getActionMap().put("bw-smart-backspace",
+            new writer.ui.editor.SmartBackspaceAction(editorPane, defaultBackspace));
         
         // Fitre automatique pour que toute tabulation soit ue comme [Tab] dans l'éditeur.
         enableVisibleTabs(this.editorPane);
@@ -264,7 +200,7 @@ public class EditorFrame extends JFrame implements EditorApi {
     	setupEditorPane();
     	
     	// --- Ajoute les raccourcis clavier ---
-    	configureKeyboardShortcuts();
+    	new writer.ui.editor.KeyboardShortcutManager(this, this.editorPane).installShortcuts();
 
     	// --- Mise à jour du titre de la fenêtre si modifier ---
     	updateWindowTitle();
@@ -309,169 +245,16 @@ public class EditorFrame extends JFrame implements EditorApi {
   	   // --- AJOUTE LES CLASS QUI PERMETTENT LES LISTES PUCES OU NULEROTES ---
   	    this.editorPane.getAccessibleContext().setAccessibleName("Zone de texte.");
   	    ((AbstractDocument) editorPane.getDocument()).setDocumentFilter(new AutoListContinuationFilter(this.editorPane));
-
-
   	}
     
   	
   	// --- Vérifier si le frame a un menu visible ----
-    private boolean isMenuOpen() {
+    @SuppressWarnings("unused")
+	private boolean isMenuOpen() {
         MenuElement[] path = MenuSelectionManager.defaultManager().getSelectedPath();
         return path.length > 0;
     }
-    
-    
-    // === AJOUTE LES RACCOURCIS ===
-    private void addKeyBinding(int keyCode, int modifier, String actionName, Action action) {
-        KeyStroke ks = KeyStroke.getKeyStroke(keyCode, modifier);
-
-        // 1) binder UNE SEULE FOIS, au root pane
-        JRootPane rp = getRootPane();
-        rp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ks, actionName);
-
-        // 2) action unique, avec la garde isMenuOpen()
-        rp.getActionMap().put(actionName, new AbstractAction() {
-            @Override public void actionPerformed(ActionEvent e) {
-                if (!isMenuOpen()) action.actionPerformed(e);
-            }
-        });
-    }
-    
-    public void configureKeyboardShortcuts() {
-        // Conserver uniquement les raccourcis spécifiques à l'éditeur, sans conflit avec le menu
-        addKeyBinding(KeyEvent.VK_0, InputEvent.CTRL_DOWN_MASK, "paragraphe", new act.textBody(this));
-        addKeyBinding(KeyEvent.VK_1, InputEvent.CTRL_DOWN_MASK, "T1", new act.T1(this));
-        addKeyBinding(KeyEvent.VK_2, InputEvent.CTRL_DOWN_MASK, "T2", new act.T2(this));
-        addKeyBinding(KeyEvent.VK_3, InputEvent.CTRL_DOWN_MASK, "T3", new act.T3(this));
-        addKeyBinding(KeyEvent.VK_4, InputEvent.CTRL_DOWN_MASK, "T4", new act.T4(this));
-        addKeyBinding(KeyEvent.VK_5, InputEvent.CTRL_DOWN_MASK, "T5", new act.T5(this));
-        addKeyBinding(KeyEvent.VK_G, InputEvent.CTRL_DOWN_MASK, "gras", new act.Gras(this));
-        addKeyBinding(KeyEvent.VK_I, InputEvent.CTRL_DOWN_MASK, "italique", new act.Italique(this));
-        addKeyBinding(KeyEvent.VK_UP, InputEvent.SHIFT_DOWN_MASK, "versHaut", new act.VersHaut(this.editorPane));
-        addKeyBinding(KeyEvent.VK_DOWN, InputEvent.SHIFT_DOWN_MASK, "versBas", new act.VersBas(this.editorPane));
-        addKeyBinding(KeyEvent.VK_RIGHT, InputEvent.SHIFT_DOWN_MASK, "versDroite", new act.VersDroite(this.editorPane));
-        addKeyBinding(KeyEvent.VK_LEFT, InputEvent.SHIFT_DOWN_MASK, "versGauche", new act.VersGauche(this.editorPane));
-        addKeyBinding(KeyEvent.VK_SPACE, InputEvent.CTRL_DOWN_MASK, "sautPage", new act.SautPage(this));
-        addKeyBinding(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK, "citation", new act.citation(this));
-        addKeyBinding(KeyEvent.VK_F6, 0, "navigateurT1", new act.ouvrirNavigateurT1(this));
-        addKeyBinding(KeyEvent.VK_F1, 0, "Informations", new act.informations(this));
-        addKeyBinding(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK, "rechercher", new act.openSearchDialog(this.editorPane));
-        
-        Action puceAction = new InsertUnorderedBulletAction(this.editorPane);
-        // US : Ctrl+Shift+.
-        addKeyBinding(KeyEvent.VK_PERIOD,InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK,"puceTexte.us",puceAction);
-
-        // FR (AZERTY) : Ctrl+Shift+.  => physiquement Ctrl+Shift+; (car '.' = Shift+;)
-        addKeyBinding(KeyEvent.VK_SEMICOLON, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK,"puceTexte.fr",puceAction);
-
-        // Pavé numérique : Ctrl+Decimal
-        addKeyBinding(KeyEvent.VK_DECIMAL,InputEvent.CTRL_DOWN_MASK,"puceTexte.numPad",puceAction);
-
-        // Bonus robuste (alternative facile à dire) : Ctrl+Shift+L
-        addKeyBinding(KeyEvent.VK_L,InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK,"puceTexte.alt", puceAction);
  
-       
-        // Bloque ou active la modification editorpane
-        addKeyBinding(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK, "toggleEdit", new ToggleEditAction(this.editorPane));
-        
-        // ——— Raccourci F2 : annonce les titres autour du caret ———
-        addKeyBinding(KeyEvent.VK_F2, 0, "announceHeadingsAround", actAnnouncePosition);
-        // ——— Raccourci F3 : Pour aller sur le titre suivant ———
-        addKeyBinding(KeyEvent.VK_F3, 0, "gotoNextHeading", actGotoNextHeading);
-        // ——— Raccourci SHIFT+F3 : Pour aller sur le titre précédent ———
-        addKeyBinding(KeyEvent.VK_F3, InputEvent.SHIFT_DOWN_MASK, "gotoPrevHeading", actGotoPrevHeading);
-
-     // --- Zoom avant ---
-        addKeyBinding(KeyEvent.VK_PLUS,     InputEvent.CTRL_DOWN_MASK, "zoomIn1",
-            new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomIn(); }});
-        addKeyBinding(KeyEvent.VK_ADD,      InputEvent.CTRL_DOWN_MASK, "zoomIn3",
-            new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomIn(); }});
-
-        // --- Zoom arrière ---
-        addKeyBinding(KeyEvent.VK_MINUS,    InputEvent.CTRL_DOWN_MASK, "zoomOut1",
-            new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomOut(); }});
-        addKeyBinding(KeyEvent.VK_SUBTRACT, InputEvent.CTRL_DOWN_MASK, "zoomOut2",
-            new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomOut(); }});
-
-        // --- Réinitialisation ---
-        addKeyBinding(KeyEvent.VK_EQUALS,        InputEvent.CTRL_DOWN_MASK, "zoomReset",
-            new AbstractAction(){ public void actionPerformed(ActionEvent e){ zoomReset(); }});
-    	
-    	// Actifs seulement quand le caret est dans l'éditeur
-    	editorPane.getInputMap(JComponent.WHEN_FOCUSED).put(
-    	    KeyStroke.getKeyStroke(KeyEvent.VK_F7, InputEvent.CTRL_DOWN_MASK),
-    	    "actCheckDoc");
-    	editorPane.getActionMap().put("actCheckDoc", new act.actCheckDoc(this));
-
-    	editorPane.getInputMap(JComponent.WHEN_FOCUSED).put(
-    	    KeyStroke.getKeyStroke(KeyEvent.VK_F7,
-    	        InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK),
-    	    "actCheckWindow");
-    	editorPane.getActionMap().put("actCheckWindow", new act.actCheckWindow(this));
-    	
-    	// Ctrl+F2 : toggle marque-page sur la ligne
-    	addKeyBinding(KeyEvent.VK_F2, InputEvent.CTRL_DOWN_MASK, "bmToggle", new AbstractAction() {
-    	    @Override public void actionPerformed(ActionEvent e) {
-    	    	var m = bookmarks;
-    	        if (m == null) { java.awt.Toolkit.getDefaultToolkit().beep(); return; }
-    	        boolean added = bookmarks.toggleHere();
-    	        setModified(true);
-    	        if (added) {
-    	            m.editNoteForNearest(javax.swing.SwingUtilities.getWindowAncestor(editorPane));
-    			    String message = (added ? "Marque-page ajouté." : "Marque-page supprimé.");
-    			    java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(editorPane);
-    			    dia.InfoDialog.show(owner, "Information", message);
-    			    setModified(true);
-    	        } else {
-    	            dia.InfoDialog.show(javax.swing.SwingUtilities.getWindowAncestor(editorPane), "Marque-page", "Marque-page supprimé.");
-    	        }
-    	    }
-    	});
-
-    	// F4 : suivant ; Shift+F4 : précédent
-    	addKeyBinding(KeyEvent.VK_F4, 0, "bmNext", new AbstractAction() {
-    	    @Override public void actionPerformed(ActionEvent e) {
-    	    	var m = bookmarks;
-    	        if (m == null) { java.awt.Toolkit.getDefaultToolkit().beep(); return; }
-    	        bookmarks.goNext();
-    	    }
-    	});
-    	addKeyBinding(KeyEvent.VK_F4, InputEvent.SHIFT_DOWN_MASK, "bmPrev", new AbstractAction() {
-    	    @Override public void actionPerformed(ActionEvent e) {
-    	    	var m = bookmarks;
-    	        if (m == null) { java.awt.Toolkit.getDefaultToolkit().beep(); return; }
-    	        bookmarks.goPrev();
-    	    }
-    	});
-    	
-    	// Ajoute une note au marque-page
-    	addKeyBinding(KeyEvent.VK_F2, InputEvent.CTRL_DOWN_MASK | InputEvent.ALT_DOWN_MASK,
-    		    "bmEditNote", new AbstractAction() {
-    		        @Override public void actionPerformed(ActionEvent e) {
-    		            var m = bookmarks;
-    		            if (m == null) { java.awt.Toolkit.getDefaultToolkit().beep(); return; }
-    		            java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(editorPane);
-    		            m.editNoteForNearest(owner);
-    		        }
-    		    }
-    		);
-    	
-    	EditorFrame frame = this; // capture l'instance actuelle
-    	addKeyBinding(KeyEvent.VK_F8, 0, "openWikipediaSearch", new AbstractAction() {
-    	    @Override
-    	    public void actionPerformed(ActionEvent e) {
-    	        SwingUtilities.invokeLater(() -> {
-    	            // Ouvre la fenêtre de recherche Wikipédia (saisie du mot)
-    	            WikipediaSearchDialog.open(frame, url -> {
-    	                // Quand l’utilisateur valide la recherche :
-    	                new HtmlBrowserDialog(frame, frame.getEditor(), url);
-    	            });
-    	        });
-    	    }
-    	});
-    }
-    
-
     // ===  GESTION ET ACCÈS AUX SERVICES ===
     @Override
     public JFrame getWindow() { return this; }

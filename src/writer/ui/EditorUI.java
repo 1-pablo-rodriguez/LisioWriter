@@ -2,7 +2,6 @@ package writer.ui;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
-
 import java.awt.*;
 
 /**
@@ -30,8 +29,8 @@ public final class EditorUI {
         // --- Configuration de l’éditeur (marges, polices, etc.)
         frame.setupEditorPane();
 
-        // --- Raccourcis clavier
-        frame.configureKeyboardShortcuts();
+        // --- Raccourcis clavier (via la nouvelle classe KeyboardShortcutManager)
+        new writer.ui.editor.KeyboardShortcutManager(frame, frame.getEditor()).installShortcuts();
 
         // --- Barre de menus
         JMenuBar bar = writer.ui.menu.MenuBarFactory.create(frame);
