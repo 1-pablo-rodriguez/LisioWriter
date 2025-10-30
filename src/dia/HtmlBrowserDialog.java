@@ -230,18 +230,26 @@ public class HtmlBrowserDialog extends JDialog {
                             .selectFirst("#mw-content-text");
 
                     if (content != null) {
+                        // Supprimer éléments non pertinents
                         content.select(".mw-editsection, .reflist, .navbox, .infobox, .metadata, table, sup.reference").remove();
-                        
+
                         // --- Convertir les liens relatifs Wikipédia en format LisioWriter ---
                         Elements links = content.select("a[href]");
                         for (Element link : links) {
                             String href = link.attr("href");
-                            String text = link.text();
+                            @SuppressWarnings("unused")
+							String text = link.text().trim();
 
                             if (href.startsWith("/wiki/")) {
                                 String fullUrl = "https://fr.wikipedia.org" + href;
-                                link.after("@[" + text + ": " + fullUrl + "]");
-                                link.remove();
+                                // ✅ format souhaité : Paris [lien : https://fr.wikipedia.org/wiki/Paris]
+                                link.after(" @[lien : " + fullUrl + "]");
+                                // on laisse le texte visible ("Paris") avant d’enlever le lien HTML
+                                link.unwrap();
+                            } else if (href.startsWith("http")) {
+                                // pour les liens externes absolus
+                                link.after(" @[lien : " + href + "]");
+                                link.unwrap();
                             }
                         }
 
