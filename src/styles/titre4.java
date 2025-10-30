@@ -1,8 +1,10 @@
 package styles;
 
-import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
+
 import writer.ui.EditorApi;
+import writer.ui.text.Lines;
 
 /**
  * Style : Titre 4
@@ -20,17 +22,17 @@ public class titre4 {
 
     public void appliquer() {
         try {
-            JTextArea editor = ctx.getEditor();
+            JTextComponent editor = ctx.getEditor();
 
             // Obtenez la position du curseur
             int caretPosition = editor.getCaretPosition();
-
-            // Trouvez la ligne actuelle
-            int line = editor.getLineOfOffset(caretPosition);
-
-            // Obtenez les offsets de début et de fin de la ligne
-            int lineStart = editor.getLineStartOffset(line);
-            int lineEnd = editor.getLineEndOffset(line);
+			
+			// Trouvez la ligne actuelle
+			int line = Lines.getLineOfOffset(editor, caretPosition);
+			
+			// Obtenez les offsets de début et de fin de la ligne
+			int lineStart = Lines.getLineStartOffset(editor, line); 
+			int lineEnd =  Lines.getLineEndOffset(editor, line);
 
             // Extraire le texte de la ligne
             String lineText = editor.getText(lineStart, lineEnd - lineStart);
@@ -38,7 +40,7 @@ public class titre4 {
             // --- Cas 1 : Titre supérieur (#5 à #9)
             if (lineText.trim().matches("^#[5-9]\\..*")) {
                 String newText = lineText.replaceFirst("^#[5-9]\\.\\s*", "#4. ");
-                editor.replaceRange(newText, lineStart, lineEnd);
+                Lines.replaceRange(editor, newText, lineStart, lineEnd);
                 editor.setCaretPosition(caretPosition);
                 sound();
                 return;
@@ -47,7 +49,7 @@ public class titre4 {
             // --- Cas 2 : Paragraphe (#P.)
             if (lineText.trim().matches("^#P\\..*")) {
                 String newText = lineText.replaceFirst("^#P\\.\\s*", "#4. ");
-                editor.replaceRange(newText, lineStart, lineEnd);
+                Lines.replaceRange(editor, newText, lineStart, lineEnd);
                 editor.setCaretPosition(caretPosition);
                 sound();
                 return;
@@ -56,7 +58,7 @@ public class titre4 {
             // --- Cas 3 : Sous-partie (#S.)
             if (lineText.trim().matches("^#S\\..*")) {
                 String newText = lineText.replaceFirst("^#S\\.\\s*", "#4. ");
-                editor.replaceRange(newText, lineStart, lineEnd);
+                Lines.replaceRange(editor, newText, lineStart, lineEnd);
                 editor.setCaretPosition(caretPosition);
                 sound();
                 return;
@@ -65,7 +67,7 @@ public class titre4 {
             // --- Cas 4 : Liste (-.)
             if (lineText.trim().matches("^-\\..*")) {
                 String newText = lineText.replaceFirst("^-\\.\\s*", "#4. ");
-                editor.replaceRange(newText, lineStart, lineEnd);
+                Lines.replaceRange(editor, newText, lineStart, lineEnd);
                 editor.setCaretPosition(caretPosition);
                 sound();
                 return;
@@ -80,7 +82,7 @@ public class titre4 {
             // --- Cas 6 : ancien titre (1 à 3)
             if (lineText.trim().matches("^#[1-3]\\..*")) {
                 String newText = lineText.replaceFirst("^#[1-3]\\.\\s*", "#4. ");
-                editor.replaceRange(newText, lineStart, lineEnd);
+                Lines.replaceRange(editor, newText, lineStart, lineEnd);
                 editor.setCaretPosition(caretPosition);
                 sound();
                 return;
@@ -88,7 +90,7 @@ public class titre4 {
 
             // --- Cas 7 : ligne sans balise
             if (lineText.trim().matches("^[^#].*")) {
-                editor.insert("#4. ", lineStart);
+            	Lines.insert(editor, "#4. ", lineStart);
                 editor.setCaretPosition(caretPosition);
                 sound();
                 return;

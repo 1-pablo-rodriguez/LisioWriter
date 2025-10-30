@@ -1,6 +1,5 @@
 package styles;
 
-import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 
