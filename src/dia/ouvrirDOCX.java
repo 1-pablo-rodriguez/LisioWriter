@@ -716,7 +716,7 @@ public final class ouvrirDOCX extends JDialog {
 	}
 
 	private void readFile(File selectedFile) throws Exception {
-    	System.out.println("lecture d'un fichier ODT");
+    	System.out.println("lecture d'un fichier DOCX");
     	String contenu = DocxReader.extractStructuredTextFromDocx(selectedFile.getAbsolutePath());
     	commandes.init();
     	
