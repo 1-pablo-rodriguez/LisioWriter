@@ -23,10 +23,10 @@ LisioWriter intègre de nombreuses fonctionnalités de traitement de texte, mais
 
 ### Capture écran d'une importation d'un fichier Ms Word
 
-Import d’un document Microsoft Word (.docx) vers LisioWriter.
-Les titres, listes, mises en forme (gras, italique, souligné), indices/exposants, tabulations et notes de bas de page sont importés et rendus sous forme de codes LisioWriter directement dans l’éditeur.
+L’exemple ci-dessous illustre l’importation d’un document Microsoft Word (.docx) dans LisioWriter.
+Les titres, listes, mises en forme (gras, italique, souligné), indices, exposants, tabulations et notes de bas de page sont automatiquement convertis en codes LisioWriter directement visibles dans l’éditeur.
 
-Résultat : une structure entièrement lisible au clavier, compatible NVDA/JAWS et cohérente sur la barre braille.
+Le résultat offre une structure entièrement lisible au clavier, parfaitement compatible avec les lecteurs d’écran NVDA et JAWS, et fidèlement restituée sur la barre braille.
 
 ![Démonstration de LisioWriter](docs/demo.png)
 
