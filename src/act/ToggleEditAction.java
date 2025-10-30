@@ -3,15 +3,15 @@ package act;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.JTextArea;
+import javax.swing.text.JTextComponent;
 
 @SuppressWarnings("serial")
 public class ToggleEditAction extends AbstractAction{
 
-	private final JTextArea editorPane;
+	private final JTextComponent editorPane;
 
 	// Constructeur
-	public ToggleEditAction(JTextArea editorPane) {
+	public ToggleEditAction(JTextComponent editorPane) {
 	    super("actCheckWindow");
 	    this.editorPane = editorPane;
 	}

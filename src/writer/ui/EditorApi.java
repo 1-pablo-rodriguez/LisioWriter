@@ -5,14 +5,13 @@ import javax.swing.Action;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.undo.UndoManager;
 
 import writer.bookmark.BookmarkManager;
 
 public interface EditorApi {
     JFrame getWindow();           // parent pour dialogs
-    JTextArea getEditor();        // l’éditeur
+    javax.swing.text.JTextComponent getEditor();        // l’éditeur
     JScrollPane getScrollPane();	// Le scroll de l'éditeur
     writer.spell.SpellCheckLT getSpell();  //Correcteur
     Boolean isModifier();

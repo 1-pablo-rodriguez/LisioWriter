@@ -1,9 +1,10 @@
 package styles;
 
-import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
 
 import writer.ui.EditorApi;
+import writer.ui.text.Lines;
 
 public class sousTitre {
 	private final EditorApi ctx;
@@ -14,17 +15,17 @@ public class sousTitre {
 	
 	public void appliquer() {
 		try {
-			JTextArea editor = ctx.getEditor();
+			JTextComponent editor = ctx.getEditor();
 
             // Obtenez la position du curseur
-            int caretPosition = editor.getCaretPosition();
-
-            // Trouvez la ligne actuelle
-            int line = editor.getLineOfOffset(caretPosition);
-
-            // Obtenez les offsets de début et de fin de la ligne
-            int lineStart = editor.getLineStartOffset(line);
-            int lineEnd = editor.getLineEndOffset(line);
+			int caretPosition = editor.getCaretPosition();
+			
+			// Trouvez la ligne actuelle
+			int line = Lines.getLineOfOffset(editor, caretPosition);
+			
+			// Obtenez les offsets de début et de fin de la ligne
+			int lineStart = Lines.getLineStartOffset(editor, line); 
+			int lineEnd =  Lines.getLineEndOffset(editor, line);
 
             // Extraire le texte de la ligne
             String lineText = editor.getText(lineStart, lineEnd - lineStart);
@@ -33,7 +34,7 @@ public class sousTitre {
 	        if (lineText.trim().matches("^#[1-9]\\..*")) {
 	            // Remplacer tous les # excédentaires en ne gardant que le premier
 	            String newText = lineText.replaceFirst("^#[0-9]\\.\\s*", "#S. ");
-	            editor.replaceRange(newText, lineStart, lineEnd);
+	            Lines.replaceRange(editor, newText, lineStart, lineEnd);
 	            editor.setCaretPosition(caretPosition);
 	            sound();
 	            return;
@@ -42,7 +43,7 @@ public class sousTitre {
 	        if (lineText.trim().matches("^#P\\..*")) {
 	            // Remplacer tous les # excédentaires en ne gardant que le premier
 	            String newText = lineText.replaceFirst("^#P\\.\\s*", "#S. ");
-	            editor.replaceRange(newText, lineStart, lineEnd);
+	            Lines.replaceRange(editor, newText, lineStart, lineEnd);
 	            editor.setCaretPosition(caretPosition);
 	            sound();
 	            return;
@@ -51,7 +52,7 @@ public class sousTitre {
 	        if (lineText.trim().matches("^-\\..*")) {
 	            // Remplacer tous les # excédentaires en ne gardant que le premier
 	            String newText = lineText.replaceFirst("^-\\.\\s*", "#S. ");
-	            editor.replaceRange(newText, lineStart, lineEnd);
+	            Lines.replaceRange(editor, newText, lineStart, lineEnd);
 	            editor.setCaretPosition(caretPosition);
 	            sound();
 	            return;
@@ -64,7 +65,7 @@ public class sousTitre {
 	        }
  
 	        if (lineText.trim().matches("^[^#].*")) {
-	        	editor.insert("#S. ", lineStart);
+	        	Lines.insert(editor, "#S. ", lineStart);
 	        	editor.setCaretPosition(caretPosition);
 		       	 sound();
 		       	 return;

@@ -28,9 +28,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.text.JTextComponent;
 
 import writer.TraitementSonPourTTS;
 import writer.ui.EditorFrame;
@@ -64,7 +64,7 @@ public class navigateurT1 extends JFrame{
     int selectedIndex = 0;
 
     private EditorFrame parent;
-    private JTextArea editor;
+    private JTextComponent editor;
     
 	@SuppressWarnings("serial")
 	public navigateurT1(EditorFrame parent) {

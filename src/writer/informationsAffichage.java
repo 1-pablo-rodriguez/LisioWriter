@@ -1,6 +1,6 @@
 package writer;
 
-import javax.swing.JTextArea;
+import javax.swing.text.JTextComponent;
 
 import writer.model.Affiche;
 import writer.ui.EditorFrame;
@@ -15,7 +15,7 @@ public class informationsAffichage {
             Affiche vue = parent.getAffichage();
 
             if (vue == Affiche.TEXTE) {
-            	JTextArea editor = parent.getEditor();
+            	JTextComponent editor = parent.getEditor();
             	
             	javax.swing.text.Document doc = editor.getDocument();
                 javax.swing.text.Element root = doc.getDefaultRootElement();

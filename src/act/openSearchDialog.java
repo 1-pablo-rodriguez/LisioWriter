@@ -1,13 +1,14 @@
 package act;
 
 import java.awt.event.ActionEvent;
+
 import javax.swing.AbstractAction;
-import javax.swing.JTextArea;
+import javax.swing.text.JTextComponent;
 
 public class openSearchDialog extends AbstractAction{
 	private static final long serialVersionUID = 1L;
-	JTextArea editor;
-	public openSearchDialog(JTextArea editor) {
+	JTextComponent editor;
+	public openSearchDialog(JTextComponent editor) {
 		this.editor = editor;
 	}
 	

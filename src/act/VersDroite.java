@@ -3,16 +3,18 @@ package act;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
+
+import writer.ui.text.Lines;
 
 public class VersDroite extends AbstractAction{
 
 	private static final long serialVersionUID = 1L;
-	private final JTextArea editorPane;
+	private final JTextComponent editorPane;
 
 	// Constructeur
-	public VersDroite(JTextArea editorPane) {
+	public VersDroite(JTextComponent editorPane) {
 	    super("VersDroite");
 	    this.editorPane = editorPane;
 	}
@@ -24,7 +26,7 @@ public class VersDroite extends AbstractAction{
 	        int caretPosition = this.editorPane.getCaretPosition();
 	        
 	        // Obtenir l'index de la ligne actuelle
-	        int currentLine = this.editorPane.getLineOfOffset(caretPosition);
+	        int currentLine = Lines.getLineEndOffset(this.editorPane, caretPosition);
 
 	        // Récupérer le texte complet
 	        String text = this.editorPane.getText();
@@ -35,7 +37,7 @@ public class VersDroite extends AbstractAction{
 	        // Vérifier que la ligne actuelle existe bien
 	        if (currentLine < lines.length) {
 	            // Calculer la longueur de la ligne actuelle pour obtenir la position de fin
-	            int lineStartOffset = this.editorPane.getLineStartOffset(currentLine);
+	        	int lineStartOffset = Lines.getLineStartOffset(this.editorPane, currentLine);
 	            int lineEndOffset = lineStartOffset + lines[currentLine].length();
 	            
 	            // Placer le curseur à la fin de la ligne
