@@ -1,6 +1,6 @@
 # Politique de sécurité
 
-**blindWriter** est un logiciel encore en développement actif. Des bugs et vulnérabilités peuvent donc survenir.
+**LisioWriter** est un logiciel encore en développement actif. Des bugs et vulnérabilités peuvent donc survenir.
 
 Nous acceptons les signalements :
 - **Publiques** : via une *Issue GitHub* lorsque ce n’est pas un problème de sécurité.
@@ -36,12 +36,12 @@ Certaines **fonctionnalités** ne sont **pas encore implémentées** (ou incompl
 > Cette liste peut évoluer au fil du projet.
 
 Des parties importantes s’appuient sur des **bibliothèques tierces**.  
-- Si la faille vient **principalement** de la bibliothèque, merci de signaler **à ses mainteneurs** (et de nous mettre en copie si l’intégration blindWriter est concernée).  
-- Si la faille concerne **surtout l’intégration** dans blindWriter, signalez-la **ici** (privé de préférence).
+- Si la faille vient **principalement** de la bibliothèque, merci de signaler **à ses mainteneurs** (et de nous mettre en copie si l’intégration LisioWriter est concernée).  
+- Si la faille concerne **surtout l’intégration** dans LisioWriter, signalez-la **ici** (privé de préférence).
 
 ---
 
 ## Merci ❤️
 
-Merci d’aider à rendre **blindWriter** plus accessible et sûr pour tous.  
+Merci d’aider à rendre **LisioWriter** plus accessible et sûr pour tous.  
 Contribuer de façon responsable me permet de corriger rapidement et de documenter proprement chaque correctif.
