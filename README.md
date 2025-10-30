@@ -58,7 +58,7 @@ L’objectif est de fournir un outil qui favorise l’**autonomie numérique** e
 
 ---
 
-## 🪶 Nouvelle fonctionnalité : intégration Wikipédia
+## ![Démonstration de LisioWriter](docs/wikipedia.png) Nouvelle fonctionnalité : intégration Wikipédia
 
 LisioWriter permet désormais de rechercher et d’importer directement des articles Wikipédia depuis l’éditeur.
 L’utilisateur saisit un mot-clé, parcourt les résultats, puis insère l’article choisi dans son document.
