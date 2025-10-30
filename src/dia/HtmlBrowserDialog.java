@@ -231,6 +231,20 @@ public class HtmlBrowserDialog extends JDialog {
 
                     if (content != null) {
                         content.select(".mw-editsection, .reflist, .navbox, .infobox, .metadata, table, sup.reference").remove();
+                        
+                        // --- Convertir les liens relatifs Wikipédia en format LisioWriter ---
+                        Elements links = content.select("a[href]");
+                        for (Element link : links) {
+                            String href = link.attr("href");
+                            String text = link.text();
+
+                            if (href.startsWith("/wiki/")) {
+                                String fullUrl = "https://fr.wikipedia.org" + href;
+                                link.after("@[" + text + ": " + fullUrl + "]");
+                                link.remove();
+                            }
+                        }
+
                         String html = content.html();
                         converted = HtmlImporter.importFromHtml(html);
                     }
@@ -239,6 +253,7 @@ public class HtmlBrowserDialog extends JDialog {
                 }
                 return null;
             }
+
 
             @Override
             protected void done() {
