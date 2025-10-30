@@ -56,10 +56,10 @@ L’objectif est de fournir un outil qui favorise l’**autonomie numérique** e
   - Fichiers  **.html** (page web)
   - Exportation en **PDF**
 - **Vérification orthographique intégrée** (basée sur *LanguageTool*).  
-- **Surlignage et tag preffix °° des erreurs et suggestion des corrections**.  
+- **Tag des erreurs preffix °° et surlignage des erreurs avec suggestion des corrections**.  
 - **Mode documentation LisioWriter** : **ALT+A** permet de basculer sur la documentation et **ALT+B** permet de basculer sur son fichier.
-- **Navigateur et navigation** : Fenêtre simple pour la navigation par les titres.
-- **Marque page** : intégration de marque page et de note.
+- **Navigateur et navigation** : Fenêtre simple pour la navigation par les titres, racourci clavier pour atteindre le titre suivant ou précédent..
+- **Marque page** : intégration très simple de marque page et de note.
 - **Système de mise à jour automatique** : télécharge et installe la dernière version en arrière-plan (mode silencieux).  
 - 🪶 **Recherche et insertion d’articles Wikipédia** : recherche, sélectionne et insére un article complet dans l’éditeur, déjà mis en forme et structuré.
 
