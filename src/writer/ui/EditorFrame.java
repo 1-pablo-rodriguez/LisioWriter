@@ -2,6 +2,7 @@ package writer.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -12,6 +13,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
+import java.net.URI;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
@@ -37,6 +40,9 @@ import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
 
 import writer.CaretStyler;
@@ -47,8 +53,8 @@ import writer.bookmark.BookmarkManager;
 import writer.editor.AutoListContinuationFilter;
 import writer.model.Affiche;
 import writer.spell.SpellCheckLT;
+import writer.ui.editor.WrapEditorKit;
 import writer.util.IconLoader;
-import writer.ui.editor.*;
 
 @SuppressWarnings("serial")
 public class EditorFrame extends JFrame implements EditorApi {
@@ -64,6 +70,12 @@ public class EditorFrame extends JFrame implements EditorApi {
     private BookmarkManager bookmarks;
     // --- Motif unique : "#<niveau>. <texte>" strictement en début de ligne ---
   	private static final Pattern HEADING_PATTERN = Pattern.compile("^#([1-6])\\.\\s+(.+?)\\s*$");
+
+  	// Détecte un lien au format @[Titre du lien: https://exemple.com]
+  	private static final Pattern URL_PATTERN = Pattern.compile(
+  	    "@\\[([^\\]]+?):\\s*(https?://[^\\s\\]]+)\\]"
+  	);
+
   	private Affiche affichage = Affiche.TEXTE;
   	public static int positionCurseurSauv = 0;
   	// --- Zoom éditeur ---
@@ -156,6 +168,34 @@ public class EditorFrame extends JFrame implements EditorApi {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK), "Redo");
         am.put("Redo", redoAction);
         
+        // --- Ouvrir lien sous le curseur (Ctrl + Entrée) ---
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "bw-open-link");
+        am.put("bw-open-link", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                try {
+                    int pos = editorPane.getCaretPosition();
+                    StyledDocument doc = editorPane.getStyledDocument();
+                    String text = doc.getText(0, doc.getLength());
+                    Matcher m = URL_PATTERN.matcher(text);
+                    while (m.find()) {
+                        int start = m.start(2);
+                        int end = m.end(2);
+                        if (pos >= start && pos <= end) {
+                            String title = m.group(1).trim();
+                            String url = m.group(2).trim();
+                            System.out.println("Ouverture du lien : " + title + " → " + url);
+                            Desktop.getDesktop().browse(new URI(url));
+                            return;
+                        }
+                    }
+                    Toolkit.getDefaultToolkit().beep();
+                } catch (Exception ex) {
+                    Toolkit.getDefaultToolkit().beep();
+                }
+            }
+        });
+
+        
         // Key binding: TAB et Shift+TAB pour saisir à la place [Tab]
         im.put(KeyStroke.getKeyStroke("TAB"), "bw-insert-tab-tag");
         im.put(KeyStroke.getKeyStroke("shift TAB"), "bw-insert-tab-tag");
@@ -235,16 +275,25 @@ public class EditorFrame extends JFrame implements EditorApi {
   	    this.editorPane.setCaretPosition(0);
 
   	    // marquer le doc comme "modifié" à la moindre modification utilisateur
-  	    this.editorPane.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-  	       @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { setModified(true); }
-  	       @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { setModified(true); }
-  	       @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { setModified(true); }
-  	   });
+		this.editorPane.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+			   @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { 
+			       setModified(true);
+			       SwingUtilities.invokeLater(() -> highlightLinks(editorPane));
+			   }
+			   @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { 
+			       setModified(true);
+			       SwingUtilities.invokeLater(() -> highlightLinks(editorPane));
+			   }
+			   @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { 
+			       setModified(true);
+			   }
+		});
 
 
   	   // --- AJOUTE LES CLASS QUI PERMETTENT LES LISTES PUCES OU NULEROTES ---
   	    this.editorPane.getAccessibleContext().setAccessibleName("Zone de texte.");
   	    ((AbstractDocument) editorPane.getDocument()).setDocumentFilter(new AutoListContinuationFilter(this.editorPane));
+  	
   	}
     
   	
@@ -766,6 +815,56 @@ public class EditorFrame extends JFrame implements EditorApi {
         }
     }
     
+
+    /** Détecte et met en forme les liens hypertextes au format @[Titre: URL] */
+	private void highlightLinks(JTextPane editor) {
+	    try {
+	        StyledDocument doc = editor.getStyledDocument();
+	        String text = doc.getText(0, doc.getLength());
+	
+	        // Style normal : blanc
+	        SimpleAttributeSet normal = new SimpleAttributeSet();
+	        StyleConstants.setForeground(normal, Color.WHITE);
+	        StyleConstants.setUnderline(normal, false);
+	        doc.setCharacterAttributes(0, doc.getLength(), normal, false);
+	
+	        Matcher m = URL_PATTERN.matcher(text);
+	
+	        // Styles spécifiques
+	        SimpleAttributeSet prefixStyle = new SimpleAttributeSet();
+	        StyleConstants.setForeground(prefixStyle, new Color(180, 180, 180)); // gris clair
+	
+	        SimpleAttributeSet linkStyle = new SimpleAttributeSet();
+	        StyleConstants.setForeground(linkStyle, new Color(80, 170, 255)); // bleu plus lumineux
+	        StyleConstants.setUnderline(linkStyle, true);
+	
+	        while (m.find()) {
+	            int fullStart = m.start();
+	            int fullEnd   = m.end();
+	            int urlStart  = m.start(2);
+	            int urlEnd    = m.end(2);
+	
+	            // Appliquer gris au préfixe "@[Titre:"
+	            if (urlStart > fullStart)
+	                doc.setCharacterAttributes(fullStart, urlStart - fullStart, prefixStyle, false);
+	
+	            // Appliquer bleu souligné à l’URL
+	            doc.setCharacterAttributes(urlStart, urlEnd - urlStart, linkStyle, false);
+	
+	            // Restaurer le style normal pour "]"
+	            if (urlEnd < fullEnd)
+	                doc.setCharacterAttributes(urlEnd, fullEnd - urlEnd, normal, false);
+	        }
+	
+	        // Forcer le rafraîchissement visuel
+	        editor.repaint();
+	
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+
+    
     public static void enableVisibleTabs(JTextComponent editor) {
         // 1) Le TAB ne doit pas déplacer le focus
         editor.setFocusTraversalKeysEnabled(false);
@@ -839,7 +938,7 @@ public class EditorFrame extends JFrame implements EditorApi {
                     super.replace(fb, offs, len, mapTabs(str), a);
                 }
             });
-        }
+        }  
     }
 
     // Utilitaire centralisé
