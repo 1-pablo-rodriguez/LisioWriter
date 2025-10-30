@@ -3,16 +3,16 @@ package act;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
 
 public class VersBas extends AbstractAction{
 
 	private static final long serialVersionUID = 1L;
-	private final JTextArea editorPane;
+	private final JTextComponent editorPane;
 
 	// Constructeur
-	public VersBas(JTextArea editorPane) {
+	public VersBas(JTextComponent editorPane) {
 	    super("VersBas");
 	    this.editorPane = editorPane;
 	}

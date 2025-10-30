@@ -14,7 +14,6 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -38,9 +37,9 @@ public class openSearchDialog extends JDialog {
     private JTextField field;
     private JLabel status;
     private JButton btnNext, btnPrev;
-    private JTextArea editor;
+    private JTextComponent editor;
 
-    public openSearchDialog(JTextArea editor) {
+    public openSearchDialog(JTextComponent editor) {
         super(SwingUtilities.getWindowAncestor(editor), "Recherche");
         this.editor = editor;
         

@@ -25,7 +25,7 @@ public final class ParagraphHighlighter {
      * - Retire le surlignage dès que le caret passe dans un autre paragraphe.
      * - Retire le surlignage quand l'éditeur perd le focus.
      */
-    public static void install(JTextArea editorPane) {
+    public static void install(JTextPane editorPane) {
         if (editorPane == null) return;
 
         // 1) Met en place un CaretListener pour mettre à jour le surlignage à chaque mouvement du caret.
@@ -54,7 +54,7 @@ public final class ParagraphHighlighter {
     }
 
     /** Retire le comportement et nettoie le surlignage (si tu veux le désactiver proprement). */
-    public static void uninstall(JTextArea editorPane) {
+    public static void uninstall(JTextPane editorPane) {
         if (editorPane == null) return;
         clearHighlight(editorPane);
         // Si tu avais gardé des références aux listeners ajoutés, tu pourrais les retirer ici.
@@ -62,7 +62,7 @@ public final class ParagraphHighlighter {
     }
 
     /** Calcule et surligne le paragraphe courant. */
-    private static void highlightCurrentParagraph(JTextArea editorPane) {
+    private static void highlightCurrentParagraph(JTextPane editorPane) {
         try {
             String text = editorPane.getText();
             if (text == null || text.isEmpty()) {
@@ -104,7 +104,7 @@ public final class ParagraphHighlighter {
     }
 
     /** Retire le surlignage actuel et réinitialise l’état. */
-    private static void clearHighlight(JTextArea editorPane) {
+    private static void clearHighlight(JTextPane editorPane) {
         Highlighter hl = editorPane.getHighlighter();
         if (lastHighlightTag != null) {
             hl.removeHighlight(lastHighlightTag);
