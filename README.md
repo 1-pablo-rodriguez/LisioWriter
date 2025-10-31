@@ -181,11 +181,28 @@ Vous pouvez :
 
 ## 👤 Auteur
 
-**LisioWriter** a été développé par **Pablo Rodriguez** (enseignant d'informatique à l'université d'Artois) dans le cadre d’une démarche de **recherche et d’innovation pédagogique** visant à promouvoir **l’autonomie numérique des personnes non-voyantes ou malvoyantes**.  
-Le logiciel a été expérimenté et validé auprès d’**un étudiant non-voyant** en licence puis en master à **l’Université d’Artois**.  
-Cette phase de test a permis de mesurer l’accessibilité et l’ergonomie du logiciel, ainsi que sa capacité à répondre aux besoins effectifs des utilisateurs, tant dans le cadre **académique** que dans le milieu **professionnel** (stage de 2x4 mois sur les deux années de Master).
+**LisioWriter** a été conçu et développé par **Pablo Rodriguez**,  
+enseignant en informatique à l’**Université d’Artois**,  
+dans le cadre d’une démarche de **recherche et d’innovation pédagogique**  
+visant à promouvoir l’**autonomie numérique des personnes non-voyantes et malvoyantes**.
 
-Ces validations confirment la pertinence de LisioWriter comme outil d’**inclusion numérique**, adapté tant à l’enseignement supérieur qu’à un **usage professionnel**.
+Le logiciel a été **expérimenté et validé** auprès d’un **étudiant non-voyant**  
+ayant suivi un parcours complet de **Licence puis de Master**  
+(actuellement inscrit en **Master Gestion du Patrimoine Culturel**) à l’Université d’Artois,  
+au sein de l’**UFR d’Histoire et de Géographie**.  
+
+Cette phase d’expérimentation a permis d’évaluer :
+- l’**accessibilité réelle** de l’interface,  
+- l’**ergonomie fonctionnelle** de l’éditeur,  
+- et la capacité du logiciel à répondre aux besoins concrets des utilisateurs,  
+tant dans un **contexte académique** que lors de **situations professionnelles**  
+(stage de 2×4 mois répartis sur les deux années de Master).
+
+Ces validations, menées au sein de la **Licence d’Histoire** de l’Université d’Artois,  
+confirment la **pertinence de LisioWriter** comme outil d’**inclusion numérique**,  
+pleinement adapté à l’enseignement supérieur  
+et à un **usage professionnel autonome et accessible**.
+
 
 ---
 
