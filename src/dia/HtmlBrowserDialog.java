@@ -1,6 +1,7 @@
 package dia;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
@@ -24,6 +25,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -203,113 +207,180 @@ public class HtmlBrowserDialog extends JDialog {
         wk.execute();
     }
 
-    /** Insère le texte de l’article sélectionné dans le document. */
-    private void insertIntoEditor(JTextComponent editorPane) {
-        WikiResult sel = resultList.getSelectedValue();
-        if (sel == null || sel.url == null || sel.url.isBlank()) {
-            Toolkit.getDefaultToolkit().beep();
-            System.out.println("Aucun résultat sélectionné.");
-            return;
-        }
-
-        String url = sel.url;
-        System.out.println("Téléchargement de l’article : " + url);
-
-        SwingWorker<Void, Void> wk = new SwingWorker<>() {
-            String converted = null;
-            String error = null;
-
-            @Override
-            protected Void doInBackground() {
-                try {
-                    Element content = Jsoup.connect(url)
-                            .userAgent("LisioWriter/accessible-browser")
-                            .timeout(15000)
-                            .followRedirects(true)
-                            .get()
-                            .selectFirst("#mw-content-text");
-
-                    if (content != null) {
-                        // Supprimer éléments non pertinents
-                        content.select(".mw-editsection, .reflist, .navbox, .infobox, .metadata, table, sup.reference").remove();
-
-                        // --- Convertir les liens relatifs Wikipédia en format LisioWriter ---
-                        Elements links = content.select("a[href]");
-                        for (Element link : links) {
-                            String href = link.attr("href");
-                            @SuppressWarnings("unused")
+   /** Insère le texte de l’article sélectionné dans le document. */
+	private void insertIntoEditor(JTextComponent editorPane) {
+	    WikiResult sel = resultList.getSelectedValue();
+	    if (sel == null || sel.url == null || sel.url.isBlank()) {
+	        Toolkit.getDefaultToolkit().beep();
+	        System.out.println("Aucun résultat sélectionné.");
+	        return;
+	    }
+	
+	    String url = sel.url;
+	    System.out.println("Téléchargement de l’article : " + url);
+	
+	    SwingWorker<Void, Void> wk = new SwingWorker<>() {
+	        String converted = null;
+	        String error = null;
+	
+	        @Override
+	        protected Void doInBackground() {
+	            try {
+	                Element content = Jsoup.connect(url)
+	                        .userAgent("LisioWriter/accessible-browser")
+	                        .timeout(15000)
+	                        .followRedirects(true)
+	                        .get()
+	                        .selectFirst("#mw-content-text");
+	
+	                if (content != null) {
+	                    // --- Supprimer les éléments non pertinents ---
+	                    content.select(
+	                        ".mw-editsection, " +
+	                        ".reflist, " +
+	                        ".navbox, " +
+	                        ".metadata, " +
+	                        "table, " +
+	                        "sup.reference, " +
+	                        "div[class^=infobox]"  // ✅ supprime tout <div> dont la classe commence par "infobox"
+	                    ).remove();
+	
+	                    // --- Convertir les liens Wikipédia et externes en format LisioWriter ---
+	                    Elements links = content.select("a[href]");
+	                    for (Element link : links) {
+	                        String href = link.attr("href").trim();
+	                        @SuppressWarnings("unused")
 							String text = link.text().trim();
+	                        if (href.isEmpty()) continue;
+	
+	                        if (href.startsWith("/wiki/")) {
+	                            String fullUrl = "https://fr.wikipedia.org" + href;
+	                            link.after(" @[lien : " + fullUrl + "]");
+	                            link.unwrap();
+	                        } else if (href.startsWith("http")) {
+	                            link.after(" @[lien : " + href + "]");
+	                            link.unwrap();
+	                        }
+	                    }
+	
+	                    // --- Convertir les images en descriptions accessibles ---
+	                    Elements images = content.select("img");
+	                    for (Element img : images) {
+	                        String alt = img.attr("alt").trim();
+	
+	                        // 1️⃣ Essayer d'abord avec alt
+	                        // 2️⃣ Puis chercher une légende figcaption ou thumbcaption
+	                        if (alt.isEmpty()) {
+	                            Element fig = img.closest("figure");
+	                            Element caption = null;
+	
+	                            if (fig != null)
+	                                caption = fig.selectFirst("figcaption");
+	
+	                            if (caption == null) {
+	                                Element thumb = img.closest("div.thumb");
+	                                if (thumb != null)
+	                                    caption = thumb.selectFirst(".thumbcaption");
+	                            }
+	
+	                            if (caption != null && !caption.text().isBlank()) {
+	                                alt = caption.text().trim();
+	                            } else {
+	                                // ⚠️ Pas de description utile → on supprime complètement l'image
+	                                img.remove();
+	                                continue;
+	                            }
+	                        }
+	
+	                        // ✅ On ne garde que les images avec vraie description
+	                        img.after("![Image : " + alt + "]");
+	                        img.remove();
+	                    }
+	
+	                    // --- Conversion finale du HTML vers le format LisioWriter ---
+	                    String html = content.html();
+	                    converted = HtmlImporter.importFromHtml(html);
+	                    if (converted != null) {
+	                        // Nettoyage des caractères invisibles qui perturbent le rendu
+	                        converted = converted
+	                            .replace('\u00A0', ' ')  // espace insécable → espace normal
+	                            .replace('\u2028', '\n') // séparateur de ligne → vrai saut de ligne
+	                            .replace('\u2029', '\n') // séparateur de paragraphe → saut de ligne
+	                            .replaceAll("[\\r\\n]{3,}", "\n\n") // pas plus de 2 sauts consécutifs
+	                            .trim();
+	                    }
+	                }
+	
+	            } catch (Exception ex) {
+	                error = ex.getMessage();
+	            }
+	            return null;
+	        }
+	
+	        @Override
+	        protected void done() {
+	            if (error != null) {
+	                JOptionPane.showMessageDialog(HtmlBrowserDialog.this, "Erreur lors du chargement : " + error);
+	                return;
+	            }
+	            try {
+	                javax.swing.text.Document doc = editorPane.getDocument();
+	                int pos = doc.getLength();
+	
+	                // ✅ Récupérer le titre Wikipédia depuis <h1 id="firstHeading">
+	                String articleTitle = "Article Wikipédia";
+	                try {
+	                    Document titleDoc = Jsoup.connect(url)
+	                            .userAgent("LisioWriter/accessible-browser")
+	                            .timeout(10000)
+	                            .get();
+	                    Element h1 = titleDoc.selectFirst("#firstHeading");
+	                    if (h1 != null && !h1.text().isBlank()) {
+	                        articleTitle = h1.text();
+	                    }
+	                } catch (Exception ignore) {
+	                    if (sel.title != null && !sel.title.isBlank())
+	                        articleTitle = sel.title;
+	                }
+	
+	                // ✅ Formater le contenu final (titre + texte importé)
+	                String formatted = "#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
+	
+	                
+	                
+	                System.out.println("✅ Article inséré : " + articleTitle);
+	                
+	                // 🔧 Normalisation des fins de ligne pour éviter les décalages
+	                try {
+	                     formatted
+	                        .replace("\r\n", "\n")  // Windows → Unix
+	                        .replace('\r', '\n');   // vieux Mac → Unix
 
-                            if (href.startsWith("/wiki/")) {
-                                String fullUrl = "https://fr.wikipedia.org" + href;
-                                // ✅ format souhaité : Paris [lien : https://fr.wikipedia.org/wiki/Paris]
-                                link.after(" @[lien : " + fullUrl + "]");
-                                // on laisse le texte visible ("Paris") avant d’enlever le lien HTML
-                                link.unwrap();
-                            } else if (href.startsWith("http")) {
-                                // pour les liens externes absolus
-                                link.after(" @[lien : " + href + "]");
-                                link.unwrap();
-                            }
-                        }
+	                    javax.swing.text.Document d = editorPane.getDocument();
+	                    d.remove(0, d.getLength());
+	                    d.insertString(0, formatted, null);
+	                } catch (Exception ex) {
+	                    ex.printStackTrace();
+	                }
+	                
+	                doc.insertString(pos, formatted, null);
+	                
+	                editorPane.setCaretPosition(pos);
+	                
+	                // ✅ Fermer la fenêtre et redonner le focus à l’éditeur
+	                dispose();
+	                commandes.nameFile = articleTitle;
+	                SwingUtilities.invokeLater(() -> editorPane.requestFocusInWindow());
+	
+	            } catch (Exception ex) {
+	                ex.printStackTrace();
+	            }
+	        }
+	    };
+	
+	    wk.execute();
+	}
 
-                        String html = content.html();
-                        converted = HtmlImporter.importFromHtml(html);
-                    }
-                } catch (Exception ex) {
-                    error = ex.getMessage();
-                }
-                return null;
-            }
-
-
-            @Override
-            protected void done() {
-                if (error != null) {
-                    JOptionPane.showMessageDialog(HtmlBrowserDialog.this, "Erreur lors du chargement : " + error);
-                    return;
-                }
-                try {
-                    javax.swing.text.Document doc = editorPane.getDocument();
-                    int pos = doc.getLength();
-
-                    // ✅ Récupérer le vrai titre Wikipédia depuis la balise <h1 id="firstHeading">
-                    String articleTitle = "Article Wikipédia";
-                    try {
-                        Document titleDoc = Jsoup.connect(url)
-                                .userAgent("LisioWriter/accessible-browser")
-                                .timeout(10000)
-                                .get();
-                        Element h1 = titleDoc.selectFirst("#firstHeading");
-                        if (h1 != null && !h1.text().isBlank()) {
-                            articleTitle = h1.text();
-                        }
-                    } catch (Exception ignore) {
-                        // en cas d’erreur, on garde le titre du lien
-                        if (sel.title != null && !sel.title.isBlank())
-                            articleTitle = sel.title;
-                    }
-
-                    // ✅ Formater le contenu en texte blindWriter (titre + contenu)
-                    String formatted = "#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
-                    
-                    doc.insertString(pos, formatted, null);
-                    editorPane.setCaretPosition(pos);
-                    System.out.println("✅ Article inséré : " + articleTitle);
-
-                    // ✅ Fermer la fenêtre et redonner le focus
-                    dispose();
-                    commandes.nameFile = articleTitle;
-                    SwingUtilities.invokeLater(() -> editorPane.requestFocusInWindow());
-
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        };
-
-        wk.execute();
-    }
     
     /** Classe interne représentant un résultat Wikipédia (titre + URL). */
     private static class WikiResult {

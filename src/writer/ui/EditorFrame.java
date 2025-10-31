@@ -75,6 +75,11 @@ public class EditorFrame extends JFrame implements EditorApi {
   	private static final Pattern URL_PATTERN = Pattern.compile(
   	    "@\\[([^\\]]+?):\\s*(https?://[^\\s\\]]+)\\]"
   	);
+  	
+  	// Détecte une image au format ![Image : description]
+  	private static final Pattern IMAGE_PATTERN = Pattern.compile(
+  	    "!\\[\\s*Image\\s*:\\s*([^\\]]+)\\]"
+  	);
 
   	private Affiche affichage = Affiche.TEXTE;
   	public static int positionCurseurSauv = 0;
@@ -278,12 +283,19 @@ public class EditorFrame extends JFrame implements EditorApi {
 		this.editorPane.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
 			   @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { 
 			       setModified(true);
-			       SwingUtilities.invokeLater(() -> highlightLinks(editorPane));
+			       SwingUtilities.invokeLater(() ->{ 
+			    	   highlightLinks(editorPane);
+			    	   highlightImages(editorPane);
+			    	   });
 			   }
 			   @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { 
 			       setModified(true);
-			       SwingUtilities.invokeLater(() -> highlightLinks(editorPane));
-			   }
+			       SwingUtilities.invokeLater(() -> {
+			    	   highlightLinks(editorPane);
+			    	   highlightImages(editorPane);
+			    	   }
+			       );
+		       }
 			   @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { 
 			       setModified(true);
 			   }
@@ -859,6 +871,31 @@ public class EditorFrame extends JFrame implements EditorApi {
 	        // Forcer le rafraîchissement visuel
 	        editor.repaint();
 	
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+
+	
+	/** Détecte et met en forme les images au format ![Image : description] */
+	private void highlightImages(JTextPane editor) {
+	    try {
+	        StyledDocument doc = editor.getStyledDocument();
+	        String text = doc.getText(0, doc.getLength());
+
+	        Matcher m = IMAGE_PATTERN.matcher(text);
+
+	        // Style vert pour les images
+	        SimpleAttributeSet imageStyle = new SimpleAttributeSet();
+	        StyleConstants.setForeground(imageStyle, new Color(0, 220, 100)); // vert vif lisible
+	        StyleConstants.setBold(imageStyle, true);
+
+	        while (m.find()) {
+	            int start = m.start();
+	            int end = m.end();
+	            doc.setCharacterAttributes(start, end - start, imageStyle, false);
+	        }
+
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }

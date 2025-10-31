@@ -1,16 +1,23 @@
 package writer;
 
-import javax.swing.*;
-import javax.swing.event.CaretEvent;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
+
+import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
 import javax.swing.event.CaretListener;
-import java.awt.*;
-import javax.swing.text.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
+import javax.swing.text.JTextComponent;
 
 public final class ParagraphHighlighter {
 
-    // Peinture bleu clair (modifiable si tu veux une autre teinte)
-    private static final Highlighter.HighlightPainter PARAGRAPH_PAINTER =
-            new DefaultHighlighter.DefaultHighlightPainter(Color.BLACK); // light blue Color(173, 216, 230)
+    // Peinture : fond sombre semi-transparent (tu peux changer la couleur)
+    private static final Color PARAGRAPH_COLOR = new Color(0, 0, 0, 60);
 
     // État interne
     private static Object lastHighlightTag = null;
@@ -19,49 +26,28 @@ public final class ParagraphHighlighter {
 
     private ParagraphHighlighter() {}
 
-    /**
-     * - Active le surlignage automatique du paragraphe courant dans un JTextArea.
-     * - Surligne en Gris plus clair le paragraphe où se trouve le caret.
-     * - Retire le surlignage dès que le caret passe dans un autre paragraphe.
-     * - Retire le surlignage quand l'éditeur perd le focus.
-     */
     public static void install(JTextPane editorPane) {
         if (editorPane == null) return;
 
-        // 1) Met en place un CaretListener pour mettre à jour le surlignage à chaque mouvement du caret.
-        CaretListener cl = new CaretListener() {
-            @Override
-            public void caretUpdate(CaretEvent e) {
-                highlightCurrentParagraph(editorPane);
-            }
-        };
+        // --- CaretListener pour actualiser le surlignage ---
+        CaretListener cl = e -> highlightCurrentParagraph(editorPane);
         editorPane.addCaretListener(cl);
 
-        // 2) Nettoie le surlignage à la perte de focus (facultatif mais plus propre)
+        // --- Nettoyage à la perte de focus ---
         editorPane.addFocusListener(new java.awt.event.FocusAdapter() {
-            @Override
-            public void focusLost(java.awt.event.FocusEvent e) {
-                clearHighlight(editorPane);
-            }
-            @Override
-            public void focusGained(java.awt.event.FocusEvent e) {
-                highlightCurrentParagraph(editorPane);
-            }
+            @Override public void focusLost(java.awt.event.FocusEvent e) { clearHighlight(editorPane); }
+            @Override public void focusGained(java.awt.event.FocusEvent e) { highlightCurrentParagraph(editorPane); }
         });
 
-        // 3) Premier passage : surligner le paragraphe courant
         SwingUtilities.invokeLater(() -> highlightCurrentParagraph(editorPane));
     }
 
-    /** Retire le comportement et nettoie le surlignage (si tu veux le désactiver proprement). */
     public static void uninstall(JTextPane editorPane) {
         if (editorPane == null) return;
         clearHighlight(editorPane);
-        // Si tu avais gardé des références aux listeners ajoutés, tu pourrais les retirer ici.
-        // (Ici on a laissé simple : tu peux recréer l'éditeur ou ignorer uninstall si non nécessaire.)
     }
 
-    /** Calcule et surligne le paragraphe courant. */
+    /** Calcule et surligne le paragraphe courant avec des coordonnées 2D précises. */
     private static void highlightCurrentParagraph(JTextPane editorPane) {
         try {
             String text = editorPane.getText();
@@ -73,17 +59,14 @@ public final class ParagraphHighlighter {
             int caret = editorPane.getCaretPosition();
             caret = Math.max(0, Math.min(caret, text.length()));
 
-            // Début de paragraphe : juste après le dernier séparateur de ligne avant le caret
+            // Début / fin du paragraphe
             int start = lastIndexOfLineBreak(text, Math.max(0, caret - 1)) + 1;
-
-            // Fin de paragraphe : au prochain séparateur de ligne après le caret (ou fin de texte)
             int end = nextIndexOfLineBreak(text, caret);
             if (end == -1) end = text.length();
 
-            // Si le paragraphe est le même que précédemment, ne rien refaire
             if (start == lastStart && end == lastEnd) return;
 
-            // Remettre à zéro et surligner le nouveau paragraphe
+            // Supprimer le surlignage précédent
             Highlighter hl = editorPane.getHighlighter();
             if (lastHighlightTag != null) {
                 hl.removeHighlight(lastHighlightTag);
@@ -91,11 +74,12 @@ public final class ParagraphHighlighter {
             }
 
             if (start < end) {
-                lastHighlightTag = hl.addHighlight(start, end, PARAGRAPH_PAINTER);
+                // ✅ Crée un painter personnalisé
+                Highlighter.HighlightPainter painter = new ParagraphPainter(PARAGRAPH_COLOR);
+                lastHighlightTag = hl.addHighlight(start, end, painter);
                 lastStart = start;
                 lastEnd = end;
             } else {
-                // Paragraphe vide / indices incohérents
                 clearHighlight(editorPane);
             }
         } catch (BadLocationException ex) {
@@ -103,7 +87,7 @@ public final class ParagraphHighlighter {
         }
     }
 
-    /** Retire le surlignage actuel et réinitialise l’état. */
+    /** Retire le surlignage actuel. */
     private static void clearHighlight(JTextPane editorPane) {
         Highlighter hl = editorPane.getHighlighter();
         if (lastHighlightTag != null) {
@@ -114,20 +98,58 @@ public final class ParagraphHighlighter {
         lastEnd = -1;
     }
 
-    /** Cherche le dernier saut de ligne (\n ou \r) avant ou à 'from'. Retourne -1 si aucun. */
+    /** Cherche le dernier saut de ligne avant ou à 'from'. Gère \r\n correctement. */
     private static int lastIndexOfLineBreak(String text, int from) {
-        int iN = text.lastIndexOf('\n', from);
-        int iR = text.lastIndexOf('\r', from);
-        return Math.max(iN, iR);
+        int idx = -1;
+        for (int i = from; i >= 0; i--) {
+            char c = text.charAt(i);
+            if (c == '\n' || c == '\r') {
+                idx = i;
+                // si c’est un \n précédé d’un \r, saute les deux
+                if (i > 0 && text.charAt(i - 1) == '\r') idx = i - 1;
+                break;
+            }
+        }
+        return idx;
     }
 
-    /** Cherche le premier saut de ligne (\n ou \r) à partir de 'from'. Retourne -1 si aucun. */
+    /** Cherche le premier saut de ligne à partir de 'from'. Gère \r\n correctement. */
     private static int nextIndexOfLineBreak(String text, int from) {
-        int iN = text.indexOf('\n', from);
-        int iR = text.indexOf('\r', from);
-        if (iN == -1) return iR;
-        if (iR == -1) return iN;
-        return Math.min(iN, iR);
+        for (int i = from; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '\n' || c == '\r') {
+                // si c’est un \r suivi d’un \n, saute les deux
+                if (c == '\r' && i + 1 < text.length() && text.charAt(i + 1) == '\n') return i + 1;
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
+    /** ✅ Peint le fond du paragraphe sur toute la largeur avec modelToView2D */
+    private static class ParagraphPainter extends DefaultHighlighter.DefaultHighlightPainter {
+        private final Color color;
+        ParagraphPainter(Color c) { super(c); this.color = c; }
+
+        @Override
+        public void paint(Graphics g, int p0, int p1, Shape bounds, JTextComponent c) {
+            try {
+                Rectangle2D r0 = c.modelToView2D(p0);
+                Rectangle2D r1 = c.modelToView2D(p1);
+                if (r0 == null || r1 == null) return;
+
+                double y = r0.getY();
+                double height = (r1.getY() + r1.getHeight()) - r0.getY();
+                double width = c.getWidth();
+
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setColor(color);
+                g2.fill(new Rectangle2D.Double(0, y, width, height));
+
+            } catch (BadLocationException ex) {
+                // ignore
+            }
+        }
     }
 }
-

@@ -229,11 +229,20 @@ public final class MenuBarFactory {
     	JMenuItem redoItem = createSimpleMenuItem("Retire",e -> {
     		ctx.getRedoAction();
     	});
+    	   	
     	
-    	JMenuItem edition = new JMenuItem(new act.ToggleEditAction(ctx.getEditor()));
-    	edition.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK));
-    	edition.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-    	editionMenu.add(edition);
+    	// Active/ désactive l'édition
+   	 	JMenuItem edition = createMenuItem("Active/désactive édition", KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK, e -> {
+            System.out.println("Active désactive édition");
+            new act.ToggleEditAction(ctx.getEditor()).actionPerformed(null);
+        }); 
+   	 	
+   	
+   		// Active/ désactive l'édition
+	 	JMenuItem removeLink = createMenuItem("Supprime les liens", KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK, e -> {
+	        System.out.println("Supprime les liens");
+	        new act.removeLinks(ctx.getEditor()).actionPerformed(null);
+	    });
 
     	// Vérification de tout le document
     	 JMenuItem checkAll = createMenuItem("Vérifier tout le document", KeyEvent.VK_F7, InputEvent.CTRL_DOWN_MASK, e -> {
@@ -271,8 +280,9 @@ public final class MenuBarFactory {
     	
     	// Ajouter des ChangeListeners pour les JMenuItem
 		 ctx.addItemChangeListener(undoItem);
-		 ctx.addItemChangeListener(edition);
 		 ctx.addItemChangeListener(redoItem);
+		 ctx.addItemChangeListener(edition);
+		 ctx.addItemChangeListener(removeLink);
 		 ctx.addItemChangeListener(checkAll);
 		 ctx.addItemChangeListener(checkSel);
 		 ctx.addItemChangeListener(clear);
@@ -283,6 +293,7 @@ public final class MenuBarFactory {
         editionMenu.add(redoItem);
         editionMenu.addSeparator();
         editionMenu.add(edition);
+        editionMenu.add(removeLink);
     	editionMenu.addSeparator();
     	editionMenu.add(checkAll);
     	editionMenu.add(checkSel);

@@ -278,15 +278,28 @@ public class navigateurT1 extends JFrame{
 	    while (matcher.find()) {
 	        String line = matcher.group();
 	        int startLine = matcher.start();
-	        int firstHashRel = Math.max(0, line.indexOf('#'));
-	        int caretPos = startLine + firstHashRel;
 
-	        titresOrdre.add(line);
+	        // Avance jusqu’au vrai début du '#' en ignorant \r\n ou espaces
+	        int offset = 0;
+	        while (offset < line.length()) {
+	            char c = line.charAt(offset);
+	            if (c == '#' || c == '\0') break;   // trouvé le début du titre
+	            if (c == '\r' || c == '\n' || Character.isWhitespace(c)) {
+	                offset++;
+	                continue;
+	            }
+	            break;
+	        }
+
+	        int caretPos = startLine + offset;
+
+	        titresOrdre.add(line.trim());
 	        titresNiveaux.add(niveauDuTitre(line));
 	        titresOffsets.add(caretPos);
-	        allTitles.append(line).append(System.lineSeparator());
+	        allTitles.append(line.trim()).append(System.lineSeparator());
 	        structure.putIfAbsent(keyOf(line), "");
 	    }
+
 
 	    // Compléments TTS pour #1
 	    int count = 0;
