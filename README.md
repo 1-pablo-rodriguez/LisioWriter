@@ -181,28 +181,19 @@ Vous pouvez :
 
 ## 👤 Auteur
 
-**LisioWriter** a été conçu et développé par **Pablo Rodriguez**,  
-enseignant en informatique à l’**Université d’Artois**,  
-dans le cadre d’une démarche de **recherche et d’innovation pédagogique**  
-visant à promouvoir l’**autonomie numérique des personnes non-voyantes et malvoyantes**.
+**LisioWriter** a été conçu et développé par **Pablo Rodriguez**, enseignant en informatique à l’**Université d’Artois**, dans le cadre d’une démarche de **recherche et d’innovation pédagogique** visant à promouvoir l’**autonomie numérique des personnes non-voyantes et malvoyantes**.
 
-Le logiciel a été **expérimenté et validé** auprès d’un **étudiant non-voyant**  
-ayant suivi un parcours complet de **Licence puis de Master**  
-(actuellement inscrit en **Master Gestion du Patrimoine Culturel**) à l’Université d’Artois,  
-au sein de l’**UFR d’Histoire et de Géographie**.  
+Le logiciel a été **expérimenté et validé** auprès d’un **étudiant non-voyant** ayant suivi un parcours complet de **Licence** et actuellement inscrit en **Master Gestion du Patrimoine Culturel** à l’Université d’Artois, au sein de l’**UFR d’Histoire et de Géographie**.  
 
 Cette phase d’expérimentation a permis d’évaluer :
 - l’**accessibilité réelle** de l’interface,  
 - l’**ergonomie fonctionnelle** de l’éditeur,  
-- et la capacité du logiciel à répondre aux besoins concrets des utilisateurs,  
-tant dans un **contexte académique** que lors de **situations professionnelles**  
-(stage de 2×4 mois répartis sur les deux années de Master).
+- et la capacité du logiciel à répondre aux besoins concrets des utilisateurs, tant dans un **contexte académique** que lors de **situations professionnelles** (stage de 2×4 mois répartis sur les deux années de Master).
 
-Ces validations, menées au sein de la **Licence d’Histoire** de l’Université d’Artois,  
-confirment la **pertinence de LisioWriter** comme outil d’**inclusion numérique**,  
-pleinement adapté à l’enseignement supérieur  
-et à un **usage professionnel autonome et accessible**.
+Ces expérimentations, menées au sein de la **Licence d’Histoire** de l’Université d’Artois, tendent à confirmer la **pertinence de LisioWriter** en tant qu’outil d’**inclusion numérique**, pleinement adapté à l’enseignement supérieur et à un **usage professionnel autonome et accessible**.  
 
+Cependant, l’expérimentation menée auprès d’un **seul étudiant non-voyant** ne permet pas encore d’évaluer la **portée générale** et la **diversité d’usage** du logiciel. Une phase d’expérimentation plus large, incluant plusieurs profils d’utilisateurs non-voyants,  
+sera nécessaire pour **valider** les résultats observés et affiner les **fonctions d’accessibilité et d’ergonomie** de l’éditeur.
 
 ---
 
