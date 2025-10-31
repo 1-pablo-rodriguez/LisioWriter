@@ -67,12 +67,22 @@ L’objectif est de fournir un outil qui favorise l’**autonomie numérique** e
 
 ## ![Démonstration de LisioWriter](docs/wikipedia.png) Nouvelle fonctionnalité : intégration de Wikipédia
 
-LisioWriter permet désormais de rechercher et d’importer directement des articles Wikipédia depuis l’éditeur.
-L’utilisateur saisit un mot-clé, parcourt les résultats, puis insère l’article choisi dans son document.
+LisioWriter permet désormais de **rechercher et d’importer directement des articles Wikipédia** sans quitter l’éditeur.  
+L’utilisateur saisit un mot-clé, parcourt les résultats, puis insère l’article sélectionné dans son document en un clic.
 
-Le contenu est automatiquement converti avec la structure et la mise en forme du texte d’origine :
-titres hiérarchisés, paragraphes, listes, liens et emphases sont traduits au format lisible et compatibles avec les lecteurs d’écran et barres braille.
-Les menus et autres éléments qui ne sont pas du contenu de l'article ne sont pas importés dans l'éditeur de LisioWriter.
+Lors de l’importation, **seul le contenu principal de l’article est conservé** :  
+les menus, tableaux, infobox et autres éléments non pertinents sont automatiquement exclus, garantissant une lecture fluide et accessible.
+
+L’utilisateur peut ensuite, s’il le souhaite, **nettoyer le texte importé** en supprimant :
+
+- les liens de l’article : `@[lien : URL]`  
+- les images : `![Image : description]`
+
+Le contenu est automatiquement **converti au format LisioWriter**, qui préserve la **structure logique** et la **mise en forme du texte d’origine** :  
+titres hiérarchisés, paragraphes, listes, liens et emphases sont reproduits dans un format **lisible, accessible et compatible avec les lecteurs d’écran** ainsi qu’avec les **barres braille**.
+
+👉 L’**utilisation du navigateur intégré** devient alors un outil très pratique.
+
 
 ![Démonstration de LisioWriter](docs/demo.gif)
 
