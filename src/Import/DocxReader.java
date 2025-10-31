@@ -252,6 +252,39 @@ public class DocxReader {
                     continue; // saute les runs déjà fusionnés
                 }
 
+             // === 🖼️ Cas spécial : images ===
+                try {
+                    var ctr = run.getCTR();
+                    var drawingList = ctr.getDrawingList();
+                    if (drawingList != null && !drawingList.isEmpty()) {
+                        for (var drawing : drawingList) {
+                            var inlineList = drawing.getInlineList();
+                            if (inlineList != null) {
+                                for (var inline : inlineList) {
+                                    String altText = null;
+                                    try {
+                                        altText = inline.getDocPr().getDescr(); // le texte de remplacement
+                                    } catch (Exception ignored) {}
+
+                                    if (altText == null || altText.isBlank()) {
+                                        // fallback : titre éventuel
+                                        try { altText = inline.getDocPr().getTitle(); } catch (Exception ignored) {}
+                                    }
+
+                                    if (altText != null && !altText.isBlank()) {
+                                        sb.append("![Image : ").append(altText.trim()).append("]");
+                                    } else {
+                                        sb.append("![Image]");
+                                    }
+
+                                    hadVisibleText = true;
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {}
+                
+                
                 // === 🟩 Cas général : run normal ===
                 String text = getRunVisibleText(run);
                 TextStyle ts = new TextStyle();
