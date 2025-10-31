@@ -1,7 +1,6 @@
 package dia;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
@@ -25,9 +24,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.text.JTextComponent;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -345,24 +341,22 @@ public class HtmlBrowserDialog extends JDialog {
 	
 	                // ✅ Formater le contenu final (titre + texte importé)
 	                String formatted = "#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
-	
-	                
 	                
 	                System.out.println("✅ Article inséré : " + articleTitle);
 	                
-	                // 🔧 Normalisation des fins de ligne pour éviter les décalages
-	                try {
-	                     formatted
-	                        .replace("\r\n", "\n")  // Windows → Unix
-	                        .replace('\r', '\n');   // vieux Mac → Unix
-
-	                    javax.swing.text.Document d = editorPane.getDocument();
-	                    d.remove(0, d.getLength());
-	                    d.insertString(0, formatted, null);
-	                } catch (Exception ex) {
-	                    ex.printStackTrace();
-	                }
-	                
+//	                // 🔧 Normalisation des fins de ligne pour éviter les décalages
+//	                try {
+//	                     formatted
+//	                        .replace("\r\n", "\n")  // Windows → Unix
+//	                        .replace('\r', '\n');   // vieux Mac → Unix
+//
+//	                    javax.swing.text.Document d = editorPane.getDocument();
+//	                    d.remove(0, d.getLength());
+//	                    d.insertString(0, formatted, null);
+//	                } catch (Exception ex) {
+//	                    ex.printStackTrace();
+//	                }
+	               	                
 	                doc.insertString(pos, formatted, null);
 	                
 	                editorPane.setCaretPosition(pos);

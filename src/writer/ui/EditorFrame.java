@@ -53,6 +53,7 @@ import writer.bookmark.BookmarkManager;
 import writer.editor.AutoListContinuationFilter;
 import writer.model.Affiche;
 import writer.spell.SpellCheckLT;
+import writer.ui.editor.TextHighlighter;
 import writer.ui.editor.WrapEditorKit;
 import writer.util.IconLoader;
 
@@ -280,26 +281,21 @@ public class EditorFrame extends JFrame implements EditorApi {
   	    this.editorPane.setCaretPosition(0);
 
   	    // marquer le doc comme "modifié" à la moindre modification utilisateur
-		this.editorPane.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-			   @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { 
-			       setModified(true);
-			       SwingUtilities.invokeLater(() ->{ 
-			    	   highlightLinks(editorPane);
-			    	   highlightImages(editorPane);
-			    	   });
-			   }
-			   @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { 
-			       setModified(true);
-			       SwingUtilities.invokeLater(() -> {
-			    	   highlightLinks(editorPane);
-			    	   highlightImages(editorPane);
-			    	   }
-			       );
-		       }
-			   @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { 
-			       setModified(true);
-			   }
-		});
+	  	  this.editorPane.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+	  	    @Override public void insertUpdate(javax.swing.event.DocumentEvent e) {
+	  	        setModified(true);
+	  	        SwingUtilities.invokeLater(() -> TextHighlighter.apply(editorPane));
+	  	    }
+	  	    @Override public void removeUpdate(javax.swing.event.DocumentEvent e) {
+	  	        setModified(true);
+	  	        SwingUtilities.invokeLater(() -> TextHighlighter.apply(editorPane));
+	  	    }
+	  	    @Override public void changedUpdate(javax.swing.event.DocumentEvent e) {
+	  	        setModified(true);
+	  	    }
+	  	});
+
+
 
 
   	   // --- AJOUTE LES CLASS QUI PERMETTENT LES LISTES PUCES OU NULEROTES ---
@@ -800,107 +796,7 @@ public class EditorFrame extends JFrame implements EditorApi {
         // Fait défiler la vue
         this.editorPane.scrollRectToVisible(padded);
     }
-    
-    //Permet de positionnner le scroll verticale en fonction de la position du curseur.
-    public void placeCursorAtText(String searchText) {
-       String text = this.editorPane.getText(); // Récupérer le texte de la JTextArea
-        int index = text.indexOf(searchText); // Rechercher l'index de la chaîne "selectedT1"
-        
-        if (index != -1) {
-            // Placer le curseur au début de "selectedT1"
-        	this.editorPane.setCaretPosition(index);
-        	
-        	 // Faire défiler pour que le texte soit visible en haut de la zone visible
-            try {
-                // Récupérer les coordonnées du rectangle correspondant à la position du curseur avec modelToView2D
-                Rectangle2D rect2D = this.editorPane.modelToView2D(this.editorPane.getCaretPosition());
-                Rectangle rect = rect2D.getBounds();
-
-                // Faire défiler pour que cette position soit visible en haut
-                this.editorPane.scrollRectToVisible(new Rectangle(rect.x, rect.y, rect.width, this.scrollPane.getViewport().getHeight()));
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        	
-        } else {
-        	System.out.println("Texte non trouvé : " + searchText );
-        }
-    }
-    
-
-    /** Détecte et met en forme les liens hypertextes au format @[Titre: URL] */
-	private void highlightLinks(JTextPane editor) {
-	    try {
-	        StyledDocument doc = editor.getStyledDocument();
-	        String text = doc.getText(0, doc.getLength());
-	
-	        // Style normal : blanc
-	        SimpleAttributeSet normal = new SimpleAttributeSet();
-	        StyleConstants.setForeground(normal, Color.WHITE);
-	        StyleConstants.setUnderline(normal, false);
-	        doc.setCharacterAttributes(0, doc.getLength(), normal, false);
-	
-	        Matcher m = URL_PATTERN.matcher(text);
-	
-	        // Styles spécifiques
-	        SimpleAttributeSet prefixStyle = new SimpleAttributeSet();
-	        StyleConstants.setForeground(prefixStyle, new Color(180, 180, 180)); // gris clair
-	
-	        SimpleAttributeSet linkStyle = new SimpleAttributeSet();
-	        StyleConstants.setForeground(linkStyle, new Color(80, 170, 255)); // bleu plus lumineux
-	        StyleConstants.setUnderline(linkStyle, true);
-	
-	        while (m.find()) {
-	            int fullStart = m.start();
-	            int fullEnd   = m.end();
-	            int urlStart  = m.start(2);
-	            int urlEnd    = m.end(2);
-	
-	            // Appliquer gris au préfixe "@[Titre:"
-	            if (urlStart > fullStart)
-	                doc.setCharacterAttributes(fullStart, urlStart - fullStart, prefixStyle, false);
-	
-	            // Appliquer bleu souligné à l’URL
-	            doc.setCharacterAttributes(urlStart, urlEnd - urlStart, linkStyle, false);
-	
-	            // Restaurer le style normal pour "]"
-	            if (urlEnd < fullEnd)
-	                doc.setCharacterAttributes(urlEnd, fullEnd - urlEnd, normal, false);
-	        }
-	
-	        // Forcer le rafraîchissement visuel
-	        editor.repaint();
-	
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	}
-
-	
-	/** Détecte et met en forme les images au format ![Image : description] */
-	private void highlightImages(JTextPane editor) {
-	    try {
-	        StyledDocument doc = editor.getStyledDocument();
-	        String text = doc.getText(0, doc.getLength());
-
-	        Matcher m = IMAGE_PATTERN.matcher(text);
-
-	        // Style vert pour les images
-	        SimpleAttributeSet imageStyle = new SimpleAttributeSet();
-	        StyleConstants.setForeground(imageStyle, new Color(0, 220, 100)); // vert vif lisible
-	        StyleConstants.setBold(imageStyle, true);
-
-	        while (m.find()) {
-	            int start = m.start();
-	            int end = m.end();
-	            doc.setCharacterAttributes(start, end - start, imageStyle, false);
-	        }
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	}
-
+ 
     
     public static void enableVisibleTabs(JTextComponent editor) {
         // 1) Le TAB ne doit pas déplacer le focus
