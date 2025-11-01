@@ -29,6 +29,9 @@ import org.w3c.dom.NodeList;
 public class OdtReader {
 	
 	private static final String XLINK_NS = "http://www.w3.org/1999/xlink";
+	private static final String DRAW_NS = "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0";
+	private static final String SVG_NS  = "urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0";
+
 
 	/** Empêche le libellé de casser la syntaxe @[Texte: URL] */
 	private static String escapeLabelForAtLink(String s) {
@@ -39,7 +42,6 @@ public class OdtReader {
 	    s = s.replace(':', '∶'); // visuellement proche, n'entre pas en collision avec le séparateur
 	    return s;
 	}
-
 
     private static class TextStyle {
         boolean bold;
@@ -475,7 +477,16 @@ public class OdtReader {
                 result.append("[tab]");
                 break;
             }
+            case "frame": { // <draw:frame> contenant souvent <draw:image>
+                // Émet une seule ligne image, puis on ignore l’intérieur (pour éviter doublons)
+                emitImageMarkup(element, result);
+                break;
+            }
 
+            case "image": { // <draw:image> rencontré directement (rare hors frame)
+                emitImageMarkup(element, result);
+                break;
+            }
 
             default: {
                 // descente par défaut
@@ -553,5 +564,74 @@ public class OdtReader {
         // Optionnel: compacter l’espace
         return raw.replaceAll("\\s+", " ").trim();
     }
+    
+    /** Renvoie le texte du premier enfant <svg:title> sous e (ou vide). */
+    private static String getSvgTitle(Element e) {
+        NodeList titles = e.getElementsByTagNameNS(SVG_NS, "title");
+        if (titles.getLength() > 0) {
+            String t = titles.item(0).getTextContent();
+            if (t != null) return t.trim();
+        }
+        return "";
+    }
+
+    /** Renvoie le texte du premier enfant <svg:desc> sous e (ou vide). */
+    private static String getSvgDesc(Element e) {
+        NodeList descs = e.getElementsByTagNameNS(SVG_NS, "desc");
+        if (descs.getLength() > 0) {
+            String t = descs.item(0).getTextContent();
+            if (t != null) return t.trim();
+        }
+        return "";
+    }
+
+    /** Renvoie le texte d'une éventuelle légende <draw:caption> imbriquée dans le frame. */
+    private static String getDrawCaption(Element frame) {
+        NodeList caps = frame.getElementsByTagNameNS(DRAW_NS, "caption");
+        if (caps.getLength() > 0) {
+            String t = caps.item(0).getTextContent();
+            if (t != null) return t.trim();
+        }
+        return "";
+    }
+
+    /** Choisit l’étiquette à afficher : description > alt > "Image". */
+    private static String chooseImageLabel(String alt, String desc) {
+        alt  = (alt  == null ? "" : alt.trim());
+        desc = (desc == null ? "" : desc.trim());
+        if (!desc.isEmpty()) return desc;   // priorité à la description
+        if (!alt.isEmpty())  return alt;    // fallback: texte alternatif
+        return "Image";                      // dernier recours
+    }
+
+    /** Écrit dans result la ligne LisioWriter pour une image trouvée dans un frame ou un image. */
+    private static void emitImageMarkup(Element frameOrImage, StringBuilder result) {
+	    String alt  = getSvgTitle(frameOrImage);
+	    String desc = getSvgDesc(frameOrImage);
+	
+	    if (frameOrImage.getLocalName().equals("frame")) {
+	        NodeList imgs = frameOrImage.getElementsByTagNameNS(DRAW_NS, "image");
+	        if (imgs.getLength() > 0) {
+	            Element img = (Element) imgs.item(0);
+	            if (alt.isBlank())  alt  = getSvgTitle(img);
+	            if (desc.isBlank()) desc = getSvgDesc(img);
+	        }
+	        // Légende <draw:caption> = description prioritaire si présente
+	        if (desc.isBlank()) {
+	            String cap = getDrawCaption(frameOrImage);
+	            if (!cap.isBlank()) desc = cap;
+	        }
+	        if (alt.isBlank()) {
+	            String name = frameOrImage.getAttribute("draw:name");
+	            if (name != null && !name.isBlank()) alt = name.trim();
+	        }
+	    }
+	
+	    alt  = alt.replaceAll("\\s+", " ").trim();
+	    desc = desc.replaceAll("\\s+", " ").trim();
+	
+	    String label = chooseImageLabel(alt, desc);
+	    result.append("![Image: ").append(label).append("]");
+	}
 
 }
