@@ -40,19 +40,17 @@ public class DocxReader {
     }
 
     public static String extractStructuredTextFromDocx(String docxPath) throws Exception {
-        StringBuilder sb = new StringBuilder();
+    	LIST_COUNTERS.clear();
+    	StringBuilder sb = new StringBuilder();
         try (InputStream in = new FileInputStream(docxPath);
              XWPFDocument doc = new XWPFDocument(in)) {
-
         	for (IBodyElement be : doc.getBodyElements()) {
         	    if (be.getElementType() == BodyElementType.PARAGRAPH) {
         	        XWPFParagraph p = (XWPFParagraph) be;
-        	        // ⬇️ on passe 'doc' à handleParagraph pour gérer les notes
         	        handleParagraph(p, doc, sb);
         	    } else if (be.getElementType() == BodyElementType.TABLE) {
-        	        @SuppressWarnings("unused")
-					XWPFTable t = (XWPFTable) be;
-        	        sb.append("@table\n");
+        	        XWPFTable t = (XWPFTable) be;
+        	        emitLisioTable(t, doc, sb);   // ⬅️ nouveau
         	    }
         	}
         }
@@ -69,7 +67,7 @@ public class DocxReader {
         
         // Paragraphe forcé à commencer sur une nouvelle page
         if (ppr != null && ppr.isSetPageBreakBefore()) {
-            appendPageBreakLine(sb);
+        	appendManualPageBreakLineNoDup(sb);
         }
         
         if (ppr != null && ppr.getOutlineLvl() != null) {
@@ -284,6 +282,25 @@ public class DocxReader {
                     }
                 } catch (Exception ignored) {}
                 
+             // === ⬛ Sauts de page dans le run: <w:br w:type="page"/> ===
+                try {
+                    var ctr = run.getCTR();
+                    if (ctr != null) {
+                        // Parcourt tous les <w:br/>
+                        java.util.List<org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBr> brs = ctr.getBrList();
+                        if (brs != null) {
+                            for (var br : brs) {
+                                org.openxmlformats.schemas.wordprocessingml.x2006.main.STBrType.Enum tp =
+                                        (br != null && br.isSetType()) ? br.getType() : null;
+                                if (tp == org.openxmlformats.schemas.wordprocessingml.x2006.main.STBrType.PAGE) {
+                                    appendManualPageBreakLineNoDup(sb);
+                                    wrotePageBreakInThisPara = true; // si tu veux t’en servir plus tard
+                                }
+                            }
+                        }
+                        // ⚠ on ignore volontairement <w:lastRenderedPageBreak/> (pas un saut manuel)
+                    }
+                } catch (Exception ignored) {}
                 
                 // === 🟩 Cas général : run normal ===
                 String text = getRunVisibleText(run);
@@ -352,7 +369,7 @@ public class DocxReader {
             // finir la ligne du paragraphe courant
             if (sb.length() == 0 || sb.charAt(sb.length() - 1) != '\n') sb.append('\n');
             // insérer la ligne de saut de page
-            appendPageBreakLine(sb);
+            appendManualPageBreakLineNoDup(sb);
         }
 
         // 6) fin de paragraphe
@@ -505,13 +522,6 @@ public class DocxReader {
     }
 
 
-    private static void appendPageBreakLine(StringBuilder sb) {
-        int len = sb.length();
-        if (len > 0 && sb.charAt(len - 1) != '\n') sb.append('\n');
-        sb.append("@saut de page\n");
-    }
-
-
     private static String wrapWithMarkers(String text, TextStyle ts) {
         if (ts == null || ts.isEmpty()) return text;
         boolean b = ts.bold, it = ts.italic, u = ts.underline;
@@ -613,6 +623,259 @@ public class DocxReader {
 
 
         return text; // normal
+    }
+    
+    /** Écrit un tableau Word en syntaxe LisioWriter @t … @/t */
+    private static void emitLisioTable(XWPFTable table, XWPFDocument doc, StringBuilder sb) {
+        if (table == null) return;
+
+        // Commencer le bloc
+        endLineIfNeeded(sb);
+        sb.append("@t\n");
+
+        // Heuristique "ligne d’en-tête" :
+        // - si la 1ère ligne a tblHeader=true, on la traite en |!
+        // - sinon, si *toutes* les cellules de la 1ère ligne sont en gras, on la traite en |!
+        boolean firstIsHeader = false;
+        if (!table.getRows().isEmpty()) {
+            var r0 = table.getRow(0);
+            firstIsHeader = isWordHeaderRow(r0);
+            if (!firstIsHeader) firstIsHeader = rowLooksBold(r0); // heuristique de repli
+        }
+
+        for (int r = 0; r < table.getNumberOfRows(); r++) {
+            var row = table.getRow(r);
+            boolean header = (r == 0 && firstIsHeader);
+
+            sb.append(header ? "|! " : "| ");
+
+            int n = row.getTableCells().size();
+            for (int c = 0; c < n; c++) {
+                var cell = row.getCell(c);
+                String cellText = extractCellInline(cell, doc);   // contenu riche (gras/italique/liens/notes)
+                sb.append(escapePipes(cellText));
+                if (c < n - 1) sb.append(" | ");
+            }
+            sb.append('\n');
+        }
+
+        sb.append("@/t\n");
+        endLineIfNeeded(sb);
+        // ligne vide après le tableau (comme pour un paragraphe)
+        // (optionnel) sb.append('\n');
+    }
+
+    /** Vrai si *tous* les runs de la 1ère ligne paraissent gras (heuristique simple). */
+    private static boolean rowLooksBold(org.apache.poi.xwpf.usermodel.XWPFTableRow row) {
+        if (row == null) return false;
+        for (var cell : row.getTableCells()) {
+            boolean anyText = false, allBold = true;
+            for (var p : cell.getParagraphs()) {
+                for (var r : p.getRuns()) {
+                    String t = r.text();
+                    if (t != null && !t.isBlank()) {
+                        anyText = true;
+                        try { if (!r.isBold()) allBold = false; } catch (Exception ignored) { allBold = false; }
+                    }
+                }
+            }
+            if (anyText && !allBold) return false;
+        }
+        return true;
+    }
+
+    /** Concatène le contenu d’une cellule avec la même logique inline que les paragraphes (sans préfixes de titre/liste). */
+    private static String extractCellInline(org.apache.poi.xwpf.usermodel.XWPFTableCell cell, XWPFDocument doc) {
+        if (cell == null) return "";
+        StringBuilder out = new StringBuilder();
+        var paras = cell.getParagraphs();
+        if (paras == null || paras.isEmpty()) {
+            // fallback brut
+            String t = normalizeSpaces(cell.getText());
+            return t == null ? "" : t;
+        }
+        for (int i = 0; i < paras.size(); i++) {
+            if (i > 0) out.append(" "); // séparateur doux entre paragraphes de la même cellule
+            out.append(inlineFromParagraph(paras.get(i), doc));
+        }
+        return normalizeSpaces(out.toString());
+    }
+
+    /** Rend *uniquement* le contenu inline d’un paragraphe (gras/italique/souligné, liens, images, notes, tabs), sans newline ni préfixe. */
+    private static String inlineFromParagraph(XWPFParagraph p, XWPFDocument doc) {
+        StringBuilder sb = new StringBuilder();
+
+        var runs = p.getRuns();
+        if (runs != null) {
+            int i = 0;
+            while (i < runs.size()) {
+                XWPFRun run = runs.get(i);
+
+                // Liens fusionnés
+                if (run instanceof XWPFHyperlinkRun hrun) {
+                    String url = null;
+                    try { if (hrun.getHyperlink(doc) != null) url = hrun.getHyperlink(doc).getURL(); } catch (Exception ignored) {}
+                    if ((url == null || url.isBlank()) && hrun.getHyperlinkId() != null) {
+                        try {
+                            var link = doc.getHyperlinkByID(hrun.getHyperlinkId());
+                            if (link != null) url = link.getURL();
+                        } catch (Exception ignored) {}
+                    }
+                    StringBuilder label = new StringBuilder();
+                    while (i < runs.size()) {
+                        XWPFRun r = runs.get(i);
+                        if (r instanceof XWPFHyperlinkRun hr2) {
+                            String u2 = null;
+                            try { if (hr2.getHyperlink(doc) != null) u2 = hr2.getHyperlink(doc).getURL();
+                                  if ((u2 == null || u2.isBlank()) && hr2.getHyperlinkId() != null) {
+                                      var link = doc.getHyperlinkByID(hr2.getHyperlinkId()); if (link != null) u2 = link.getURL();
+                                  }
+                            } catch (Exception ignored) {}
+                            if ((url != null && url.equals(u2)) || (url == null && u2 == null)) {
+                                if (hr2.text() != null) label.append(hr2.text());
+                                i++; continue;
+                            }
+                        }
+                        break;
+                    }
+                    String lbl = normalizeSpaces(label.toString());
+                    if (!lbl.isBlank() && url != null && !url.isBlank()) {
+                        sb.append("@[").append(lbl).append(": ").append(url).append("]");
+                    } else {
+                        sb.append(lbl);
+                    }
+                    continue;
+                }
+
+                // Images (alt/title)
+                try {
+                    var ctr = run.getCTR();
+                    var drawingList = ctr.getDrawingList();
+                    if (drawingList != null && !drawingList.isEmpty()) {
+                        for (var drawing : drawingList) {
+                            var inlineList = drawing.getInlineList();
+                            if (inlineList != null) for (var inl : inlineList) {
+                                String alt = null;
+                                try { alt = inl.getDocPr().getDescr(); } catch (Exception ignored) {}
+                                if (alt == null || alt.isBlank()) try { alt = inl.getDocPr().getTitle(); } catch (Exception ignored) {}
+                                if (alt != null && !alt.isBlank()) sb.append("![Image : ").append(alt.trim()).append("]");
+                                else sb.append("![Image]");
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {}
+
+                // Texte stylé
+                String t = getRunVisibleText(run);
+                TextStyle ts = new TextStyle();
+                try { ts.bold = run.isBold(); } catch (Exception ignored) {}
+                try { ts.italic = run.isItalic(); } catch (Exception ignored) {}
+                try {
+                    var u = run.getUnderline();
+                    ts.underline = (u != null && u != org.apache.poi.xwpf.usermodel.UnderlinePatterns.NONE);
+                } catch (Exception ignored) {}
+                if (t != null && !t.isEmpty()) sb.append(wrapSuperSub(wrapWithMarkers(t, ts), run));
+
+                // Notes de bas de page
+                try {
+                    var ctr = run.getCTR();
+                    var refs = ctr.getFootnoteReferenceList();
+                    if (refs != null) for (var r : refs) {
+                        var id = r.getId();
+                        String note = extractFootnoteInlineText(doc, id);
+                        if (!note.isBlank()) sb.append("@(").append(note).append(")");
+                    }
+                } catch (Exception ignored) {}
+
+                i++;
+            }
+        }
+
+        // Fallback si vide
+        if (sb.length() == 0) sb.append(normalizeSpaces(paragraphToVisible(p)));
+        return sb.toString();
+    }
+
+    /** Échappe les barres verticales et antislash pour la syntaxe de tableau LW. */
+    private static String escapePipes(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("|", "\\|").trim();
+    }
+
+    /** Ajoute un saut de ligne si le buffer ne se termine pas déjà par \n. */
+    private static void endLineIfNeeded(StringBuilder sb) {
+        int len = sb.length();
+        if (len > 0 && sb.charAt(len - 1) != '\n') sb.append('\n');
+    }
+
+ // Détecte si la ligne Word est marquée "header" (w:tblHeader) quelle que soit la version des schémas.
+    @SuppressWarnings("deprecation")
+	private static boolean isWordHeaderRow(org.apache.poi.xwpf.usermodel.XWPFTableRow row) {
+        if (row == null || row.getCtRow() == null || row.getCtRow().getTrPr() == null) return false;
+        var trPr = row.getCtRow().getTrPr();
+
+        // 1) Tentative API directe (certaines versions l’ont)
+        try {
+            // CTTrPr#isSetTblHeader / getTblHeader
+            java.lang.reflect.Method isSet = trPr.getClass().getMethod("isSetTblHeader");
+            java.lang.reflect.Method getVal = trPr.getClass().getMethod("getTblHeader");
+            Boolean present = (Boolean) isSet.invoke(trPr);
+            if (present != null && present) {
+                Object onOff = getVal.invoke(trPr); // CTOnOff
+                // CTOnOff#getVal() -> Boolean (peut être null => considéré "on")
+                java.lang.reflect.Method getVal2 = onOff.getClass().getMethod("getVal");
+                Object v = getVal2.invoke(onOff);
+                return (v == null) || Boolean.TRUE.equals(v);
+            }
+        } catch (Throwable ignore) { /* passe au plan B */ }
+
+        // 2) Liste (autres versions exposent getTblHeaderList())
+        try {
+            java.lang.reflect.Method getList = trPr.getClass().getMethod("getTblHeaderList");
+            java.util.List<?> list = (java.util.List<?>) getList.invoke(trPr);
+            if (list != null && !list.isEmpty()) {
+                Object onOff = list.get(0);
+                java.lang.reflect.Method isSetVal = onOff.getClass().getMethod("isSetVal");
+                java.lang.reflect.Method getVal2 = onOff.getClass().getMethod("getVal");
+                boolean hasVal = (Boolean) isSetVal.invoke(onOff);
+                if (!hasVal) return true;                 // <w:tblHeader/> => vrai
+                Object v = getVal2.invoke(onOff);         // Boolean
+                return Boolean.TRUE.equals(v);
+            }
+        } catch (Throwable ignore) { /* passe au plan C */ }
+
+        // 3) Fallback XmlCursor : chercher explicitement <w:tblHeader ...>
+        try {
+            org.apache.xmlbeans.XmlCursor xc = trPr.newCursor();
+            if (xc.toFirstChild()) {
+                do {
+                    if (xc.isStart() && "tblHeader".equals(xc.getName().getLocalPart())) {
+                        String val = xc.getAttributeText(
+                            new javax.xml.namespace.QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main", "val"));
+                        xc.dispose();
+                        // si @w:val absent -> true ; sinon true/1
+                        return (val == null || val.isBlank() || "true".equalsIgnoreCase(val) || "1".equals(val));
+                    }
+                } while (xc.toNextSibling());
+            }
+            xc.dispose();
+        } catch (Throwable ignore) {}
+
+        return false;
+    }
+
+    private static void appendManualPageBreakLineNoDup(StringBuilder sb) {
+        // Regarde les ~80 derniers caractères pour voir si on vient déjà d’émettre la même ligne
+        int len = sb.length();
+        int from = Math.max(0, len - 80);
+        String tail = sb.substring(from, len);
+
+        // On considère doublon si la dernière occurrence est déjà la dernière "vraie" ligne
+        if (tail.contains("@saut de page manuel")) return;
+
+        // Sinon, on l'écrit proprement
+        if (len > 0 && sb.charAt(len - 1) != '\n') sb.append('\n');
+        sb.append("@saut de page manuel\n");
     }
 
 

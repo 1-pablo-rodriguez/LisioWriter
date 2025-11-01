@@ -160,8 +160,6 @@ public final class TextHighlighter {
                 runningOffset += lineTxt.length() + 1;
             }
 
-
-
             // === 7. Rafraîchir l’affichage ===
             editor.repaint();
 
