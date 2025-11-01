@@ -89,7 +89,7 @@ Cependant, l’expérimentation menée auprès d’un **seul étudiant non-voyan
 ## ![Démonstration de LisioWriter](docs/wikipedia.png) Nouvelle fonctionnalité : intégration de Wikipédia
 
 LisioWriter permet désormais de **rechercher et d’importer directement des articles Wikipédia** sans quitter l’éditeur.  
-L’utilisateur saisit un mot-clé, parcourt les résultats, puis insère l’article sélectionné dans son document en un clic.
+L’utilisateur saisit un mot-clé, parcourt les résultats, puis insère l’article sélectionné dans son document.
 
 Lors de l’importation, **seul le contenu principal de l’article est conservé** :  
 les menus, tableaux, infobox et autres éléments non pertinents sont automatiquement exclus, garantissant une lecture fluide et accessible.
