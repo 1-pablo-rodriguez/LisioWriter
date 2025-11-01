@@ -355,13 +355,11 @@ public class OdtReader {
             case "p": {
                 String styleName = element.getAttribute("text:style-name");
 
-                // si le paragraphe a directement un outline-level (certains ODT exportent ainsi), le prendre PRIORITAIREMENT
                 String levelAttr = element.getAttribute("text:outline-level");
                 int level = -1;
                 if (levelAttr != null && !levelAttr.isEmpty()) {
                     try { level = Integer.parseInt(levelAttr); } catch (Exception ignored) { level = -1; }
                 } else {
-                    // sinon, tenter de résoudre via le style (avec normalisations / regex fallback)
                     level = resolveHeadingLevelFromStyle(styleName, styleToParent, headingLevels);
                 }
 
@@ -379,11 +377,17 @@ public class OdtReader {
 
                 NodeList children = element.getChildNodes();
                 for (int i = 0; i < children.getLength(); i++) {
-                    parseContentInOrder(children.item(i), styleToParent, directTextStyleMap, headingLevels, result, listenumerote2, stylesDoc, contentDoc);
+                    parseContentInOrder(children.item(i), styleToParent, directTextStyleMap, headingLevels,
+                            result, listenumerote2, stylesDoc, contentDoc);
                 }
-                result.append("\n");
+
+                // ✅ n’ajoute pas de \n si ce <p> est à l’intérieur d’un <list-item>
+                if (!isInsideListItem(element)) {
+                    result.append("\n");
+                }
                 break;
             }
+
             case "list": {
                 String styleName = element.getAttribute("text:style-name");
                 int level = resolveHeadingLevelFromStyle(styleName, styleToParent, headingLevels);
