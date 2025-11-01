@@ -136,7 +136,7 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de LisioWriter acces
 | **F7 / Maj+F7** | Erreur suivante / précédente | Sélectionne le mot ou le texte suivant ou précédent<br>contenant une faute ou une erreur. |
 | **Ctrl+F7**     | Vérification du document    | Lance la vérification orthographique et grammaticale de tout le document.  |
 | **F8**          | Article Wikipédia           | Insère dans l’éditeur des articles Wikipédia structurés<br>avec leur mise en forme et leur hiérarchie. |
-| **Ctrl+F**      | Recherche                   | Outils de recherche intégrant des jokers<br> **?** remplace un caractère<br> **\*** remplace des caractères <br> **==** Case rigoureuse |
+| **Ctrl+F**      | Recherche                   | Outils de recherche intégrant des jokers<br> **?** remplace un caractère<br> **\*** remplace des caractères <br> **==** Case rigoureuse<br> **&&** paragraphe contenant<br> **\#\#** titre contenant<br> **%d** chiffre |
 
 Toutes les fonctions du logiciel sont accessibles **entièrement au clavier, sans souris**.  
 Les menus sont conçus pour être **vocalisés** et **compatibles avec les barres braille**, afin de garantir une accessibilité complète.
