@@ -17,6 +17,7 @@ import javax.swing.text.StyledDocument;
  * - sauts de page @saut de page / @saut de page manuel
  * - liens @[Titre: URL]
  * - images (![Image : description])
+ * - Les tables @t |! | @\t
  */
 public final class TextHighlighter {
 
@@ -109,6 +110,57 @@ public final class TextHighlighter {
             while (imgMatcher.find()) {
                 doc.setCharacterAttributes(imgMatcher.start(), imgMatcher.end() - imgMatcher.start(), imageStyle, false);
             }
+            
+         // === Tables: coloriser @t, @/t, et tous les '|' non échappés dans les lignes ===
+            String[] linesArr = text.split("\n", -1);
+            int runningOffset = 0;
+            boolean inTable = false;
+
+            for (int li = 0; li < linesArr.length; li++) {
+                String lineTxt = linesArr[li];
+                String trimmed = lineTxt.strip();
+
+                // Balises d'ouverture / fermeture de tableau
+                if (trimmed.equals("@t")) {
+                    // colorise toute la ligne @t
+                    doc.setCharacterAttributes(runningOffset, lineTxt.length(), codeStyle, false);
+                    inTable = true;
+                } else if (trimmed.equals("@/t")) {
+                    // colorise toute la ligne @/t
+                    doc.setCharacterAttributes(runningOffset, lineTxt.length(), codeStyle, false);
+                    inTable = false;
+                } else if (inTable) {
+                    // Lignes de tableau: commencent par '|' ou '|!'
+                    String s = lineTxt;
+                    int start = 0;
+
+                    // colorise le préfixe d'en-tête |! si présent
+                    if (s.startsWith("|!")) {
+                        doc.setCharacterAttributes(runningOffset, 2, codeStyle, false);
+                        start = 2; // continuer après '|!'
+                    } else if (s.startsWith("|")) {
+                        // colorise le tout premier '|' aussi
+                        doc.setCharacterAttributes(runningOffset, 1, codeStyle, false);
+                        start = 1;
+                    }
+
+                    // colorise tous les '|' non échappés dans la suite de la ligne
+                    boolean esc = false;
+                    for (int i = start; i < s.length(); i++) {
+                        char c = s.charAt(i);
+                        if (esc) { esc = false; continue; }
+                        if (c == '\\') { esc = true; continue; }
+                        if (c == '|') {
+                            doc.setCharacterAttributes(runningOffset + i, 1, codeStyle, false);
+                        }
+                    }
+                }
+
+                // avancer l'offset (ligne + '\n' sauf dernière)
+                runningOffset += lineTxt.length() + 1;
+            }
+
+
 
             // === 7. Rafraîchir l’affichage ===
             editor.repaint();

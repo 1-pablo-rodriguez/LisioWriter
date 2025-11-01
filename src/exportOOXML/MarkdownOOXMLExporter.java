@@ -24,6 +24,10 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTHyperlink;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTLvl;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STNumberFormat;
 
+import writer.ui.editor.TableSyntax;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+
 import writer.commandes;
 
 public final class MarkdownOOXMLExporter {
@@ -76,8 +80,38 @@ public final class MarkdownOOXMLExporter {
 
             String[] lines = src.replace("\r\n", "\n").replace('\r', '\n').split("\n", -1);
 
-            for (String rawLine : lines) {
+            for (int i = 0; i < lines.length; i++) {
+                String rawLine = lines[i];
                 String line = rawLine;
+
+                // --- Interception des tableaux @t ... @/t (version DOCX) ---
+                if (TableSyntax.isTableStart(line)) {
+                    // Si un saut de page était demandé, on l'applique juste avant la table
+                    if (pageBreakForNextParagraph) {
+                        XWPFParagraph pb = doc.createParagraph();
+                        pb.setPageBreak(true);
+                        pageBreakForNextParagraph = false;
+                    }
+
+                    java.util.List<String> rawRows = new java.util.ArrayList<>();
+                    // Collecte les lignes du tableau jusqu'à @/t (exclu)
+                    while (i + 1 < lines.length && !TableSyntax.isTableEnd(lines[i + 1])) {
+                        i++;
+                        if (TableSyntax.isTableRow(lines[i]) || TableSyntax.isHeaderRow(lines[i])) {
+                            rawRows.add(lines[i]);
+                        }
+                    }
+                    // Saute la ligne @/t si présente
+                    if (i + 1 < lines.length && TableSyntax.isTableEnd(lines[i + 1])) i++;
+
+                    // Émet le tableau DOCX
+                    emitDocxTable(doc, rawRows, footBox);
+                    // (facultatif) paragraphe vide après la table pour le focus/espacement
+                    XWPFParagraph after = doc.createParagraph();
+                    after.createRun().setText(""); // vide
+
+                    continue; // passe à la ligne suivante du document
+                }
 
                 // Ligne vide -> on sort du mode "liste" et on ajoute un paragraphe vide (sans numérotation)
                 if (line.trim().isEmpty()) {
@@ -85,7 +119,7 @@ public final class MarkdownOOXMLExporter {
                     doc.createParagraph();
                     continue;
                 }
-
+                
                 // Saut de page manuel -> s'applique au paragraphe SUIVANT
                 if (PAGE_BREAK.matcher(line).matches()) {
                     listState = ListKind.NONE;
@@ -507,6 +541,74 @@ public final class MarkdownOOXMLExporter {
     }
 
    
+    private static void emitDocxTable(XWPFDocument doc,
+		            java.util.List<String> rawRows,
+		            IntBox footBox) throws Exception {
+			if (rawRows == null || rawRows.isEmpty()) return;
+			
+			boolean hasHeader = TableSyntax.isHeaderRow(rawRows.get(0));
+			
+			// Nombre max de colonnes
+			int maxCols = 1;
+			for (String r : rawRows) {
+				int cols = TableSyntax.splitCells(r).size();
+				if (cols > maxCols) maxCols = cols;
+			}
+			
+			// Crée une table (Word crée 1 ligne/1 col par défaut)
+			XWPFTable table = doc.createTable(1, Math.max(1, maxCols));
+			// Optionnel : applique un style de tableau si dispo
+			table.setStyleID("TableGrid");
+			
+			// --- En-tête éventuel ---
+			int rowIndex = 0;
+			if (hasHeader) {
+			java.util.List<String> headCells = TableSyntax.splitCells(rawRows.get(0));
+			XWPFTableRow headerRow = table.getRow(0);
+			
+			while (headerRow.getTableCells().size() < maxCols) headerRow.addNewTableCell();
+			
+			for (int c = 0; c < maxCols; c++) {
+				String txt = (c < headCells.size()) ? headCells.get(c) : "";
+				var cell = headerRow.getCell(c);
+				cell.removeParagraph(0); // enlève le paragraphe vide par défaut
+				XWPFParagraph p = cell.addParagraph();
+				var run = p.createRun();
+				run.setBold(true);       // header en gras
+				run.setText(txt);        // pas de inline parsing dans l’en-tête (plus lisible)
+					}
+						rowIndex = 1;
+					} else {
+						rowIndex = 0; // la 1re data-row réutilisera la row(0)
+			}
+			
+			// --- Lignes de données ---
+			int dataStart = hasHeader ? 1 : 0;
+			for (int r = dataStart; r < rawRows.size(); r++) {
+			java.util.List<String> cells = TableSyntax.splitCells(rawRows.get(r));
+			
+			XWPFTableRow row;
+			if (r == dataStart && !hasHeader) {
+					row = table.getRow(0);
+					while (row.getTableCells().size() < maxCols) row.addNewTableCell();
+				} else {
+					row = table.createRow();
+					while (row.getTableCells().size() < maxCols) row.addNewTableCell();
+			}
+			
+			for (int c = 0; c < maxCols; c++) {
+				String txt = (c < cells.size()) ? cells.get(c) : "";
+				var cell = row.getCell(c);
+				cell.removeParagraph(0);
+				XWPFParagraph p = cell.addParagraph();
+				// ✅ on réutilise appendInlineRuns pour **gras**, ^^italique^^, notes, liens, etc.
+				appendInlineRuns(doc, p, txt, footBox);
+			}
+		}
+		
+    }
+
+
     
 
 }
