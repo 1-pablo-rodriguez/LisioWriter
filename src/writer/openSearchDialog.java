@@ -26,11 +26,7 @@ public class openSearchDialog extends JDialog {
 
     // --- État persistant entre ouvertures ---
     public static String searchText = "";
-    private static Integer lastFoundStart = null;
-	private static Integer lastFoundEnd   = null;
-    private static Boolean lastDirectionUp = null;
     private static Integer totalCount = 0;
-    private static Integer currentIndex = 0; // position logique 1..N
     private boolean userValidated = false;
 
     // --- UI ---
@@ -45,13 +41,8 @@ public class openSearchDialog extends JDialog {
     // --- Position initiale du curseur ---
     private int originalCaretPos = -1;
     
-    // --- Lecture Braille (position du curseur dans l'item) ---
-    private int brailleOffset = 0;         // position actuelle (en caractères)
-    //  ----- largeur d'affichage sur la barre
-    private static final int BRAILLE_WIDTH = Integer.getInteger("lisio.braille.width", 32);
-    private JTextArea brailleArea;
-
-    
+    // --- Lecteure sur la barre braille ---
+    private JTextArea brailleArea;   
     
     public openSearchDialog(JTextComponent editor) {
         super(SwingUtilities.getWindowAncestor(editor), "Recherche");
@@ -179,7 +170,6 @@ public class openSearchDialog extends JDialog {
         // --- Quand la sélection change, affiche le texte dans la zone braille
         resultList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
-                brailleOffset = 0;
                 String text = resultList.getSelectedValue();
                 if (text != null) {
                     brailleArea.setText(text);
@@ -245,8 +235,6 @@ public class openSearchDialog extends JDialog {
 
 	                SwingUtilities.invokeLater(() -> close());
 	            }
-	            
-	            brailleOffset = 0;
 	            if (resultList.getSelectedIndex() >= 0) {
 	                String text = resultList.getModel().getElementAt(resultList.getSelectedIndex());
 	                showBrailleSegment(text);
@@ -257,10 +245,6 @@ public class openSearchDialog extends JDialog {
 
 
     private void resetState() {
-        lastFoundStart = null;
-        lastFoundEnd   = null;
-        lastDirectionUp = null;
-        currentIndex = 0;
         // Nettoyer les surlignages
         try {
         	editor.getHighlighter().removeAllHighlights();
@@ -562,8 +546,6 @@ public class openSearchDialog extends JDialog {
             brailleArea.getCaret().setVisible(true);
             highlightOccurrence(0); // surligne la première
         }
-
-        brailleOffset = 0;
         if (resultList.getSelectedIndex() >= 0) {
             String text = resultList.getModel().getElementAt(resultList.getSelectedIndex());
             showBrailleSegment(text);
