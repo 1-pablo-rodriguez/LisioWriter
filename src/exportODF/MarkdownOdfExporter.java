@@ -13,6 +13,8 @@ import org.odftoolkit.odfdom.dom.element.text.TextPElement;
 import org.odftoolkit.odfdom.dom.style.OdfStyleFamily;
 import org.odftoolkit.odfdom.incubator.doc.style.OdfStyle;
 import org.odftoolkit.odfdom.pkg.OdfFileDom;
+import org.odftoolkit.odfdom.dom.element.text.TextAElement;
+import org.odftoolkit.odfdom.dom.element.text.TextTabElement;
 
 import writer.commandes;
 
@@ -53,6 +55,9 @@ public final class MarkdownOdfExporter {
     private static final Pattern EXPOSANT = Pattern.compile("\\^¨(.+?)¨\\^");
     // 9) Pattern : _¨...¨_
     private static final Pattern INDICE = Pattern.compile("_¨(.+?)¨_");
+    // 10) lien hypertexte @[Texte: URL]
+    private static final Pattern LINK =
+    	    Pattern.compile("@\\[(.+?):\\s*([a-zA-Z][a-zA-Z0-9+\\-.]*:[^\\]]+?)\\]");
 
     // --- Styles de spans (noms auto) ---
     private static final String SPAN_BOLD       = "BW_Span_Bold";
@@ -575,18 +580,41 @@ public final class MarkdownOdfExporter {
                 footnoteCounter.inc();
                 break;
             }
+            
+            case LINK: {
+                String[] parts = tk.content.split("\\|\\|", 2);
+                String label = parts[0];
+                String url = (parts.length > 1 ? parts[1] : "").trim();
+
+                // Crée <text:a xlink:href="url">
+                TextAElement link = paragraph.newTextAElement(url, null);
+
+                // Ajoute le texte (avec gestion de [tab]) *dans* le lien
+                appendTextWithTabsToLink(dom, link, label);
+                break;
+            }
+
         }
     }
 }
 
     // Types de token inline
-    private enum K { TEXT, BOLD, ITALIC, UNDERLINE, BOLDITALIC, UNDERBOLD, UNDERITALIC, EXPOSANT, INDICE, FOOTNOTE }
+    private enum K { TEXT, BOLD, ITALIC, UNDERLINE, BOLDITALIC, UNDERBOLD, UNDERITALIC, EXPOSANT, INDICE, FOOTNOTE, LINK }
     private static final class InlineToken {
         final K kind;
         final String content;
         InlineToken(K k, String c) { kind = k; content = c; }
     }
 
+    
+    // Représente la prochaine occurrence parmi nos 5 regex, la plus à gauche
+    private static final class Match {
+        final int kind; // 0=BI,1=B,2=U,3=I,4=FN
+        final int start, end;
+        final String inner;
+        Match(int k, int s, int e, String in) { kind = k; start = s; end = e; inner = in; }
+    }
+    
     /** Tokenizer très simple : traite d’abord *^ ^* puis **, __, ^^ puis les @(...) */
     private static List<InlineToken> tokenizeInline(String src) {
         // On va itérer en remplaçant au fur et à mesure ; pour conserver l’ordre,
@@ -615,19 +643,21 @@ public final class MarkdownOdfExporter {
 	            case 6: out.add(new InlineToken(K.FOOTNOTE,   best.inner)); break; // @(...)
 	            case 7: out.add(new InlineToken(K.EXPOSANT,   best.inner)); break; // ^¨ ¨^ 
 	            case 8: out.add(new InlineToken(K.INDICE,     best.inner)); break; // _¨ ¨_
+	            case 9: {
+	                Matcher linkMatcher = LINK.matcher(src.substring(best.start, best.end));
+	                if (linkMatcher.matches()) {
+	                    out.add(new InlineToken(K.LINK,
+	                            linkMatcher.group(1).trim() + "||" + linkMatcher.group(2).trim()));
+	                }
+	                break;
+	            }
             }
             idx = best.end;
         }
         return out;
     }
 
-    // Représente la prochaine occurrence parmi nos 5 regex, la plus à gauche
-    private static final class Match {
-        final int kind; // 0=BI,1=B,2=U,3=I,4=FN
-        final int start, end;
-        final String inner;
-        Match(int k, int s, int e, String in) { kind = k; start = s; end = e; inner = in; }
-    }
+   
 
     private static Match findNextMatch(String s, int from) {
         Matcher[] ms = new Matcher[] {
@@ -639,7 +669,8 @@ public final class MarkdownOdfExporter {
             ITALIC.matcher(s),        // 5
             FOOTNOTE.matcher(s),      // 6
             EXPOSANT.matcher(s),        // 7
-            INDICE.matcher(s)          // 7
+            INDICE.matcher(s),          // 8
+            LINK.matcher(s)           // 9
         };
         Match best = null;
         for (int k = 0; k < ms.length; k++) {
@@ -861,6 +892,28 @@ public final class MarkdownOdfExporter {
             }
         }
     }
+    
+    private static void appendTextWithTabsToLink(
+            org.odftoolkit.odfdom.pkg.OdfFileDom dom,
+            TextAElement link,
+            String text) {
+
+        if (text == null || text.isEmpty()) return;
+        org.w3c.dom.Document w3c = (org.w3c.dom.Document) dom;
+
+        String[] parts = text.split("\\[tab\\]", -1);
+        for (int i = 0; i < parts.length; i++) {
+            if (!parts[i].isEmpty()) {
+                link.appendChild(w3c.createTextNode(parts[i]));
+            }
+            if (i < parts.length - 1) {
+                // insère <text:tab/> dans le lien
+                TextTabElement tab = dom.newOdfElement(TextTabElement.class);
+                link.appendChild(tab);
+            }
+        }
+    }
+
 
 
 

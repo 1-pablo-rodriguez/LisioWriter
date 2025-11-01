@@ -19,11 +19,27 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+
+
+
 /**
  * OdtReader amélioré : corrige extraction styles, héritage, spans inline et spans imbriqués,
  * et améliore la détection des styles de titre (p.ex. "Heading 1", "Heading_20_1", "Titre 1", ou texte avec text:outline-level).
  */
 public class OdtReader {
+	
+	private static final String XLINK_NS = "http://www.w3.org/1999/xlink";
+
+	/** Empêche le libellé de casser la syntaxe @[Texte: URL] */
+	private static String escapeLabelForAtLink(String s) {
+	    if (s == null) return "";
+	    // ']' termine le lien, on le remplace par ')'
+	    s = s.replace(']', ')');
+	    // ':' sépare libellé et URL, on le remplace par le deux-points math. U+2236
+	    s = s.replace(':', '∶'); // visuellement proche, n'entre pas en collision avec le séparateur
+	    return s;
+	}
+
 
     private static class TextStyle {
         boolean bold;
@@ -427,6 +443,39 @@ public class OdtReader {
                 // Normalement non atteint (géré via "note"), on ne fait rien ici.
                 break;
             }
+            case "a": { // <text:a xlink:href="..."> ... </text:a>
+                // Récupère l'URL
+                String href = element.getAttributeNS(XLINK_NS, "href");
+                if (href == null || href.isEmpty()) {
+                    // fallback si l'ODT a un attribut non namespacé (rare)
+                    href = element.getAttribute("xlink:href");
+                }
+
+                // Construit le libellé en préservant les styles imbriqués
+                StringBuilder labelSb = new StringBuilder();
+                NodeList children = element.getChildNodes();
+                for (int i = 0; i < children.getLength(); i++) {
+                    parseContentInOrder(children.item(i),
+                            styleToParent, directTextStyleMap, headingLevels,
+                            labelSb, listenumerote2, stylesDoc, contentDoc);
+                }
+                String label = escapeLabelForAtLink(labelSb.toString().trim());
+
+                if (href == null || href.isBlank()) {
+                    // pas d'URL → on garde juste le libellé
+                    result.append(label);
+                } else {
+                    // produit la syntaxe LisioWriter
+                    result.append("@[").append(label).append(": ").append(href.trim()).append("]");
+                }
+                break;
+            }
+
+            case "tab": { // <text:tab/>
+                result.append("[tab]");
+                break;
+            }
+
 
             default: {
                 // descente par défaut
