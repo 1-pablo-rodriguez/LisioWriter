@@ -32,21 +32,21 @@ Le résultat offre une structure entièrement lisible au clavier, parfaitement c
 
 ---
 
-## 🎯 Origine, conception et expérimentation du projet
+## 🎯 Objectif 
 
 **LisioWriter** a pour objectif de permettre à toute personne **non-voyante** ou **déficiente visuelle** de rédiger, lire et mettre en forme des documents de manière fluide, rapide et autonome, grâce à une interface **accessible**, **simple d’utilisation** et compatible avec les **lecteurs d’écran**.
 
 Le logiciel s’adresse en priorité :
-- aux **étudiants** non-voyants ou malvoyants engagés dans des **cursus post-bac**,  
+- aux **étudiants** non-voyants ou malvoyants,  
 - ainsi qu’aux **adultes** expérimentés dans l’usage des **traitements de texte**.
 
 L’ambition de LisioWriter est de favoriser l’**autonomie numérique** et l’**inclusion**, tout en restant proche des **standards bureautiques** connus (Word, Writer, Markdown) afin de faciliter l’apprentissage et l’intégration dans les **environnements éducatifs et professionnels**.
 
 ---
 
-### 👨‍🏫 Conception et cadre de recherche
+### 👨‍🏫 conception et cadre de recherche
 
-Le projet **LisioWriter** a été conçu et développé par **Pablo Rodriguez**, enseignant en informatique à l’**Université d’Artois**, dans le cadre d’une démarche de **recherche et d’innovation pédagogique** visant à promouvoir l’**autonomie numérique des personnes non-voyantes et malvoyantes**.
+Le projet LisioWriter a été conçu et développé par Pablo Rodriguez, enseignant en informatique à l’**Université d’Artois**, dans le cadre d’une démarche personnelle de **recherche et d’innovation pédagogique** visant à promouvoir l’**autonomie numérique** des personnes **non-voyantes** ou **malvoyantes**.
 
 Le logiciel a été **expérimenté et validé** auprès d’un **étudiant non-voyant** ayant suivi un parcours complet de **Licence** et actuellement inscrit en **Master Gestion du Patrimoine Culturel** à l’Université d’Artois, au sein de l’**UFR d’Histoire et de Géographie**.  
 
