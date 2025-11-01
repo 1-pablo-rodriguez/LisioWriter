@@ -2,18 +2,18 @@ package writer;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -27,146 +27,234 @@ public class openSearchDialog extends JDialog {
     // --- État persistant entre ouvertures ---
     public static String searchText = "";
     private static Integer lastFoundStart = null;
-    @SuppressWarnings("unused")
 	private static Integer lastFoundEnd   = null;
     private static Boolean lastDirectionUp = null;
     private static Integer totalCount = 0;
     private static Integer currentIndex = 0; // position logique 1..N
+    private boolean userValidated = false;
 
     // --- UI ---
     private JTextField field;
-    private JLabel status;
-    private JButton btnNext, btnPrev;
     private JTextComponent editor;
+    private JLabel lblCount;
 
+    // --- Liste de résultats ---
+    private javax.swing.DefaultListModel<String> resultModel;
+    private javax.swing.JList<String> resultList;
+    
+    // --- Position initiale du curseur ---
+    private int originalCaretPos = -1;
+    
+    // --- Lecture Braille (position du curseur dans l'item) ---
+    private int brailleOffset = 0;         // position actuelle (en caractères)
+    //  ----- largeur d'affichage sur la barre
+    private static final int BRAILLE_WIDTH = Integer.getInteger("lisio.braille.width", 32);
+    private JTextArea brailleArea;
+
+    
+    
     public openSearchDialog(JTextComponent editor) {
         super(SwingUtilities.getWindowAncestor(editor), "Recherche");
         this.editor = editor;
-        
+
+        // --- Mémorise la position initiale du curseur pour Échap
+        try { originalCaretPos = editor.getCaretPosition(); } catch (Exception ignored) {}
+
         setModalityType(ModalityType.MODELESS);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-        // Champ
-        field = new JTextField(30);
+        // --- 🔠 Police très lisible pour malvoyants
+        Font font = new Font("Segoe UI", Font.PLAIN, 20);
+        Font listFont = font.deriveFont(Font.PLAIN, 22);
+
+        // --- Champ texte de recherche
+        field = new JTextField(40);
+        field.setFont(font);
+        field.setBackground(new Color(250, 250, 250));
+        field.setCaretColor(Color.BLACK);
+        field.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(120, 120, 120)));
         field.getAccessibleContext().setAccessibleName("Zone de recherche");
-        field.getAccessibleContext().setAccessibleDescription("Tapez le texte à rechercher");
-        if (searchText != null && !searchText.isBlank()) {
-            field.setText(searchText);
-            field.selectAll();
-        } else {
-            String sel = editor.getSelectedText();
-            if (sel != null && !sel.isBlank()) {
-                field.setText(sel);
-                field.selectAll();
-                searchText = sel;
-            }
-        }
+        field.getAccessibleContext().setAccessibleDescription(
+            "Tapez le texte à rechercher puis appuyez sur Entrée pour lancer la recherche");
 
-        // Boutons
-        btnNext = new JButton("Suivant");
-        btnNext.setMnemonic('S'); // Alt+S
-        btnNext.getAccessibleContext().setAccessibleDescription("Chercher l’occurrence suivante");
-
-        btnPrev = new JButton("Précédent");
-        btnPrev.setMnemonic('H'); // Alt+H (comme Haut)
-        btnPrev.getAccessibleContext().setAccessibleDescription("Chercher l’occurrence précédente");
-
-        // Libellé + association pour lecteurs d’écran
         JLabel lab = new JLabel("Rechercher :");
+        lab.setFont(font);
         lab.setLabelFor(field);
 
-        // Zone de statut lisible par lecteurs d’écran
-        status = new JLabel("Prêt.");
-        status.setForeground(new Color(0, 64, 160));
-        status.getAccessibleContext().setAccessibleName("Statut de la recherche");
-        status.getAccessibleContext().setAccessibleDescription("Afficher l’état de la recherche, par exemple nombre d’occurrences et la position courante");
-
-        // Layout
-        JPanel north = new JPanel();
+        JPanel north = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 12, 12));
         north.add(lab);
         north.add(field);
-        north.add(btnNext);
-        north.add(btnPrev);
-        getContentPane().setLayout(new BorderLayout(8, 8));
+
+        // --- Liste de résultats
+        resultModel = new javax.swing.DefaultListModel<>();
+        resultList = new javax.swing.JList<>(resultModel);
+        resultList.setFont(listFont);
+        resultList.setBackground(new Color(250, 250, 255));
+        resultList.setSelectionBackground(new Color(255, 255, 150));
+        resultList.setSelectionForeground(Color.BLACK);
+        resultList.setVisibleRowCount(10);
+        resultList.setFixedCellHeight(36);
+        resultList.setBorder(javax.swing.BorderFactory.createTitledBorder("Résultats"));
+        resultList.getAccessibleContext().setAccessibleName("Liste des résultats");
+        resultList.getAccessibleContext().setAccessibleDescription(
+            "Liste des occurrences trouvées. Utilisez flèche haut ou bas pour parcourir. Appuyez sur Entrée pour aller à la position dans le document. Appuyez sur flèche droite pour lire le contenu du résultat.");
+
+        // --- Zone de lecture braille (textuelle, focusable)
+        brailleArea = new javax.swing.JTextArea(3, 80);
+        brailleArea.setFont(new Font("Segoe UI", Font.PLAIN, 20));
+        brailleArea.setLineWrap(true);
+        brailleArea.setWrapStyleWord(true);
+        brailleArea.setEditable(false);
+        brailleArea.setFocusable(true);
+        brailleArea.setBackground(new Color(240, 240, 255));
+        brailleArea.setForeground(Color.BLACK);
+        brailleArea.setBorder(javax.swing.BorderFactory.createTitledBorder("Lecture du texte"));
+        brailleArea.getAccessibleContext().setAccessibleName("Zone de lecture du texte du résultat sélectionné");
+        brailleArea.getAccessibleContext().setAccessibleDescription(
+            "Utilisez flèche gauche et droite pour lire le texte. Flèche haut et bas pour changer de résultat.");
+
+        // --- Navigation clavier entre liste et zone braille
+        InputMap rim = resultList.getInputMap(JComponent.WHEN_FOCUSED);
+        ActionMap ram = resultList.getActionMap();
+
+        // → Passe à la zone braille
+        rim.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "toBraille");
+        ram.put("toBraille", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                int idx = resultList.getSelectedIndex();
+                if (idx < 0) return;
+                String text = resultList.getModel().getElementAt(idx);
+                brailleArea.setText(text);
+                brailleArea.setCaretPosition(0);
+                brailleArea.requestFocusInWindow();
+            }
+        });
+
+        // Entrée = aller à l’occurrence dans le document
+        rim.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "validateResult");
+        ram.put("validateResult", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                int idx = resultList.getSelectedIndex();
+                if (idx >= 0) {
+                    int start = highlightOccurrence(idx);
+                    userValidated = true;
+                    if (start >= 0) {
+                        // Place le curseur devant le mot trouvé
+                        editor.setCaretPosition(start);
+                        scrollToVisible(editor, start, start + 1);
+                    }
+
+                    // Supprime le surlignage avant fermeture
+                    SwingUtilities.invokeLater(() ->close());
+                }
+            }
+        });
+
+        // --- Flèches haut/bas dans la zone braille : reviennent à la liste
+        InputMap bim = brailleArea.getInputMap(JComponent.WHEN_FOCUSED);
+        ActionMap bam = brailleArea.getActionMap();
+
+        bim.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "backToListUp");
+        bim.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "backToListDown");
+
+        bam.put("backToListUp", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                int idx = resultList.getSelectedIndex();
+                if (idx > 0) {
+                    resultList.setSelectedIndex(idx - 1);
+                    resultList.requestFocusInWindow();
+                }
+            }
+        });
+        bam.put("backToListDown", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                int idx = resultList.getSelectedIndex();
+                if (idx < resultModel.size() - 1) {
+                    resultList.setSelectedIndex(idx + 1);
+                    resultList.requestFocusInWindow();
+                }
+            }
+        });
+
+        // --- Quand la sélection change, affiche le texte dans la zone braille
+        resultList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                brailleOffset = 0;
+                String text = resultList.getSelectedValue();
+                if (text != null) {
+                    brailleArea.setText(text);
+                    brailleArea.setCaretPosition(0);
+                }
+            }
+        });
+
+        // --- Compteur
+        lblCount = new JLabel("0 occurrence.");
+        lblCount.setFont(font.deriveFont(Font.BOLD));
+        lblCount.setForeground(new Color(50, 50, 120));
+        lblCount.setBorder(javax.swing.BorderFactory.createEmptyBorder(6, 12, 6, 12));
+
+        // --- Assemblage de la fenêtre
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.add(lblCount, BorderLayout.NORTH);
+        centerPanel.add(new javax.swing.JScrollPane(resultList), BorderLayout.CENTER);
+
+        getContentPane().setLayout(new BorderLayout(10, 10));
         getContentPane().add(north, BorderLayout.NORTH);
-        getContentPane().add(status, BorderLayout.SOUTH);
+        getContentPane().add(centerPanel, BorderLayout.CENTER);
+        getContentPane().add(new javax.swing.JScrollPane(brailleArea), BorderLayout.SOUTH);
 
-        // Raccourcis clavier accessibles
         installKeyBindings(this);
+        field.addActionListener(e -> launchSearch());
 
-        // Actions
-        btnNext.addActionListener(e -> findNext(false));
-        btnPrev.addActionListener(e -> findNext(true));
-
-        // Recompte en live à chaque changement
-        field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            @Override public void insertUpdate(javax.swing.event.DocumentEvent e){ onQueryChanged(); }
-            @Override public void removeUpdate(javax.swing.event.DocumentEvent e){ onQueryChanged(); }
-            @Override public void changedUpdate(javax.swing.event.DocumentEvent e){ onQueryChanged(); }
-        });
-
-        // Focus initial
-        EventQueue.invokeLater(() -> {
-            field.requestFocusInWindow();
-            field.selectAll();
-            // Premier comptage sur contenu actuel
-            onQueryChanged();
-        });
-
-        pack();
+        // --- Taille et affichage
+        setSize(1100, 650);
         setLocationRelativeTo(getOwner());
         setAlwaysOnTop(true);
+        setResizable(true);
         setVisible(true);
     }
 
     // --- Raccourcis et navigation clavier cohérents pour NVDA/JAWS ---
     private void installKeyBindings(JDialog d) {
-        JComponent root = (JComponent) d.getContentPane();
-        InputMap im = root.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        ActionMap am = root.getActionMap();
+	    JComponent root = (JComponent) d.getContentPane();
+	    InputMap im = root.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+	    ActionMap am = root.getActionMap();
+	
+	    // Échap = abandon
+	    im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+	    am.put("close", new AbstractAction() {
+	        @Override public void actionPerformed(ActionEvent e) { close(); }
+	    });
+	
+	    // Entrée dans la liste = aller à l’occurrence
+	    resultList.getInputMap(JComponent.WHEN_FOCUSED)
+	        .put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "validateResult");
+	    resultList.getActionMap().put("validateResult", new AbstractAction() {
+	        @Override public void actionPerformed(ActionEvent e) {
+	            int idx = resultList.getSelectedIndex();
+	            if (idx >= 0) {
+	                int start = highlightOccurrence(idx);  // retourne la position du début
+	                userValidated = true;
 
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
-        am.put("close", new AbstractAction(){ @Override public void actionPerformed(ActionEvent e){ close(); }});
+	                // place le curseur devant le mot trouvé
+	                if (start >= 0) {
+	                    editor.setCaretPosition(start);
+	                    scrollToVisible(editor, start, start + 1);
+	                }
 
-        // Entrée = suivant, Shift+Entrée = précédent
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "next");
-        am.put("next", new AbstractAction(){ @Override public void actionPerformed(ActionEvent e){ findNext(false); }});
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.SHIFT_DOWN_MASK), "prev");
-        am.put("prev", new AbstractAction(){ @Override public void actionPerformed(ActionEvent e){ findNext(true); }});
+	                SwingUtilities.invokeLater(() -> close());
+	            }
+	            
+	            brailleOffset = 0;
+	            if (resultList.getSelectedIndex() >= 0) {
+	                String text = resultList.getModel().getElementAt(resultList.getSelectedIndex());
+	                showBrailleSegment(text);
+	            }
+	        }
+	    });
+	}
 
-        // F3 et Shift+F3 (standard)
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0), "f3next");
-        am.put("f3next", new AbstractAction(){ @Override public void actionPerformed(ActionEvent e){ findNext(false); }});
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F3, KeyEvent.SHIFT_DOWN_MASK), "f3prev");
-        am.put("f3prev", new AbstractAction(){ @Override public void actionPerformed(ActionEvent e){ findNext(true); }});
-
-        // ↑/↓ (optionnels, comme tu les avais)
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "arrowPrev");
-        am.put("arrowPrev", new AbstractAction(){ @Override public void actionPerformed(ActionEvent e){ findNext(true); }});
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "arrowNext");
-        am.put("arrowNext", new AbstractAction(){ @Override public void actionPerformed(ActionEvent e){ findNext(false); }});
-
-        // Définir le bouton par défaut (Enter activera “Suivant” depuis la boîte)
-        getRootPane().setDefaultButton(btnNext);
-    }
-
-    private void onQueryChanged() {
-        searchText = field.getText();
-        resetState();
-        countOccurrences();
-        if (totalCount == 0) {
-            setStatus("0 occurrence.");
-        } else {
-            boolean hasWildcard = searchText.indexOf('*') >= 0 || searchText.indexOf('?') >= 0;
-            boolean exact = searchText != null && searchText.startsWith("==");
-            String note = "";
-            if (hasWildcard) note = " (joker actif)";
-            if (exact) {
-                note = note.isEmpty() ? " (sensible à la casse)" : note + ", sensible à la casse";
-            }
-            setStatus(totalCount + " occurrence" + (totalCount>1?"s":"") + note + ". Appuyez sur Entrée pour la première.");
-        }
-    }
 
     private void resetState() {
         lastFoundStart = null;
@@ -188,8 +276,14 @@ public class openSearchDialog extends JDialog {
         if (p == null) return;
 
         java.util.regex.Matcher m = p.matcher(all);
-        while (m.find()) totalCount++;
+        int index = 1;
+        while (m.find()) {
+            totalCount++;
+            addResultToList(all, m.start(), m.end() - m.start(), index, totalCount);
+            index++;
+        }
     }
+
 
 
     private String getAllText() {
@@ -199,106 +293,6 @@ public class openSearchDialog extends JDialog {
         } catch (BadLocationException e) {
             return editor.getText();
         }
-    }
-
-    private void findNext(boolean up) {
-        String q = field.getText();
-
-        final javax.swing.text.JTextComponent area = editor;
-        final String all = getAllText();
-        final java.util.regex.Pattern p = buildPattern(q);
-
-
-        final int caret = area.getCaretPosition();
-        int startIdx;
-        boolean directionChanged = (lastDirectionUp == null || lastDirectionUp != up);
-
-        if (lastFoundStart == null || directionChanged) {
-            startIdx = Math.max(0, Math.min(caret, all.length()));
-        } else {
-            startIdx = up ? Math.max(0, lastFoundStart - 1)
-                          : Math.min(all.length(), lastFoundStart + 1);
-        }
-
-        int foundStart = -1, foundEnd = -1;
-        java.util.regex.Matcher m = p.matcher(all);
-
-        if (!up) {
-            // Vers le bas
-            if (m.find(startIdx)) {
-                foundStart = m.start(); foundEnd = m.end();
-            } else if (m.find(0)) {
-                foundStart = m.start(); foundEnd = m.end();
-            }
-        } else {
-            // Vers le haut : on garde le dernier match <= startIdx
-            int limit = Math.max(0, Math.min(startIdx, all.length()));
-            while (m.find()) {
-                if (m.start() <= limit) { foundStart = m.start(); foundEnd = m.end(); }
-                else break;
-            }
-            if (foundStart < 0) {
-                // wrap à la fin
-                while (m.find()) { foundStart = m.start(); foundEnd = m.end(); }
-            }
-        }
-
-
-        // --- mémorisation & index logique k/N ---
-        lastDirectionUp = up;
-        lastFoundStart = foundStart;
-        lastFoundEnd   = foundEnd;
-
-        // calcule k (1..N) en itérant jusqu'à foundStart
-        int k = 0;
-        m.reset();
-        while (m.find()) {
-            k++;
-            if (m.start() == foundStart && m.end() == foundEnd) break;
-        }
-        currentIndex = Math.max(1, k);
-
-        // --- sélection + scroll + surlignage ---
-        area.requestFocusInWindow();
-        area.select(foundStart, foundEnd);
-        scrollToVisible(area, foundStart, foundEnd);
-        try {
-            javax.swing.text.Highlighter hl = area.getHighlighter();
-            hl.removeAllHighlights();
-            hl.addHighlight(foundStart, foundEnd,
-                new javax.swing.text.DefaultHighlighter.DefaultHighlightPainter(java.awt.Color.YELLOW));
-        } catch (javax.swing.text.BadLocationException ignore) {}
-
-        String msg = currentIndex + " sur " + totalCount + ".";
-        setStatus(msg);
-
-        // Extrait le mot complet autour du match pour l'annonce
-        String matchedWord = extractMatchedWord(all, foundStart, foundEnd);
-
-        // Si l'extraction a échoué, essaye la sélection dans l'éditeur (fallback)
-        if (matchedWord == null || matchedWord.isBlank()) {
-            String sel = area.getSelectedText();
-            if (sel != null && !sel.isBlank()) {
-                // nettoie les balises/astérisques courantes et ponctuation autour
-                String clean = sel.replaceAll("[*_\\[\\]()`\"«»]", "");
-                // supprime bordures non-mots
-                clean = clean.replaceAll("^[^\\p{L}\\p{N}]+|[^\\p{L}\\p{N}]+$", "");
-                java.util.regex.Matcher wm = java.util.regex.Pattern.compile("[\\p{L}\\p{N}'’_-]+").matcher(clean);
-                if (wm.find()) matchedWord = wm.group();
-            }
-        }
-
-        String spoken;
-        if (matchedWord == null || matchedWord.isBlank()) {
-            spoken = "Occurrence " + currentIndex + " sur " + totalCount + ".";
-        } else {
-            spoken = matchedWord + " - " + currentIndex + "/" + totalCount;
-        }
-        System.out.println(spoken);
-
-
-        // --- InfoDialog : contexte avec crochets ---
-        showSearchContextDialog(all, foundStart, foundEnd - foundStart, currentIndex, totalCount);
     }
 
     @SuppressWarnings("deprecation")
@@ -313,22 +307,31 @@ public class openSearchDialog extends JDialog {
         } catch (BadLocationException ignore) {}
     }
 
-    private void setStatus(String s) {
-        status.setText(s);
-        status.getAccessibleContext().setAccessibleDescription(s);
-    }
-
-
-
     private void close() {
-        // Rendre le focus à l’éditeur
         try {
-        	editor.requestFocusInWindow();
-        } catch (Throwable ignore) {}
+            if (!userValidated && originalCaretPos >= 0) {
+                // L’utilisateur a annulé → on restaure
+                editor.setCaretPosition(Math.min(originalCaretPos, editor.getDocument().getLength()));
+            }
+
+            // Supprimer tous les surlignages résiduels
+            try {
+                editor.getHighlighter().removeAllHighlights();
+            } catch (Exception ignored) {}
+
+            // ✅ Forcer un repaint pour que le fond jaune disparaisse
+            editor.repaint();
+
+            // 🧭 Redonner le focus proprement
+            editor.requestFocusInWindow();
+        } catch (Exception ignored) {}
+
+        // Ferme la boîte de recherche
         dispose();
     }
+
     
-    // 1) À placer dans la classe (par ex. sous setStatus/say)
+
     private String makeContextSnippet(String text, int start, int len) {
         if (text == null || text.isEmpty() || start < 0 || start >= text.length()) return "";
 
@@ -351,7 +354,7 @@ public class openSearchDialog extends JDialog {
         boolean ellLeft  = left  > paraStart;
         boolean ellRight = right < paraEnd;
 
-        String window = text.substring(left, right);          // contexte exact
+        String window = text.substring(left, right);        
         int relStart = start - left;
         int relEnd   = relStart + len;
 
@@ -367,31 +370,6 @@ public class openSearchDialog extends JDialog {
 
         return sb.toString();
     }
-
-
-    private void showSearchContextDialog(String all, int start, int len, int idx, int total) {
-        String snippet = makeContextSnippet(all, start, len);
-
-        // Extrait un "mot" lisible autour du match (lettres/chiffres/'/_/-)
-        String matchedWord = extractMatchedWord(all, start, start + len);
-        String firstLine;
-        if (matchedWord == null || matchedWord.isBlank()) {
-            firstLine = idx + " / " + total;
-        } else {
-            firstLine = matchedWord + " - " + idx + " / " + total;
-        }
-
-        String msg = firstLine + "\n" + snippet;
-        java.awt.Window owner = getOwner() != null ? getOwner() : SwingUtilities.getWindowAncestor(editor);
-        try {
-            dia.InfoDialog.show(owner, "Recherche", msg);
-        } catch (Throwable t) {
-            // en secours, on annonce seulement (synthèse)
-        	System.out.println(snippet);
-        }
-    }
-
-
 
  // Conversion de la requête utilisateur vers Pattern regex.
  // Règle : si la requête commence par "==", on active le mode sensible à la casse.
@@ -411,6 +389,25 @@ public class openSearchDialog extends JDialog {
             if (q.isEmpty()) return null; // "==" seul -> rien
         }
 
+        // === Modes "contient" ===
+        String trimmed = q.stripLeading();
+
+        // 1️⃣ Recherche dans tout le texte (paragraphes + titres)
+        if (trimmed.startsWith("&&")) {
+            String inner = java.util.regex.Pattern.quote(trimmed.substring(2).trim());
+            int flags = java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE;
+            return java.util.regex.Pattern.compile("(?m)^.*" + inner + ".*$", flags);
+        }
+
+        // 2️⃣ Recherche uniquement dans les titres (lignes commençant par #)
+        if (trimmed.startsWith("##")) {
+            String inner = java.util.regex.Pattern.quote(trimmed.substring(2).trim());
+            int flags = java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE;
+            // On cherche des lignes commençant par un ou plusieurs #
+            return java.util.regex.Pattern.compile("(?m)^#+.*" + inner + ".*$", flags);
+        }
+
+       
         // Classe de "caractères de mot" utilisée pour jokers et pour les lookarounds :
         final String wordCharClass = "[\\p{L}\\p{N}'’_-]";
 
@@ -424,9 +421,17 @@ public class openSearchDialog extends JDialog {
         StringBuilder rx = new StringBuilder(q.length() * 3);
         for (int i = 0; i < q.length(); i++) {
             char c = q.charAt(i);
+            
+            // 🔢 Détection du joker %d (nombre de 1 à 6 chiffres)
+            if (c == '%' && i + 1 < q.length() && q.charAt(i + 1) == 'd') {
+                rx.append("[0-9]{1}");
+                i++; // saute le 'd'
+                continue;
+            }
+
             switch (c) {
                 case '*':
-                    // zéro ou plusieurs caractères de mot (ne traverse pas espaces/ponct.)
+                    // zéro ou plusieurs caractères de mot
                     rx.append(wordCharClass).append("*");
                     break;
                 case '?':
@@ -434,11 +439,12 @@ public class openSearchDialog extends JDialog {
                     rx.append(wordCharClass);
                     break;
                 default:
-                    // échapper les méta-characters regex (sauf '*' et '?' gérés)
+                    // échappe les caractères spéciaux regex
                     if ("\\.^$|()[]{}+*?".indexOf(c) >= 0) rx.append('\\');
                     rx.append(c);
             }
         }
+
 
         String core = rx.toString();
 
@@ -498,6 +504,81 @@ public class openSearchDialog extends JDialog {
         if (Character.isLetterOrDigit(c)) return true;
         if (c == '\'' || c == '’' || c == '_' || c == '-') return true;
         return false;
+    }
+
+    private void addResultToList(String all, int start, int len, int idx, int total) {
+        String snippet = makeContextSnippet(all, start, len);
+        String matchedWord = extractMatchedWord(all, start, start + len);
+        String label = (matchedWord == null || matchedWord.isBlank())
+            ? (idx + " / " + total + "  " + snippet)
+            : (matchedWord + " (" + idx + "/" + total + ")  " + snippet);
+        resultModel.addElement(label);
+    }
+
+    private int highlightOccurrence(int index) {
+        if (index < 0) return -1;
+
+        String all = getAllText();
+        java.util.regex.Pattern p = buildPattern(field.getText());
+        if (p == null) return -1;
+
+        java.util.regex.Matcher m = p.matcher(all);
+        int i = 0;
+        while (m.find()) {
+            if (i == index) {
+                int start = m.start();
+                int end = m.end();
+                try {
+                    editor.requestFocusInWindow();
+                    editor.getHighlighter().removeAllHighlights();
+                    editor.getHighlighter().addHighlight(start, end,
+                        new javax.swing.text.DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW));
+                    editor.select(start, end);
+                    scrollToVisible(editor, start, end);
+                    return start; // ✅ retourne la position du mot
+                } catch (Exception ignored) {}
+                break;
+            }
+            i++;
+        }
+        return -1;
+    }
+
+    private void launchSearch() {
+        resultModel.clear();
+        searchText = field.getText();
+        resetState();
+        countOccurrences();
+
+        if (totalCount == 0) {
+            brailleArea.setText("Aucune occurrence trouvée.");
+            brailleArea.requestFocusInWindow();
+            brailleArea.getCaret().setVisible(true);
+            lblCount.setText("0 occurrence.");
+        } else {
+            lblCount.setText(totalCount + " occurrence" + (totalCount > 1 ? "s" : "") + ".");
+            resultList.setSelectedIndex(0);
+            resultList.requestFocusInWindow(); // place le focus sur la liste
+            brailleArea.getCaret().setVisible(true);
+            highlightOccurrence(0); // surligne la première
+        }
+
+        brailleOffset = 0;
+        if (resultList.getSelectedIndex() >= 0) {
+            String text = resultList.getModel().getElementAt(resultList.getSelectedIndex());
+            showBrailleSegment(text);
+        }
+    }
+
+
+    /** Affiche la portion de texte lisible sur la barre braille */
+    /** Affiche le texte sélectionné dans la zone de lecture braille */
+    private void showBrailleSegment(String text) {
+        if (text == null) text = "";
+        brailleArea.setText(text);
+        brailleArea.setCaretPosition(0); // le curseur au début pour NVDA/braille
+        brailleArea.requestFocusInWindow(); // donne le focus pour la lecture
+        brailleArea.getCaret().setVisible(true);
     }
 
 
