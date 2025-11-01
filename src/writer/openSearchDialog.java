@@ -66,8 +66,9 @@ public class openSearchDialog extends JDialog {
         field.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(120, 120, 120)));
         field.getAccessibleContext().setAccessibleName("Zone de recherche");
         field.getAccessibleContext().setAccessibleDescription(
-            "Tapez le texte à rechercher puis appuyez sur Entrée pour lancer la recherche");
-
+        	    "Appuyez sur Entrée pour lancer la recherche, ou sur espace depuis la liste pour modifier la requête."
+        	);
+        
         JLabel lab = new JLabel("Rechercher :");
         lab.setFont(font);
         lab.setLabelFor(field);
@@ -140,6 +141,16 @@ public class openSearchDialog extends JDialog {
                 }
             }
         });
+        
+        // Barre d’espace = retour à la zone de saisie pour modifier la recherche
+        rim.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "focusSearchField");
+        ram.put("focusSearchField", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                field.requestFocusInWindow();
+                field.selectAll(); // ✅ permet de retaper directement une nouvelle recherche
+            }
+        });
+
 
         // --- Flèches haut/bas dans la zone braille : reviennent à la liste
         InputMap bim = brailleArea.getInputMap(JComponent.WHEN_FOCUSED);
@@ -550,6 +561,30 @@ public class openSearchDialog extends JDialog {
             String text = resultList.getModel().getElementAt(resultList.getSelectedIndex());
             showBrailleSegment(text);
         }
+        // Réactive le focus et les raccourcis clavier de la liste après une nouvelle recherche
+        SwingUtilities.invokeLater(() -> {
+            resultList.requestFocusInWindow();
+
+            // Redonne la touche Entrée à la liste
+            InputMap rim = resultList.getInputMap(JComponent.WHEN_FOCUSED);
+            ActionMap ram = resultList.getActionMap();
+
+            rim.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "validateResult");
+            ram.put("validateResult", new AbstractAction() {
+                @Override public void actionPerformed(ActionEvent e) {
+                    int idx = resultList.getSelectedIndex();
+                    if (idx >= 0) {
+                        int start = highlightOccurrence(idx);
+                        userValidated = true;
+                        if (start >= 0) {
+                            editor.setCaretPosition(start);
+                            scrollToVisible(editor, start, start + 1);
+                        }
+                        SwingUtilities.invokeLater(() -> close());
+                    }
+                }
+            });
+        });
     }
 
 
