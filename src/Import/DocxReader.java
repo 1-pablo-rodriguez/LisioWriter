@@ -841,11 +841,6 @@ public class DocxReader {
     
  // === Helpers images DOCX ===============================================
 
-    /** Ajoute le marqueur d'image avec un fallback sûr. */
-    private static void appendImageMarker(String alt, StringBuilder sb) {
-        String label = (alt == null || alt.trim().isEmpty()) ? "Image" : alt.trim();
-        sb.append("![Image : ").append(label).append("]");
-    }
     
     /** Ajoute le marqueur d’image avec légende si trouvée */
     private static void appendImageMarkerWithCaption(String alt, String caption, StringBuilder sb) {
@@ -930,38 +925,6 @@ public class DocxReader {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
-    }
-
-    /** Essaie de repérer une légende (type "Figure...") dans le même paragraphe ou juste après. */
-    private static String extractCaptionTextNear(XWPFRun run) {
-        try {
-            var parent = run.getParent();
-            if (!(parent instanceof XWPFParagraph para)) return null;
-
-            // 1️⃣ Cherche dans les runs suivants du même paragraphe
-            var runs = para.getRuns();
-            if (runs != null) {
-                for (int i = runs.indexOf(run) + 1; i < runs.size(); i++) {
-                    String txt = runs.get(i).text();
-                    if (txt != null && txt.toLowerCase().contains("figure")) {
-                        return normalizeSpaces(txt);
-                    }
-                }
-            }
-
-            // 2️⃣ Sinon, cherche dans le paragraphe suivant
-            var body = para.getBody();
-            var paras = body.getParagraphs();
-            int idx = paras.indexOf(para);
-            if (idx >= 0 && idx < paras.size() - 1) {
-                var next = paras.get(idx + 1);
-                String txt = next.getText();
-                if (txt != null && txt.toLowerCase().contains("figure")) {
-                    return normalizeSpaces(txt);
-                }
-            }
-        } catch (Exception ignored) {}
         return null;
     }
 
