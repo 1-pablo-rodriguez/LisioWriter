@@ -28,7 +28,7 @@ Les titres, listes, mises en forme (gras, italique, souligné), indices, exposan
 
 Le résultat offre une structure entièrement lisible sur la barre de braille et accessible au clavier.
 
-![Démonstration de LisioWriter](docs/demo.png)
+![Démonstration de LisioWriter](docs/demo.jpg)
 
 ---
 
