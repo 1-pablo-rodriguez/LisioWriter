@@ -7,7 +7,7 @@
 
 
 **LisioWriter** est un logiciel de **traitement de texte** conçu spécialement pour les personnes **non-voyantes ou malvoyantes**.
-Son interface est pensée pour être utilisée **entièrement au clavier** et reste compatible avec les lecteurs d’écran tels que **NVDA** ou **JAWS** et la **barre de braille**.
+Son interface est pensée pour être utilisée **entièrement au clavier**, d'un usage très simple et reste compatible avec les lecteurs d’écran tels que **NVDA** ou **JAWS** et la **barre de braille**.
 Cependant, il peut être utilisé de façon classique avec une souris.
 
 La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée de manière invisible, mais indiquée directement par de petits codes lisibles inspirés du **Markdown**.
@@ -21,10 +21,10 @@ LisioWriter facilite la production de rapports, mémoires, travaux universitaire
 
 LisioWriter intègre de nombreuses fonctionnalités de traitement de texte, mais aussi de nouvelles, spécialement conçues pour les personnes non-voyantes ou malvoyantes.
 
-### Capture écran d'une importation d'un fichier Ms Word
+### Capture écran d'une importation d'un fichier Ms Word dans LisioWriter
 
 L’exemple ci-dessous illustre l’importation d’un document Microsoft Word (.docx) dans LisioWriter.
-Les titres, listes, mises en forme (gras, italique, souligné), indices, exposants, tabulations et notes de bas de page sont automatiquement convertis en codes LisioWriter directement visibles dans l’éditeur.
+Les titres, listes, mises en forme (gras, italique, souligné), indices, exposants, tabulations, notes de bas de page, images avec sa description, liens et Tables sont automatiquement convertis en codes LisioWriter directement visibles dans l’éditeur.
 
 Le résultat offre une structure entièrement lisible au clavier, parfaitement compatible avec les lecteurs d’écran NVDA et JAWS, et fidèlement restituée sur la barre braille.
 
