@@ -231,17 +231,24 @@ public class HtmlBrowserDialog extends JDialog {
 	
 	                if (content != null) {
 	                    // --- Supprimer les éléments non pertinents ---
-	                    content.select(
-	                        ".mw-editsection, " +
-	                        ".reflist, " +
-	                        ".navbox, " +
-	                        ".metadata, " +
-	                        "sup.reference, " +
-	                        "div[class^=infobox]"  // supprime tout <div> dont la classe commence par "infobox"
-	                        //".mw-heading" // supprime <div class="mw-heading ..."> (et autres balises avec cette classe)
-	                    ).remove();
+	                	content.select(
+	                		    ".mw-editsection, " +
+	                		    ".reflist, " +
+	                		    ".navbox, " +
+	                		    ".metadata, " +
+	                		    "sup.reference, " +
+	                		    "div[class^=infobox], " +           // anciens <div> infobox
+	                		    "table[class~=\\binfobox\\b]"       // toute <table> ayant la classe 'infobox' parmi d’autres
+	                		).remove();
+	                	
+	                	content.select(
+	                		    "table.infobox, " +                 // classe 'infobox'
+	                		    "table.infobox_v2, " +              // classe 'infobox_v2' (issue de 'infobox&#95;v2')
+	                		    "table.infobox--frwiki"             // variante frwiki
+	                		).remove();
+
 	                    
-	                    content.select("[class~=\\bmw-heading(\\d+)?\\b]").remove();
+	                    //content.select("[class~=\\bmw-heading(\\d+)?\\b]").remove();
 	                    
 	                    content.select(
 	                    	    "[class~=\\bbandeau-container\\b]" +
@@ -249,6 +256,10 @@ public class HtmlBrowserDialog extends JDialog {
 	                    	    "[class~=\\bmetadata\\b]" +
 	                    	    "[class~=\\bbandeau-niveau-information\\b]"
 	                    	).remove();
+	                    
+	                    content.select("li[id^=cite_note]").remove();
+	                    content.select("[id^=cite_note], [id^=cite_ref]").remove();  // enlève tout élément dont l'id commence par cite_note ou cite_ref
+	                    content.select("ol.references > li[id^=cite_note]").remove();
 	                    
 	                    // --- Convertir les tableaux en @t ... @/t ---
 		                convertAllTables(content);
@@ -305,20 +316,28 @@ public class HtmlBrowserDialog extends JDialog {
 	                        img.remove();
 	                    }
 	
-	                    // --- Conversion finale du HTML vers le format LisioWriter ---
+	                 // --- Conversion finale du HTML vers le format LisioWriter ---
 	                    String html = content.html();
 	                    converted = HtmlImporter.importFromHtml(html);
 	                    if (converted != null) {
-	                        // Nettoyage des caractères invisibles qui perturbent le rendu
 	                        converted = converted
-	                            .replace('\u00A0', ' ')  // espace insécable → espace normal
-	                            .replace('\u2028', '\n') // séparateur de ligne → vrai saut de ligne
-	                            .replace('\u2029', '\n') // séparateur de paragraphe → saut de ligne
+	                            .replace('\u00A0', ' ')      // espace insécable → espace normal
+	                            .replace('\u2028', '\n')     // séparateur de ligne → vrai saut de ligne
+	                            .replace('\u2029', '\n')     // séparateur de paragraphe → saut de ligne
 	                            .replaceAll("[\\r\\n]{3,}", "\n\n") // pas plus de 2 sauts consécutifs
+
+	                            // 1) Enlever les espaces AVANT le marqueur de liste en début de ligne
+	                            .replaceAll("(?m)^[ \\t]+(?=(?:-\\.|\\*|\\d+\\.)\\s)", "")
+
+	                            // 2) Choisir ce que tu veux APRÈS le marqueur :
+	                            //    a) AUCUN espace après le marqueur:
+	                            .replaceAll("(?m)^(?:\\s*)(-\\.|\\*|\\d+\\.)\\s+", "$1")
+	                            //    b) (Alternative) EXACTEMENT 1 espace après le marqueur:
+	                            // .replaceAll("(?m)^(?:\\s*)(-\\.|\\*|\\d+\\.)\\s+", "$1 ")
+
 	                            .trim();
 	                    }
 	                }
-	
 	            } catch (Exception ex) {
 	                error = ex.getMessage();
 	            }
@@ -505,7 +524,8 @@ public class HtmlBrowserDialog extends JDialog {
 	                // //upload.wikimedia.org/.../thumb/e/ef/GERARD_LARCHER_TROMBI_PDC.jpg/250px-...jpg
 	                // //upload.wikimedia.org/.../e/ef/GERARD_LARCHER_TROMBI_PDC.jpg
 	                String file = src;
-	                int idx;
+	                @SuppressWarnings("unused")
+					int idx;
 	                // Si c'est une miniature "thumb", le nom de fichier est juste avant le segment taille
 	                // On isole la dernière occurrence de ".jpg", ".png", ".jpeg", ".gif", ".webp"
 	                String lower = src.toLowerCase();
