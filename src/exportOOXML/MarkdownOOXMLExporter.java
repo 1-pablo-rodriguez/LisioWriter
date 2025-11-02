@@ -561,6 +561,7 @@ public final class MarkdownOOXMLExporter {
 			table.setStyleID("TableGrid");
 			
 			// --- En-tête éventuel ---
+			@SuppressWarnings("unused")
 			int rowIndex = 0;
 			if (hasHeader) {
 			java.util.List<String> headCells = TableSyntax.splitCells(rawRows.get(0));

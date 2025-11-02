@@ -16,6 +16,15 @@ import org.odftoolkit.odfdom.pkg.OdfFileDom;
 import org.odftoolkit.odfdom.dom.element.text.TextAElement;
 import org.odftoolkit.odfdom.dom.element.text.TextTabElement;
 
+import writer.ui.editor.TableSyntax;
+
+import org.odftoolkit.odfdom.dom.element.table.TableTableElement;
+import org.odftoolkit.odfdom.dom.element.table.TableTableColumnElement;
+import org.odftoolkit.odfdom.dom.element.table.TableTableRowElement;
+import org.odftoolkit.odfdom.dom.element.table.TableTableCellElement;
+import org.odftoolkit.odfdom.dom.element.table.TableTableHeaderRowsElement;
+
+
 import writer.commandes;
 
 public final class MarkdownOdfExporter {
@@ -68,8 +77,12 @@ public final class MarkdownOdfExporter {
     private static final String SPAN_UNDERITALIC     = "BW_Span_UnderlineItalic";
     private static final String SPAN_EXPOSANT     = "BW_Span_Exposant";
     private static final String SPAN_INDICE = "BW_Span_Indice";
+    
+    
+    
 
     private enum ListKind { NONE, ORDERED, UNORDERED }
+    
 
     /** API principale : exporte la chaîne markdown-ish vers un .odt. */
     public static void export(String src, File outFile) throws Exception {
@@ -94,8 +107,8 @@ public final class MarkdownOdfExporter {
 
         String[] lines = src.replace("\r\n", "\n").replace('\r', '\n').split("\n", -1);
 
-        for (String rawLine : lines) {
-            String line = rawLine; // on garde tel quel pour l’inline
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
 
             // 0) Ligne vide : on ferme une liste éventuelle et on ajoute un paragraphe vide
             if (line.trim().isEmpty()) {
@@ -125,7 +138,41 @@ public final class MarkdownOdfExporter {
                 continue;
             }
             
-         // --- Titres spéciaux #P. et #S. ---
+            // === TABLEAUX @t ... @/t ===
+            if (TableSyntax.isTableStart(line)) {
+                // 1) Fermer une liste éventuelle
+                if (listState != ListKind.NONE) {
+                    currentList = null;
+                    listState = ListKind.NONE;
+                }
+
+                // 2) Récupérer toutes les lignes jusqu'à @/t (non inclus)
+                List<String> rows = new ArrayList<>();
+                int j = i + 1;
+                for (; j < lines.length; j++) {
+                    String l = lines[j];
+                    if (TableSyntax.isTableEnd(l)) break;
+                    // on ignore les lignes vides au milieu du bloc table
+                    if (l != null && !l.strip().isEmpty()) rows.add(l);
+                }
+
+                // 3) Insérer un saut de page si demandé pour "le prochain paragraphe"
+                if (pageBreakForNextParagraph) {
+                    TextPElement dummy = odt.newParagraph();
+                    applyBreakBefore(odt, dummy);
+                    pageBreakForNextParagraph = false;
+                }
+
+                // 4) Construire la table dans l’ODT
+                buildOdfTable(odt, contentDom, rows, footBox);
+
+                // 5) Sauter jusqu'à la fin du bloc
+                i = (j < lines.length ? j : lines.length - 1);
+                continue;
+            }
+
+            
+            // --- Titres spéciaux #P. et #S. ---
             Matcher m;
 
             // #P. Titre principal  -> style "Title"
@@ -910,6 +957,92 @@ public final class MarkdownOdfExporter {
                 // insère <text:tab/> dans le lien
                 TextTabElement tab = dom.newOdfElement(TextTabElement.class);
                 link.appendChild(tab);
+            }
+        }
+    }
+
+    /** Construit un <table:table> avec une éventuelle ligne d’en-tête "|!".
+     *  - Respecte les échappements \| et \\ via TableSyntax.splitCells
+     *  - Rend les cellules avec appendInlineRuns(...) pour garder le inline
+     */
+    private static void buildOdfTable(
+            OdfTextDocument odt,
+            OdfFileDom contentDom,
+            List<String> rawRows,
+            IntBox footnoteCounter) throws Exception {
+
+        if (rawRows == null || rawRows.isEmpty()) return;
+
+        // 1) Convertir chaque ligne en liste de cellules
+        List<List<String>> parsed = new ArrayList<>();
+        boolean hasHeader = false;
+
+        int maxCols = 0;
+        for (int r = 0; r < rawRows.size(); r++) {
+            String row = rawRows.get(r);
+            if (!TableSyntax.isTableRow(row)) continue; // sécurité
+
+            List<String> cells = TableSyntax.splitCells(row);
+            // Si la ligne est en-tête, splitCells a déjà ignoré le préfixe "|!"
+            if (TableSyntax.isHeaderRow(row)) hasHeader = true;
+
+            parsed.add(cells);
+            if (cells.size() > maxCols) maxCols = cells.size();
+        }
+        if (parsed.isEmpty() || maxCols == 0) return;
+
+        // 2) Créer <table:table> et colonnes
+        TableTableElement table = contentDom.newOdfElement(TableTableElement.class);
+        odt.getContentRoot().appendChild(table);
+
+        // colonnes (on peut aussi utiliser number-columns-repeated)
+        for (int c = 0; c < maxCols; c++) {
+            TableTableColumnElement col = contentDom.newOdfElement(TableTableColumnElement.class);
+            table.appendChild(col);
+        }
+
+        // 3) Si en-tête, prendre la/les premières lignes "|!" en header-rows
+        int rowIndex = 0;
+        if (hasHeader) {
+            TableTableHeaderRowsElement thead = contentDom.newOdfElement(TableTableHeaderRowsElement.class);
+            table.appendChild(thead);
+
+            // On met TOUTES les lignes initiales commençant par "|!" dans l’en-tête
+            while (rowIndex < parsed.size() && TableSyntax.isHeaderRow(rawRows.get(rowIndex))) {
+                List<String> cells = parsed.get(rowIndex);
+                TableTableRowElement tr = contentDom.newOdfElement(TableTableRowElement.class);
+                thead.appendChild(tr);
+
+                // cells -> table:table-cell + <text:p> + inline
+                for (int c = 0; c < maxCols; c++) {
+                    TableTableCellElement tc = contentDom.newOdfElement(TableTableCellElement.class);
+                    tr.appendChild(tc);
+
+                    TextPElement p = contentDom.newOdfElement(TextPElement.class);
+                    tc.appendChild(p);
+
+                    String cellText = (c < cells.size()) ? cells.get(c) : "";
+                    appendInlineRuns(contentDom, p, cellText, odt, footnoteCounter);
+                }
+                rowIndex++;
+            }
+        }
+
+        // 4) Corps du tableau
+        for (; rowIndex < parsed.size(); rowIndex++) {
+            List<String> cells = parsed.get(rowIndex);
+            TableTableRowElement tr = contentDom.newOdfElement(TableTableRowElement.class);
+            table.appendChild(tr);
+
+            for (int c = 0; c < maxCols; c++) {
+                TableTableCellElement tc = contentDom.newOdfElement(TableTableCellElement.class);
+                tr.appendChild(tc);
+
+                TextPElement p = contentDom.newOdfElement(TextPElement.class);
+                tc.appendChild(p);
+
+                String cellText = (c < cells.size()) ? cells.get(c) : "";
+                appendInlineRuns(contentDom, p, cellText, odt, footnoteCounter);
             }
         }
     }
