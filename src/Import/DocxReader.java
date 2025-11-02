@@ -846,6 +846,124 @@ public class DocxReader {
         String label = (alt == null || alt.trim().isEmpty()) ? "Image" : alt.trim();
         sb.append("![Image : ").append(label).append("]");
     }
+    
+    /** Ajoute le marqueur d’image avec légende si trouvée */
+    private static void appendImageMarkerWithCaption(String alt, String caption, StringBuilder sb) {
+        String label = (alt == null || alt.trim().isEmpty()) ? "Image" : alt.trim();
+        sb.append("![Image : ").append(label);
+        if (caption != null && !caption.isBlank()) {
+            sb.append(". Légende : ").append(caption.trim());
+        }
+        sb.append("]");
+    }
+
+    /**
+     * Cherche une légende liée à une image :
+     *  - dans w:drawing (txbxContent ou wps:txbx)
+     *  - dans w:pict / v:textbox (VML, anciens .docx)
+     *  - sinon dans le paragraphe suivant.
+     */
+    private static String extractCaptionFromDrawingOrNearby(XWPFRun run, XWPFDocument doc) {
+        try {
+            var ctr = run.getCTR();
+
+            // === 1️⃣ Cas des dessins modernes ===
+            if (ctr != null) {
+                var drawings = ctr.getDrawingList();
+                if (drawings != null) {
+                    for (var drawing : drawings) {
+                        String xml = drawing.xmlText();
+                        Matcher m = Pattern.compile(
+                            "<(?:wps:)?txbx[^>]*>.*?<w:txbxContent[^>]*>(.*?)</w:txbxContent>",
+                            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+                        ).matcher(xml);
+                        if (m.find()) {
+                            String raw = m.group(1)
+                                .replaceAll("<[^>]+>", " ")
+                                .replaceAll("\\s+", " ")
+                                .trim();
+                            if (raw.toLowerCase().contains("figure") || raw.toLowerCase().contains("fig.")) {
+                                return normalizeSpaces(raw);
+                            }
+                        }
+                    }
+                }
+
+                // === 2️⃣ Cas des images VML : w:pict + v:textbox ===
+                var picts = ctr.getPictList();
+                if (picts != null && !picts.isEmpty()) {
+                    for (var pict : picts) {
+                        String xml = pict.xmlText();
+                        // Recherche contenu de <v:textbox> ... <w:txbxContent>
+                        Matcher m = Pattern.compile(
+                            "<v:textbox[^>]*>.*?<w:txbxContent[^>]*>(.*?)</w:txbxContent>.*?</v:textbox>",
+                            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+                        ).matcher(xml);
+                        if (m.find()) {
+                            String raw = m.group(1)
+                                .replaceAll("<[^>]+>", " ")
+                                .replaceAll("\\s+", " ")
+                                .trim();
+                            if (raw.toLowerCase().contains("figure") || raw.toLowerCase().contains("fig.")) {
+                                return normalizeSpaces(raw);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // === 3️⃣ Fallback : paragraphe suivant ===
+            var parent = run.getParent();
+            if (parent instanceof XWPFParagraph para) {
+                var body = para.getBody();
+                var paras = body.getParagraphs();
+                int idx = paras.indexOf(para);
+                if (idx >= 0 && idx < paras.size() - 1) {
+                    var next = paras.get(idx + 1);
+                    String txt = next.getText();
+                    if (txt != null && (txt.toLowerCase().contains("figure") || txt.toLowerCase().contains("fig."))) {
+                        return normalizeSpaces(txt);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /** Essaie de repérer une légende (type "Figure...") dans le même paragraphe ou juste après. */
+    private static String extractCaptionTextNear(XWPFRun run) {
+        try {
+            var parent = run.getParent();
+            if (!(parent instanceof XWPFParagraph para)) return null;
+
+            // 1️⃣ Cherche dans les runs suivants du même paragraphe
+            var runs = para.getRuns();
+            if (runs != null) {
+                for (int i = runs.indexOf(run) + 1; i < runs.size(); i++) {
+                    String txt = runs.get(i).text();
+                    if (txt != null && txt.toLowerCase().contains("figure")) {
+                        return normalizeSpaces(txt);
+                    }
+                }
+            }
+
+            // 2️⃣ Sinon, cherche dans le paragraphe suivant
+            var body = para.getBody();
+            var paras = body.getParagraphs();
+            int idx = paras.indexOf(para);
+            if (idx >= 0 && idx < paras.size() - 1) {
+                var next = paras.get(idx + 1);
+                String txt = next.getText();
+                if (txt != null && txt.toLowerCase().contains("figure")) {
+                    return normalizeSpaces(txt);
+                }
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
 
     /** Déduit un libellé à partir d'un rId (nom de fichier) si possible. */
     private static String altFromRelationId(XWPFDocument doc, String rId) {
@@ -925,73 +1043,94 @@ public class DocxReader {
         }
     }
 
-    /** Émet tous les marqueurs d'images présents dans un run (inline, anchor, embedded, VML). */
-    @SuppressWarnings("unused")
-    private static boolean emitPicturesFromRun(XWPFRun run,
-            XWPFDocument doc,
-            StringBuilder sb,
-            boolean suppressVMLInThisParagraph) {
+	   /**
+	 * Émet tous les marqueurs d’images présents dans un run (inline, anchor, embedded, VML),
+	 * en cherchant aussi les légendes VML dans le run précédent.
+	 */
+	private static boolean emitPicturesFromRun(
+	        XWPFRun run,
+	        XWPFDocument doc,
+	        StringBuilder sb,
+	        boolean suppressVMLInThisParagraph) {
+	
 	    boolean wrote = false;
 	    java.util.Set<String> seen = new java.util.HashSet<>();
 	
 	    try {
 	        var ctr = run.getCTR();
-	        boolean hadDrawing = false;
+	        if (ctr == null) return false;
 	
-	        if (ctr != null) {
-	            // --- w:drawing -> inline/anchor ---
-	            var drawings = ctr.getDrawingList();
-	            if (drawings != null) {
-	                for (var drawing : drawings) {
-	                    // inline
-	                    var inlines = drawing.getInlineList();
-	                    if (inlines != null) {
-	                        for (var inl : inlines) {
-	                            String rId = blipRelationIdFromInlineOrAnchor(inl);
-	                            String alt = altFromInlineOrAnchor(inl, doc);
+	        // --- 🖼️ Images modernes (w:drawing -> inline/anchor) ---
+	        var drawings = ctr.getDrawingList();
+	        if (drawings != null && !drawings.isEmpty()) {
+	            for (var drawing : drawings) {
+	
+	                // inline
+	                var inlines = drawing.getInlineList();
+	                if (inlines != null) {
+	                    for (var inl : inlines) {
+	                        String rId = blipRelationIdFromInlineOrAnchor(inl);
+	                        String alt = altFromInlineOrAnchor(inl, doc);
+	
+	                        // 🔍 Récupère la légende (priorité au run précédent)
+	                        String caption = findCaptionForRun(run, doc);
+	                        if (caption == null) caption = extractCaptionFromDrawingOrNearby(run, doc);
+	
+	                        if (registerOnce(seen, rId, alt)) {
+	                            appendImageMarkerWithCaption(alt, caption, sb);
+	                            wrote = true;
+	                        }
+	                    }
+	                }
+	
+	                // anchor (autres cas)
+	                try {
+	                    var anchors = drawing.getAnchorList();
+	                    if (anchors != null) {
+	                        for (var anc : anchors) {
+	                            String rId = blipRelationIdFromInlineOrAnchor(anc);
+	                            String alt = altFromInlineOrAnchor(anc, doc);
+	
+	                            // 🔍 Légende VML ou fallback
+	                            String caption = findCaptionForRun(run, doc);
+	                            if (caption == null) caption = extractCaptionFromDrawingOrNearby(run, doc);
+	
 	                            if (registerOnce(seen, rId, alt)) {
-	                                appendImageMarker(alt, sb);
+	                                appendImageMarkerWithCaption(alt, caption, sb);
 	                                wrote = true;
-	                                hadDrawing = true;
 	                            }
 	                        }
 	                    }
-	                    // anchor (si API dispo)
-	                    try {
-	                        var anchors = drawing.getAnchorList();
-	                        if (anchors != null) {
-	                            for (var anc : anchors) {
-	                                String rId = blipRelationIdFromInlineOrAnchor(anc);
-	                                String alt = altFromInlineOrAnchor(anc, doc);
-	                                if (registerOnce(seen, rId, alt)) {
-	                                    appendImageMarker(alt, sb);
-	                                    wrote = true;
-	                                    hadDrawing = true;
-	                                }
-	                            }
-	                        }
-	                    } catch (Throwable ignored) {}
-	                }
+	                } catch (Throwable ignored) {}
 	            }
-	
-	            // --- VML <w:pict> (fallback) ---
-	            // On n'ajoute le générique que si aucun drawing/embedded n'a déjà été vu.
-	            try {
-	                var picts = ctr.getPictList();
-	                if ((picts != null && !picts.isEmpty()) && seen.isEmpty()) {
-	                    if (registerOnce(seen, null, "Image")) {
-	                        appendImageMarker("Image", sb);
-	                        wrote = true;
-	                    }
-	                }
-	            } catch (Throwable ignored) {}
 	        }
 	
-	        // --- API haut-niveau embeddedPictures ---
-	        // ATTENTION : souvent redondant avec w:drawing. On ne l'utilise
-	        // que si on n'a rien émis via drawings/VML.
+	        // --- 🧩 VML <w:pict> (anciennes images ou légendes seules) ---
+	        try {
+	            if (!suppressVMLInThisParagraph && seen.isEmpty()) {
+	                var picts = ctr.getPictList();
+	                if (picts != null && !picts.isEmpty()) {
+	                    for (var pict : picts) {
+	                        String xml = pict.xmlText();
+	
+	                        // 1️⃣ Légende dans le textbox
+	                        String caption = extractCaptionFromPictXml(xml);
+	
+	                        // 2️⃣ Alt via r:id (fichier)
+	                        String alt = altFromVmlImagedata(xml, doc);
+	
+	                        if (registerOnce(seen, null, alt)) {
+	                            appendImageMarkerWithCaption(alt, caption, sb);
+	                            wrote = true;
+	                        }
+	                    }
+	                }
+	            }
+	        } catch (Throwable ignored) {}
+	
+	        // --- 🧱 API haut-niveau embeddedPictures ---
 	        if (seen.isEmpty()) {
-	            java.util.List<org.apache.poi.xwpf.usermodel.XWPFPicture> pics = run.getEmbeddedPictures();
+	            var pics = run.getEmbeddedPictures();
 	            if (pics != null) {
 	                for (var p : pics) {
 	                    String alt = null;
@@ -1016,8 +1155,12 @@ public class DocxReader {
 	                        } catch (Exception ignored) {}
 	                    }
 	
+	                    // 🔍 même logique de légende que pour drawings
+	                    String caption = findCaptionForRun(run, doc);
+	                    if (caption == null) caption = extractCaptionFromDrawingOrNearby(run, doc);
+	
 	                    if (registerOnce(seen, rId, alt)) {
-	                        appendImageMarker(alt, sb);
+	                        appendImageMarkerWithCaption(alt, caption, sb);
 	                        wrote = true;
 	                    }
 	                }
@@ -1029,6 +1172,40 @@ public class DocxReader {
 	    return wrote;
 	}
 
+	/**
+	 * Cherche une légende éventuelle dans le run précédent (VML <w:pict> avec <v:textbox>).
+	 */
+	@SuppressWarnings("deprecation")
+	private static String findCaptionForRun(XWPFRun run, XWPFDocument doc) {
+	    try {
+	        var para = run.getParagraph();
+	        if (para == null) return null;
+
+	        var runs = para.getRuns();
+	        if (runs == null) return null;
+
+	        int idx = runs.indexOf(run);
+	        if (idx <= 0) return null;
+
+	        // Vérifie le run précédent
+	        var prevRun = runs.get(idx - 1);
+	        var prevCtr = prevRun.getCTR();
+	        if (prevCtr == null) return null;
+
+	        if (prevCtr.sizeOfPictArray() > 0) {
+	            for (var pict : prevCtr.getPictList()) {
+	                String xmlPrev = pict.xmlText();
+	                String caption = extractCaptionFromPictXml(xmlPrev);
+	                if (caption != null && !caption.isBlank()) {
+	                    return caption;
+	                }
+	            }
+	        }
+	    } catch (Exception ignored) {}
+	    return null;
+	}
+
+	
     // Renvoie l'ID de relation du blip (embed/link) si dispo, sinon null.
     private static String blipRelationIdFromInlineOrAnchor(Object inlineOrAnchor) {
         try {
@@ -1076,6 +1253,71 @@ public class DocxReader {
             } catch (Exception ignored) {}
         }
         return false;
+    }
+
+    /** Extrait la légende complète d’un bloc VML <v:textbox><w:txbxContent>…</w:txbxContent>. */
+    private static String extractCaptionFromPictXml(String xml) {
+        if (xml == null) return null;
+
+        Matcher m = Pattern.compile(
+            "<v:textbox[^>]*>.*?<w:txbxContent[^>]*>(.*?)</w:txbxContent>.*?</v:textbox>",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+        ).matcher(xml);
+
+        if (m.find()) {
+            String inside = m.group(1);
+
+            // ✅ Concatène tous les <w:t>...</w:t> (y compris ceux imbriqués dans w:r / w:fldSimple)
+            StringBuilder txt = new StringBuilder();
+            Matcher t = Pattern.compile("<w:t[^>]*>(.*?)</w:t>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(inside);
+            while (t.find()) {
+                txt.append(t.group(1)).append(" ");
+            }
+
+            // Nettoyage du texte final
+            String raw = txt.toString()
+                .replaceAll("<[^>]+>", " ")
+                .replace("&nbsp;", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+
+            if (!raw.isBlank() && (raw.toLowerCase().contains("figure") || raw.toLowerCase().contains("fig."))) {
+                return normalizeSpaces(raw);
+            }
+        }
+        return null;
+    }
+
+
+    /** Récupère un ALT via le nom de fichier de <v:imagedata r:id="..."> si possible. */
+    private static String altFromVmlImagedata(String xml, XWPFDocument doc) {
+        if (xml == null || doc == null) return null;
+        try {
+            Matcher m = Pattern.compile("r:id\\s*=\\s*\"([^\"]+)\"", Pattern.CASE_INSENSITIVE).matcher(xml);
+            if (m.find()) {
+                String rid = m.group(1);
+                // Tenter de retrouver le nom de fichier via la relation
+                try {
+                    var part = doc.getRelationById(rid);
+                    if (part instanceof org.apache.poi.xwpf.usermodel.XWPFPictureData pd) {
+                        String name = pd.getFileName();
+                        if (name != null) {
+                            int dot = name.lastIndexOf('.');
+                            if (dot > 0) name = name.substring(0, dot);
+                            return name.replace('_', ' ').trim();
+                        }
+                    } else if (part != null && part.getPackagePart() != null) {
+                        String name = part.getPackagePart().getPartName().getName(); // /word/media/image1.png
+                        int slash = name.lastIndexOf('/');
+                        if (slash >= 0) name = name.substring(slash + 1);
+                        int dot = name.lastIndexOf('.');
+                        if (dot > 0) name = name.substring(0, dot);
+                        return name.replace('_', ' ').trim();
+                    }
+                } catch (Exception ignored) {}
+            }
+        } catch (Exception ignored) {}
+        return null; // laisser appendImageMarkerWithCaption gérer le fallback "Image"
     }
 
 
