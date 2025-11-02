@@ -19,6 +19,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import Import.odt.style.*;
+
 
 /**
  * OdtReader amélioré : corrige extraction styles, héritage, spans inline et spans imbriqués,
@@ -41,21 +43,6 @@ public class OdtReader {
 	    return s;
 	}
 
-    private static class TextStyle {
-        boolean bold;
-        boolean italic;
-        boolean underline;
-
-        TextStyle() {}
-        TextStyle(boolean b, boolean i, boolean u) { bold = b; italic = i; underline = u; }
-        void or(TextStyle other) {
-            if (other == null) return;
-            bold = bold || other.bold;
-            italic = italic || other.italic;
-            underline = underline || other.underline;
-        }
-        boolean isEmpty() { return !bold && !italic && !underline; }
-    }
 
     public static String extractStructuredTextFromODT(String odtFilePath) throws Exception {
         ZipFile zipFile = new ZipFile(odtFilePath);
@@ -238,23 +225,27 @@ public class OdtReader {
 
     private static void processDocForTextStyles(Document doc, Map<String, TextStyle> map) {
         if (doc == null) return;
+
         NodeList styleNodes = doc.getElementsByTagNameNS("*", "style");
         for (int i = 0; i < styleNodes.getLength(); i++) {
             Element style = (Element) styleNodes.item(i);
             String styleName = style.getAttribute("style:name");
             if (styleName == null || styleName.isEmpty()) continue;
 
+            boolean b = false, it = false, u = false;
+            boolean sub = false, sup = false;
+
             NodeList textPropsList = style.getElementsByTagNameNS("*", "text-properties");
-            boolean b=false, it=false, u=false;
             for (int j = 0; j < textPropsList.getLength(); j++) {
                 Element props = (Element) textPropsList.item(j);
 
-                // lire plusieurs formes d'attribut (parfois prefix diffèrent)
+                // --- Bold / Italic / Underline ---
                 String fw = props.getAttribute("fo:font-weight");
                 String fs = props.getAttribute("fo:font-style");
                 String underline = props.getAttribute("style:text-underline-style");
                 String u2 = props.getAttribute("style:text-underline-type");
                 String u3 = props.getAttribute("text-underline-style"); // fallback
+
                 if (fw != null && (fw.equalsIgnoreCase("bold") || fw.matches(".*[6-9]00.*"))) b = true;
                 if (fs != null && fs.equalsIgnoreCase("italic")) it = true;
                 if ((underline != null && !underline.isEmpty() && !"none".equalsIgnoreCase(underline))
@@ -263,47 +254,77 @@ public class OdtReader {
                     u = true;
                 }
 
-                // fallback generique
+                // fallback générique pour font-weight sans préfixe
                 if (!b) {
                     String fwGeneric = props.getAttribute("font-weight");
                     if (fwGeneric != null && (fwGeneric.contains("bold") || fwGeneric.matches(".*[6-9]00.*"))) b = true;
                 }
+
+                // --- Subscript / Superscript (style:text-position / text-position) ---
+                String tp1 = props.getAttribute("style:text-position");
+                String tp2 = props.getAttribute("text-position");
+                TextStyle tmp = new TextStyle(); // vide, juste pour utiliser applyTextPosition
+                applyTextPosition(tp1, tmp);
+                applyTextPosition(tp2, tmp);
+                sub |= tmp.subscript;
+                sup |= tmp.superscript;
             }
-            if (b || it || u) {
-                map.put(styleName, new TextStyle(b, it, u));
+
+            // Enregistre une seule fois si au moins une propriété est vraie
+            if (b || it || u || sub || sup) {
+                TextStyle ts = new TextStyle(b, it, u);
+                ts.subscript = sub;
+                ts.superscript = sup;
+                map.put(styleName, ts);
             }
         }
     }
+
 
     /**
      * Résout l'ensemble des propriétés (bold/italic/underline) pour un style donné
      * en remontant la chaîne d'héritage styleToParent. Les propriétés sont OR-ées.
      */
-    private static TextStyle resolveTextStyleFromStyleName(String styleName, Map<String, TextStyle> directMap, Map<String, String> styleToParent) {
-        boolean b=false, it=false, u=false;
+    private static TextStyle resolveTextStyleFromStyleName(
+            String styleName,
+            Map<String, TextStyle> directMap,
+            Map<String, String> styleToParent) {
+
+        boolean b = false, it = false, u = false;
+        boolean sub = false, sup = false;
+
         Set<String> seen = new HashSet<>();
         String cur = styleName;
+
         while (cur != null && !cur.isEmpty() && !seen.contains(cur)) {
             seen.add(cur);
             TextStyle d = directMap.get(cur);
             if (d != null) {
-                b = b || d.bold;
-                it = it || d.italic;
-                u = u || d.underline;
+                b   |= d.bold;
+                it  |= d.italic;
+                u   |= d.underline;
+                sub |= d.subscript;
+                sup |= d.superscript;
             }
             cur = styleToParent.get(cur);
         }
-        return new TextStyle(b, it, u);
+
+        TextStyle ts = new TextStyle(b, it, u);
+        ts.subscript = sub;
+        ts.superscript = sup;
+        return ts;
     }
+
 
     /**
      * Lit attributs inline (ex. sur <text:span>) et retourne un TextStyle
      */
     private static TextStyle getInlineTextStyle(Element e) {
         if (e == null) return null;
-        boolean b=false, it=false, u=false;
 
-        // vérifier attributs communs
+        boolean b = false, it = false, u = false;
+
+        // --- Gras / Italique / Souligné
         String fw = e.getAttribute("fo:font-weight");
         if (fw == null || fw.isEmpty()) fw = e.getAttribute("font-weight");
         if (fw != null && (fw.equalsIgnoreCase("bold") || fw.matches(".*[6-9]00.*"))) b = true;
@@ -317,42 +338,69 @@ public class OdtReader {
         if (underline == null || underline.isEmpty()) underline = e.getAttribute("style:text-underline-type");
         if (underline != null && !underline.isEmpty() && !"none".equalsIgnoreCase(underline)) u = true;
 
-        if (b || it || u) return new TextStyle(b, it, u);
-        return null;
+        // --- Indice / Exposant
+        String tp1 = e.getAttribute("style:text-position");
+        String tp2 = e.getAttribute("text-position");
+
+        TextStyle t = new TextStyle(b, it, u);
+        applyTextPosition(tp1, t);
+        applyTextPosition(tp2, t);
+
+        // 🔴 Ne PAS se fier à isEmpty() si elle ignore sub/sup
+        boolean any = b || it || u || t.subscript || t.superscript;
+        return any ? t : null;
     }
 
-    /**
-     * Concatène le texte structuré en descendant l'arbre.
-     * - gère spans imbriqués correctement (on construit d'abord le contenu interne, puis on wrap)
-     * IMPORTANT: ici on détecte d'abord text:outline-level sur les <p>
-     */
-    private static void parseContentInOrder(Node node, Map<String, String> styleToParent, Map<String, TextStyle> directTextStyleMap, Map<String, Integer> headingLevels, StringBuilder result, boolean listenumerote, Document stylesDoc, Document contentDoc) {
-        if (node.getNodeType() == Node.TEXT_NODE) {
-            String txt = node.getNodeValue();
-            if (txt != null && !txt.isEmpty()) result.append(txt);
-            return;
-        }
+
+
+    // Ancienne API -> appelle la nouvelle avec un style vide
+    private static void parseContentInOrder(Node node,
+            Map<String, String> styleToParent,
+            Map<String, TextStyle> directTextStyleMap,
+            Map<String, Integer> headingLevels,
+            StringBuilder result, boolean listenumerote,
+            Document stylesDoc, Document contentDoc) {
+        parseContentInOrder(node, styleToParent, directTextStyleMap, headingLevels,
+                result, listenumerote, stylesDoc, contentDoc, new TextStyle());
+    }
+
+    // Nouvelle API avec style hérité
+    private static void parseContentInOrder(Node node,
+            Map<String, String> styleToParent,
+            Map<String, TextStyle> directTextStyleMap,
+            Map<String, Integer> headingLevels,
+            StringBuilder result, boolean listenumerote,
+            Document stylesDoc, Document contentDoc,
+            TextStyle inheritedStyle) {
+    	if (node.getNodeType() == Node.TEXT_NODE) {
+    	    String txt = node.getNodeValue();
+    	    if (txt != null && !txt.isEmpty()) {
+    	        if (txt.trim().isEmpty()) {
+    	            result.append(txt);
+    	        } else {
+    	            result.append(wrapWithMarkers(txt, inheritedStyle));
+    	        }
+    	    }
+    	    return;
+    	}
         if (node.getNodeType() != Node.ELEMENT_NODE) return;
 
         boolean listenumerote2 = listenumerote;
-
         Element element = (Element) node;
         String tag = element.getLocalName();
 
         if (!isInsideListItem(element)) listenumerote2 = false;
 
         switch (tag) {
-            case "h": {
-                // <text:h> explicit: outline-level attribute typically present
-                String levelStr = element.getAttribute("text:outline-level");
-                int level = levelStr.isEmpty() ? -1 : Integer.parseInt(levelStr);
-                result.append("#").append(level).append(". ")
-                      .append(element.getTextContent().trim()).append("\n");
-                break;
-            }
             case "p": {
                 String styleName = element.getAttribute("text:style-name");
 
+                // Détecte page break (inchangé)
+                if (hasPageBreakStyle(styleName, stylesDoc, contentDoc)) {
+                    result.append("@saut de page manuel\n");
+                }
+
+                // Détecte heading (inchangé)
                 String levelAttr = element.getAttribute("text:outline-level");
                 int level = -1;
                 if (levelAttr != null && !levelAttr.isEmpty()) {
@@ -360,29 +408,84 @@ public class OdtReader {
                 } else {
                     level = resolveHeadingLevelFromStyle(styleName, styleToParent, headingLevels);
                 }
+                if (level > 0 && level < 11)       result.append("#").append(level).append(". ");
+                else if (level == 11)              result.append("#P. ");
+                else if (level == 12)              result.append("#S. ");
 
-                if (hasPageBreakStyle(styleName, stylesDoc, contentDoc)) {
-                    result.append("@sautDePage\n");
-                }
-
-                if (level > 0 && level < 11) {
-                    result.append("#").append(level).append(". ");
-                } else if (level == 11) {
-                    result.append("#P. ");
-                } else if (level == 12) {
-                    result.append("#S. ");
-                }
+                // ⬅️ Style du paragraphe + hérité
+                TextStyle pStyle = (styleName == null || styleName.isEmpty())
+                        ? new TextStyle()
+                        : resolveTextStyleFromStyleName(styleName, directTextStyleMap, styleToParent);
+                TextStyle nextInherited = TextStyle.merge(inheritedStyle, pStyle);
 
                 NodeList children = element.getChildNodes();
                 for (int i = 0; i < children.getLength(); i++) {
                     parseContentInOrder(children.item(i), styleToParent, directTextStyleMap, headingLevels,
-                            result, listenumerote2, stylesDoc, contentDoc);
+                            result, listenumerote2, stylesDoc, contentDoc, nextInherited);
                 }
+                if (!isInsideListItem(element)) result.append("\n");
+                break;
+            }
 
-                // ✅ n’ajoute pas de \n si ce <p> est à l’intérieur d’un <list-item>
-                if (!isInsideListItem(element)) {
-                    result.append("\n");
+            case "span": {
+                String styleName = element.getAttribute("text:style-name");
+                if (styleName == null || styleName.isEmpty())
+                    styleName = element.getAttribute("style:style-name");
+
+                TextStyle spanNamed = (styleName == null || styleName.isEmpty())
+                        ? new TextStyle()
+                        : resolveTextStyleFromStyleName(styleName, directTextStyleMap, styleToParent);
+                TextStyle spanInline = getInlineTextStyle(element);
+                TextStyle spanStyle = TextStyle.merge(spanNamed, spanInline);
+
+                // ⬅️ On ne wrappe PAS ici ; on propage le style cumulé
+                TextStyle nextInherited = TextStyle.merge(inheritedStyle, spanStyle);
+
+                NodeList children = element.getChildNodes();
+                for (int i = 0; i < children.getLength(); i++) {
+                    parseContentInOrder(children.item(i), styleToParent, directTextStyleMap, headingLevels,
+                            result, listenumerote2, stylesDoc, contentDoc, nextInherited);
                 }
+                break;
+            }
+
+            case "a": {
+                String href = element.getAttributeNS(XLINK_NS, "href");
+                if (href == null || href.isEmpty()) href = element.getAttribute("xlink:href");
+
+                StringBuilder labelSb = new StringBuilder();
+                NodeList children = element.getChildNodes();
+                for (int i = 0; i < children.getLength(); i++) {
+                    // ⬅️ propage le style hérité dans le libellé
+                    parseContentInOrder(children.item(i), styleToParent, directTextStyleMap, headingLevels,
+                            labelSb, listenumerote2, stylesDoc, contentDoc, inheritedStyle);
+                }
+                String label = escapeLabelForAtLink(labelSb.toString().trim());
+
+                if (href == null || href.isBlank()) {
+                    result.append(label);
+                } else {
+                    result.append("@[").append(label).append(": ").append(href.trim()).append("]");
+                }
+                break;
+            }
+
+            case "note": {
+                String noteText = extractNoteBodyText(element).trim();
+                if (!noteText.isEmpty()) result.append("@(").append(noteText).append(")");
+                break;
+            }
+
+            case "tab": {
+                result.append("[tab]");
+                break;
+            }
+
+            case "h": {
+                String levelStr = element.getAttribute("text:outline-level");
+                int level = levelStr.isEmpty() ? -1 : Integer.parseInt(levelStr);
+                result.append("#").append(level).append(". ")
+                      .append(element.getTextContent().trim()).append("\n");
                 break;
             }
 
@@ -392,161 +495,117 @@ public class OdtReader {
                 listenumerote2 = (level == 13);
                 NodeList children = element.getChildNodes();
                 for (int i = 0; i < children.getLength(); i++) {
-                    parseContentInOrder(children.item(i), styleToParent, directTextStyleMap, headingLevels, result, listenumerote2, stylesDoc, contentDoc);
+                    parseContentInOrder(children.item(i), styleToParent, directTextStyleMap, headingLevels,
+                            result, listenumerote2, stylesDoc, contentDoc, inheritedStyle);
                 }
                 break;
             }
+
             case "list-item": {
                 if (listenumerote2) result.append("1. "); else result.append("-. ");
                 NodeList children = element.getChildNodes();
                 for (int i = 0; i < children.getLength(); i++) {
-                    parseContentInOrder(children.item(i), styleToParent, directTextStyleMap, headingLevels, result, listenumerote2, stylesDoc, contentDoc);
+                    parseContentInOrder(children.item(i), styleToParent, directTextStyleMap, headingLevels,
+                            result, listenumerote2, stylesDoc, contentDoc, inheritedStyle);
                 }
                 result.append("\n");
                 break;
             }
-            case "span": {
-                // Au lieu de getTextContent() on construit le contenu interne pour préserver styles imbriqués
-                String styleName = element.getAttribute("text:style-name");
-                if (styleName == null || styleName.isEmpty()) styleName = element.getAttribute("style:style-name");
 
-                // construire contenu interne dans une StringBuilder temporaire
-                StringBuilder inner = new StringBuilder();
-                NodeList children = element.getChildNodes();
-                for (int i = 0; i < children.getLength(); i++) {
-                    parseContentInOrder(children.item(i), styleToParent, directTextStyleMap, headingLevels, inner, listenumerote2, stylesDoc, contentDoc);
+            case "frame": { emitImageMarkup(element, result); break; }
+            case "image": { emitImageMarkup(element, result); break; }
+
+            case "table": {
+                // (inchangé) — si tu appelles parseContentInOrder(...) dedans,
+                // pense à propager 'inheritedStyle' mais ici on génère les lignes nous-mêmes.
+                result.append("@t\n");
+                NodeList headers = element.getElementsByTagNameNS("*", "table-header-rows");
+                if (headers.getLength() > 0) {
+                    Element thead = (Element) headers.item(0);
+                    NodeList hRows = thead.getChildNodes();
+                    for (int r = 0; r < hRows.getLength(); r++) {
+                        Node rn = hRows.item(r);
+                        if (rn.getNodeType() != Node.ELEMENT_NODE) continue;
+                        Element row = (Element) rn;
+                        if (!"table-row".equals(row.getLocalName())) continue;
+                        java.util.List<String> cells = renderRowCells(row, styleToParent, directTextStyleMap, headingLevels, stylesDoc, contentDoc);
+                        int repeat = getRowRepeat(row);
+                        for (int k = 0; k < repeat; k++) appendTableLine(result, cells, true);
+                    }
                 }
-
-                // déterminer style effectif : héritage des styles nommés + attributs inline
-                TextStyle computed = null;
-                if (styleName != null && !styleName.isEmpty()) {
-                    computed = resolveTextStyleFromStyleName(styleName, directTextStyleMap, styleToParent);
+                NodeList rows = element.getChildNodes();
+                for (int r = 0; r < rows.getLength(); r++) {
+                    Node rn = rows.item(r);
+                    if (rn.getNodeType() != Node.ELEMENT_NODE) continue;
+                    Element e2 = (Element) rn;
+                    String l2 = e2.getLocalName();
+                    if ("table-header-rows".equals(l2)) continue;
+                    if (!"table-row".equals(l2)) continue;
+                    java.util.List<String> cells = renderRowCells(e2, styleToParent, directTextStyleMap, headingLevels, stylesDoc, contentDoc);
+                    int repeat = getRowRepeat(e2);
+                    for (int k = 0; k < repeat; k++) appendTableLine(result, cells, false);
                 }
-                TextStyle inline = getInlineTextStyle(element);
-                if (computed == null) computed = (inline == null ? new TextStyle() : inline);
-                else if (inline != null) computed.or(inline);
-
-                // appliquer wrappers si nécessaire
-                String wrapped = wrapWithMarkers(inner.toString(), computed);
-                result.append(wrapped);
-                break;
-            }
-            case "note": { // text:note (footnote/endnote)
-                // Ignore le numéro (text:note-citation) et ne prend que le corps (text:note-body)
-                String noteText = extractNoteBodyText(element).trim();
-                if (!noteText.isEmpty()) {
-                    result.append("@(").append(noteText).append(")");
-                }
-                break;
-            }
-            case "note-citation": {
-                // On n’affiche jamais le numéro de note
-                break;
-            }
-            case "note-body": {
-                // Normalement non atteint (géré via "note"), on ne fait rien ici.
-                break;
-            }
-            case "a": { // <text:a xlink:href="..."> ... </text:a>
-                // Récupère l'URL
-                String href = element.getAttributeNS(XLINK_NS, "href");
-                if (href == null || href.isEmpty()) {
-                    // fallback si l'ODT a un attribut non namespacé (rare)
-                    href = element.getAttribute("xlink:href");
-                }
-
-                // Construit le libellé en préservant les styles imbriqués
-                StringBuilder labelSb = new StringBuilder();
-                NodeList children = element.getChildNodes();
-                for (int i = 0; i < children.getLength(); i++) {
-                    parseContentInOrder(children.item(i),
-                            styleToParent, directTextStyleMap, headingLevels,
-                            labelSb, listenumerote2, stylesDoc, contentDoc);
-                }
-                String label = escapeLabelForAtLink(labelSb.toString().trim());
-
-                if (href == null || href.isBlank()) {
-                    // pas d'URL → on garde juste le libellé
-                    result.append(label);
-                } else {
-                    // produit la syntaxe LisioWriter
-                    result.append("@[").append(label).append(": ").append(href.trim()).append("]");
-                }
-                break;
-            }
-
-            case "tab": { // <text:tab/>
-                result.append("[tab]");
-                break;
-            }
-            case "frame": { // <draw:frame> contenant souvent <draw:image>
-                // Émet une seule ligne image, puis on ignore l’intérieur (pour éviter doublons)
-                emitImageMarkup(element, result);
-                break;
-            }
-
-            case "image": { // <draw:image> rencontré directement (rare hors frame)
-                emitImageMarkup(element, result);
+                result.append("@/t\n");
                 break;
             }
 
             default: {
-                // descente par défaut
                 NodeList children = element.getChildNodes();
                 for (int i = 0; i < children.getLength(); i++) {
-                    parseContentInOrder(children.item(i), styleToParent, directTextStyleMap, headingLevels, result, listenumerote2, stylesDoc, contentDoc);
+                    parseContentInOrder(children.item(i), styleToParent, directTextStyleMap, headingLevels,
+                            result, listenumerote2, stylesDoc, contentDoc, inheritedStyle);
                 }
                 break;
             }
         }
     }
 
-    private static String wrapWithMarkers(String text, TextStyle ts) {
-        if (ts == null || ts.isEmpty()) return text;
-        boolean b = ts.bold;
-        boolean it = ts.italic;
-        boolean u = ts.underline;
-
-        if (u && b && it) {
-            return "_*^" + text + "^*_";
-        } else if (u && b) {
-            return "_*" + text + "*_";
-        } else if (u && it) {
-            return "_^" + text + "^_";
-        } else if (b && it) {
-            return "*^" + text + "^*";
-        } else if (b) {
-            return "**" + text + "**";
-        } else if (it) {
-            return "^^" + text + "^^";
-        } else if (u) {
-            return "__" + text + "__";
-        } else {
-            return text;
-        }
+    
+    private static String applyBIU(String s, boolean b, boolean it, boolean u) {
+	    String t = s;
+	    if (u && b && it)        t = "_*^" + t + "^*_";
+	    else if (u && b)         t = "_*"  + t + "*_";
+	    else if (u && it)        t = "_^"  + t + "^_";
+	    else if (b && it)        t = "*^"  + t + "^*";
+	    else if (b)              t = "**"  + t + "**";
+	    else if (it)             t = "^^"  + t + "^^";
+	    else if (u)              t = "__"  + t + "__";
+	    return t;
     }
 
-    private static boolean hasPageBreakStyle(String styleName, Document stylesDoc, Document contentDoc) {
-        return hasBreakBeforeInDoc(styleName, stylesDoc) || hasBreakBeforeInDoc(styleName, contentDoc);
-    }
-
-    private static boolean hasBreakBeforeInDoc(String styleName, Document doc) {
-        if (doc == null || styleName == null || styleName.isEmpty()) return false;
-        NodeList styleNodes = doc.getElementsByTagNameNS("*", "style");
-        for (int i = 0; i < styleNodes.getLength(); i++) {
-            Element style = (Element) styleNodes.item(i);
-            if (styleName.equals(style.getAttribute("style:name"))) {
-                NodeList children = style.getElementsByTagNameNS("*", "paragraph-properties");
-                for (int j = 0; j < children.getLength(); j++) {
-                    Element props = (Element) children.item(j);
-                    String breakBefore = props.getAttribute("fo:break-before");
-                    if ("page".equalsIgnoreCase(breakBefore)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+	private static String wrapWithMarkers(String text, TextStyle ts) {
+	    if (ts == null) return text;
+	
+	    // on calcule d’abord B/I/U
+	    String core = applyBIU(text, ts.bold, ts.italic, ts.underline);
+	
+	    // puis on pose super/sub par-dessus (prioritaires)
+	    if (ts.superscript) return "^¨" + core + "¨^";
+	    if (ts.subscript)   return "_¨" + core + "¨_";
+	    return core;
+	}
+	
+	    private static boolean hasPageBreakStyle(String styleName, Document stylesDoc, Document contentDoc) {
+	        return hasBreakBeforeInDoc(styleName, stylesDoc) || hasBreakBeforeInDoc(styleName, contentDoc);
+	    }
+	
+	    private static boolean hasBreakBeforeInDoc(String styleName, Document doc) {
+	        if (doc == null || styleName == null || styleName.isEmpty()) return false;
+	        NodeList styleNodes = doc.getElementsByTagNameNS("*", "style");
+	        for (int i = 0; i < styleNodes.getLength(); i++) {
+	            Element style = (Element) styleNodes.item(i);
+	            if (styleName.equals(style.getAttribute("style:name"))) {
+	                NodeList children = style.getElementsByTagNameNS("*", "paragraph-properties");
+	                for (int j = 0; j < children.getLength(); j++) {
+	                    Element props = (Element) children.item(j);
+	                    String breakBefore = props.getAttribute("fo:break-before");
+	                    if ("page".equalsIgnoreCase(breakBefore)) {
+	                        return true;
+	                    }
+	                }
+	            }
+	        }
+	        return false;
     }
     
     /**
@@ -587,29 +646,11 @@ public class OdtReader {
         return "";
     }
 
-    /** Renvoie le texte d'une éventuelle légende <draw:caption> imbriquée dans le frame. */
-    private static String getDrawCaption(Element frame) {
-        NodeList caps = frame.getElementsByTagNameNS(DRAW_NS, "caption");
-        if (caps.getLength() > 0) {
-            String t = caps.item(0).getTextContent();
-            if (t != null) return t.trim();
-        }
-        return "";
-    }
-
-    /** Choisit l’étiquette à afficher : description > alt > "Image". */
-    private static String chooseImageLabel(String alt, String desc) {
-        alt  = (alt  == null ? "" : alt.trim());
-        desc = (desc == null ? "" : desc.trim());
-        if (!desc.isEmpty()) return desc;   // priorité à la description
-        if (!alt.isEmpty())  return alt;    // fallback: texte alternatif
-        return "Image";                      // dernier recours
-    }
-
     /** Écrit dans result la ligne LisioWriter pour une image trouvée dans un frame ou un image. */
     private static void emitImageMarkup(Element frameOrImage, StringBuilder result) {
 	    String alt  = getSvgTitle(frameOrImage);
 	    String desc = getSvgDesc(frameOrImage);
+	    String cap  = "";
 	
 	    if (frameOrImage.getLocalName().equals("frame")) {
 	        NodeList imgs = frameOrImage.getElementsByTagNameNS(DRAW_NS, "image");
@@ -618,22 +659,209 @@ public class OdtReader {
 	            if (alt.isBlank())  alt  = getSvgTitle(img);
 	            if (desc.isBlank()) desc = getSvgDesc(img);
 	        }
-	        // Légende <draw:caption> = description prioritaire si présente
-	        if (desc.isBlank()) {
-	            String cap = getDrawCaption(frameOrImage);
-	            if (!cap.isBlank()) desc = cap;
-	        }
+	        // ⬅️ ici : récupère la légende (caption, text-box, ou <text:p> suivant)
+	        cap = getFrameCaption(frameOrImage);
+
 	        if (alt.isBlank()) {
 	            String name = frameOrImage.getAttribute("draw:name");
 	            if (name != null && !name.isBlank()) alt = name.trim();
 	        }
 	    }
-	
+
+	    // Nettoyage espaces
 	    alt  = alt.replaceAll("\\s+", " ").trim();
 	    desc = desc.replaceAll("\\s+", " ").trim();
+	    cap  = cap.replaceAll("\\s+", " ").trim();
 	
-	    String label = chooseImageLabel(alt, desc);
+	    String label = buildImageLabel(alt, desc, cap);
 	    result.append("![Image: ").append(label).append("]");
-	}
+    }
+
+    /** Echappe le contenu d'une cellule vers la syntaxe LisioWriter (table). */
+    private static String escapeForTableCell(String s) {
+        if (s == null) return "";
+        // Ne pas toucher aux marqueurs [tab] produits par parseContentInOrder
+        // On supprime CR, remplace NL par espace pour "aplatir" les <text:p> des cellules
+        String t = s.replace("\r", "").replace("\n", " ").trim();
+        // Echapper \ puis |
+        t = t.replace("\\", "\\\\").replace("|", "\\|");
+        return t;
+    }
+
+    /** Convertit le contenu d'une cellule ODT en texte LisioWriter (inline conservé). */
+    private static String collectCellText(Element tableCell,
+                                          Map<String, String> styleToParent,
+                                          Map<String, TextStyle> directTextStyleMap,
+                                          Map<String, Integer> headingLevels,
+                                          Document stylesDoc, Document contentDoc) {
+        StringBuilder sb = new StringBuilder();
+        NodeList kids = tableCell.getChildNodes();
+        for (int i = 0; i < kids.getLength(); i++) {
+            // On réutilise le parseur inline/paragraphes,
+            // mais on "aplatit" ensuite (les \n seront remplacés par des espaces).
+            parseContentInOrder(kids.item(i), styleToParent, directTextStyleMap, headingLevels,
+                    sb, /*listenumerote*/ false, stylesDoc, contentDoc);
+        }
+        return escapeForTableCell(sb.toString());
+    }
+
+    /** Parse une ligne <table:table-row> et renvoie la ligne formatée (|…|…|). */
+    private static java.util.List<String> renderRowCells(Element row,
+                                                         Map<String, String> styleToParent,
+                                                         Map<String, TextStyle> directTextStyleMap,
+                                                         Map<String, Integer> headingLevels,
+                                                         Document stylesDoc, Document contentDoc) {
+        java.util.List<String> cellsOut = new java.util.ArrayList<>();
+        NodeList cells = row.getChildNodes();
+        for (int c = 0; c < cells.getLength(); c++) {
+            Node n = cells.item(c);
+            if (n.getNodeType() != Node.ELEMENT_NODE) continue;
+            Element ce = (Element) n;
+            String local = ce.getLocalName();
+            // covered-table-cell = cellule couverte par un spanning → vide
+            if ("covered-table-cell".equals(local)) {
+                // respectons number-columns-repeated si présent
+                int rep = 1;
+                try { rep = Integer.parseInt(ce.getAttribute("table:number-columns-repeated")); } catch (Exception ignored) {}
+                for (int k = 0; k < Math.max(rep, 1); k++) cellsOut.add("");
+                continue;
+            }
+            if (!"table-cell".equals(local)) continue;
+
+            int rep = 1;
+            try { rep = Integer.parseInt(ce.getAttribute("table:number-columns-repeated")); } catch (Exception ignored) {}
+
+            String cellText = collectCellText(ce, styleToParent, directTextStyleMap, headingLevels, stylesDoc, contentDoc);
+            for (int k = 0; k < Math.max(rep, 1); k++) cellsOut.add(cellText);
+        }
+        return cellsOut;
+    }
+
+    /** Ecrit une ligne de tableau dans result, avec préfixe | ou |! selon header. */
+    private static void appendTableLine(StringBuilder result, java.util.List<String> cells, boolean header) {
+        result.append(header ? "|! " : "| ");
+        for (int i = 0; i < cells.size(); i++) {
+            if (i > 0) result.append(" | ");
+            result.append(cells.get(i));
+        }
+        result.append("\n");
+    }
+
+    /** Déroule un éventuel table:number-rows-repeated sur une <table:table-row>. */
+    private static int getRowRepeat(Element row) {
+        try {
+            String v = row.getAttribute("table:number-rows-repeated");
+            if (v != null && !v.isBlank()) return Math.max(1, Integer.parseInt(v.trim()));
+        } catch (Exception ignored) {}
+        return 1;
+    }
+
+    /** Construit "description. Légende : …" en priorisant desc > alt > "Image".
+     *  Évite les doublons quand la légende commence déjà par la description. */
+    private static String buildImageLabel(String alt, String desc, String caption) {
+        alt     = (alt     == null) ? "" : alt.trim();
+        desc    = (desc    == null) ? "" : desc.trim();
+        caption = (caption == null) ? "" : caption.trim();
+
+        // Phrase de base : description > alt > "Image"
+        String base = !desc.isEmpty() ? desc : (!alt.isEmpty() ? alt : "Image");
+
+        if (caption.isEmpty()) return base;
+
+        // --- Déduplication : si la légende commence par la base, on l'enlève (avec ponctuations/espaces)
+        String capClean = caption.replaceAll("\\s+", " ").trim();
+        String baseNorm = base.replaceAll("\\s+", " ").trim();
+
+        // Enlève "base" au début de la légende, tolérant ponctuation et espaces après
+        String prefixRegex = "^" + Pattern.quote(baseNorm) + "\\s*[\\p{Punct}\\s]*";
+        capClean = capClean.replaceFirst(prefixRegex, "").trim();
+
+        // Si après nettoyage il ne reste rien, on ne rajoute pas "Légende : ..."
+        if (capClean.isEmpty() || capClean.equalsIgnoreCase(baseNorm)) {
+            return base;
+        }
+
+        // Ajoute un point si nécessaire à la fin de base
+        char last = base.isEmpty() ? '\0' : base.charAt(base.length() - 1);
+        if (last != '.' && last != '!' && last != '?' && last != ':' && last != ';') {
+            base += ".";
+        }
+        return base + " Légende : " + capClean;
+    }
+
+
+    private static boolean looksLikeCaptionStyle(String styleName) {
+        if (styleName == null) return false;
+        String s = styleName.toLowerCase();
+        return s.contains("caption") || s.contains("illustration") || s.contains("légende") || s.contains("legende");
+    }
+
+    /** Renvoie la légende associée au frame :
+     *  - <draw:caption> interne
+     *  - texte d'un <draw:text-box> interne
+     *  - paragraphe <text:p> immédiatement suivant avec un style de type "Caption/Illustration/Légende"
+     */
+    private static String getFrameCaption(Element frame) {
+        // 1) <draw:caption>
+        NodeList caps = frame.getElementsByTagNameNS(DRAW_NS, "caption");
+        if (caps.getLength() > 0) {
+            String t = caps.item(0).getTextContent();
+            if (t != null && !t.trim().isEmpty()) return t.trim();
+        }
+
+        // 2) <draw:text-box> → concat texte
+        NodeList tboxes = frame.getElementsByTagNameNS(DRAW_NS, "text-box");
+        if (tboxes.getLength() > 0) {
+            String t = tboxes.item(0).getTextContent();
+            if (t != null && !t.trim().isEmpty()) return t.replaceAll("\\s+", " ").trim();
+        }
+
+        // 3) Paragraphe juste après le frame, de type "Caption/Illustration/Légende"
+        Node sib = frame.getNextSibling();
+        while (sib != null && sib.getNodeType() == Node.TEXT_NODE && sib.getNodeValue().trim().isEmpty()) {
+            sib = sib.getNextSibling();
+        }
+        if (sib != null && sib.getNodeType() == Node.ELEMENT_NODE) {
+            Element e = (Element) sib;
+            if ("p".equals(e.getLocalName())) {
+                String st = e.getAttribute("text:style-name");
+                if (looksLikeCaptionStyle(st)) {
+                    String t = e.getTextContent();
+                    if (t != null && !t.trim().isEmpty()) return t.replaceAll("\\s+", " ").trim();
+                }
+            }
+        }
+        return "";
+    }
+
+    private static void applyTextPosition(String value, TextStyle ts) {
+        if (value == null || value.isBlank() || ts == null) return;
+        String v = value.toLowerCase().trim();
+        // cas simples
+        if (v.startsWith("super") || v.contains("sup")) {
+            ts.superscript = true;
+            ts.subscript = false;
+            return;
+        }
+        if (v.startsWith("sub")) {
+            ts.subscript = true;
+            ts.superscript = false;
+            return;
+        }
+        // cas numériques: "x% y%" -> y% positif = super, négatif = sub (convention LO)
+        // Exemple: "0% 58%"  / "0% -33%"
+        String[] parts = v.replace(',', '.').split("\\s+");
+        for (String p : parts) {
+            if (p.endsWith("%")) {
+                try {
+                    double n = Double.parseDouble(p.substring(0, p.length()-1));
+                    if (n > 0) { ts.superscript = true; ts.subscript = false; return; }
+                    if (n < 0) { ts.subscript = true; ts.superscript = false; return; }
+                } catch (Exception ignored) {}
+            }
+        }
+    }
+
+
 
 }

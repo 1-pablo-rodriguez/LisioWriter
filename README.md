@@ -7,12 +7,13 @@
 
 
 **LisioWriter** est un logiciel de **traitement de texte** conçu spécialement pour les personnes **non-voyantes ou malvoyantes**.
-Son interface est pensée pour être utilisée **entièrement au clavier**, d'un usage très simple et reste compatible avec les lecteurs d’écran tels que **NVDA** ou **JAWS** et la **barre de braille**.
-Cependant, il peut être utilisé de façon classique avec une souris.
+Son interface est pensée pour être utilisée entièrement au clavier et d'un usage simple tout en restant compatible avec les lecteurs d’écran tels que **NVDA** ou **JAWS** et la **barre de braille**.
 
 La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée de manière invisible, mais indiquée directement par de petits codes lisibles inspirés du **Markdown**.
 
 **Ces codes sont intégrés directement dans le texte**. Ils sont ensuite lus par le lecteur d’écran et transmis à la barre braille, ce qui permet à l’utilisateur de savoir exactement quelle mise en forme est appliquée.
+
+Cependant, il peut être utilisé de façon classique avec l'usage d'une souris pour les malvoyants. La colorisation des codes permettant de distinguer le texte de la mise en forme.
 
 LisioWriter permet **d'importer et/ou d'exporter** dans les formats **Word**, **Writer**, **HTML**, et **texte brut** depuis son editeur de texte.
 
@@ -21,12 +22,11 @@ LisioWriter facilite la production de rapports, mémoires, travaux universitaire
 
 LisioWriter intègre de nombreuses fonctionnalités de traitement de texte, mais aussi de nouvelles, spécialement conçues pour les personnes non-voyantes ou malvoyantes.
 
-### Capture écran d'une importation d'un fichier Ms Word dans LisioWriter
+### Capture écran de l'importation d'un fichier Ms Word
 
-L’exemple ci-dessous illustre l’importation d’un document Microsoft Word (.docx) dans LisioWriter.
-Les titres, listes, mises en forme (gras, italique, souligné), indices, exposants, tabulations, notes de bas de page, images avec sa description, liens et Tables sont automatiquement convertis en codes LisioWriter directement visibles dans l’éditeur.
+Les titres, listes, mises en forme (gras, italique, souligné), indices, exposants, tabulations, notes de bas de page, images avec sa description, liens et les tables sont automatiquement convertis en codes LisioWriter directement visibles dans l’éditeur.
 
-Le résultat offre une structure entièrement lisible au clavier, parfaitement compatible avec les lecteurs d’écran NVDA et JAWS, et fidèlement restituée sur la barre braille.
+Le résultat offre une structure entièrement lisible sur la barre de braille et accessible au clavier.
 
 ![Démonstration de LisioWriter](docs/demo.png)
 
@@ -55,12 +55,12 @@ Durant la **Licence d’Histoire**, cette expérimentation a permis d’observer
 - l’**ergonomie fonctionnelle** de l’éditeur,  
 - et la capacité du logiciel à répondre aux besoins concrets de l’utilisateur, tant dans un **contexte académique** que lors de **situations professionnelles** (rédaction rapport de stage).
 
-Actuellement en **Master Gestion du Patrimoine Culturel**, l’utilisateur et le logiciel **sont confrontés à de nouveaux défis techniques** et à des exigences accrues :
-- un **stage de 2×4 mois** répartis sur les deux années du cursus,  
-- des **besoins académiques plus complexes**,  
-- et une **collaboration renforcée** avec les collègues et encadrants,   favorisant une utilisation plus collective et critique de l’outil.
+Actuellement en **Master Gestion du Patrimoine Culturel**, l’utilisateur est confronté à de nouveaux défis techniques et à des exigences accrues :
+- un stage de 2×4 mois répartis sur les deux années du cursus,  
+- des besoins académiques plus complexes,  
+- et une collaboration renforcée avec les collègues et encadrants, favorisant une utilisation plus collective et critique de LisioWriter.
 
-Ces expérimentations, menées au sein de la **Licence d’Histoire** de l’Université d’Artois, tendent à confirmer la **pertinence de LisioWriter** en tant qu’outil d’**inclusion numérique**, pleinement adapté à l’enseignement supérieur et à un **usage professionnel autonome et accessible**.  
+Ces innovations, menées au sein de la **Licence d’Histoire** de l’Université d’Artois, tendent à confirmer la **pertinence de LisioWriter** en tant qu’outil d’**inclusion numérique**, adapté à l’enseignement supérieur et à un **usage professionnel autonome et accessible**.  
 
 Cependant, l’expérimentation menée auprès d’un **seul étudiant non-voyant** ne permet pas encore d’évaluer la **portée générale** et la **diversité d’usage** du logiciel. Une phase d’expérimentation plus large, incluant plusieurs profils d’utilisateurs non-voyants, sera nécessaire pour **valider** les résultats observés et affiner les **fonctions d’accessibilité et d’ergonomie** de l’éditeur.
 
