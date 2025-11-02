@@ -193,6 +193,8 @@ public class DocxReader {
             }
         }
 
+        boolean paraHasModernPic = paragraphHasModernPicture(p);
+        
         // 5) parcourir les runs
         java.util.List<org.apache.poi.xwpf.usermodel.XWPFRun> runs = null;
         try { runs = p.getRuns(); } catch (Exception ignored) { runs = null; }
@@ -252,9 +254,9 @@ public class DocxReader {
 
                 // === 🖼️ Images (inline/anchor/VML/embedded) ===
                 try {
-                    if (emitPicturesFromRun(run, doc, sb)) {
-                        hadVisibleText = true;
-                    }
+                	if (emitPicturesFromRun(run, doc, sb, paraHasModernPic)) {
+                	    hadVisibleText = true;
+                	}
                 } catch (Exception ignored) {}
 
                 
@@ -679,86 +681,80 @@ public class DocxReader {
 
     /** Rend *uniquement* le contenu inline d’un paragraphe (gras/italique/souligné, liens, images, notes, tabs), sans newline ni préfixe. */
     private static String inlineFromParagraph(XWPFParagraph p, XWPFDocument doc) {
-        StringBuilder sb = new StringBuilder();
-
-        var runs = p.getRuns();
-        if (runs != null) {
-            int i = 0;
-            while (i < runs.size()) {
-                XWPFRun run = runs.get(i);
-
-                // Liens fusionnés
-                if (run instanceof XWPFHyperlinkRun hrun) {
-                    String url = null;
-                    try { if (hrun.getHyperlink(doc) != null) url = hrun.getHyperlink(doc).getURL(); } catch (Exception ignored) {}
-                    if ((url == null || url.isBlank()) && hrun.getHyperlinkId() != null) {
-                        try {
-                            var link = doc.getHyperlinkByID(hrun.getHyperlinkId());
-                            if (link != null) url = link.getURL();
-                        } catch (Exception ignored) {}
-                    }
-                    StringBuilder label = new StringBuilder();
-                    while (i < runs.size()) {
-                        XWPFRun r = runs.get(i);
-                        if (r instanceof XWPFHyperlinkRun hr2) {
-                            String u2 = null;
-                            try { if (hr2.getHyperlink(doc) != null) u2 = hr2.getHyperlink(doc).getURL();
-                                  if ((u2 == null || u2.isBlank()) && hr2.getHyperlinkId() != null) {
-                                      var link = doc.getHyperlinkByID(hr2.getHyperlinkId()); if (link != null) u2 = link.getURL();
-                                  }
-                            } catch (Exception ignored) {}
-                            if ((url != null && url.equals(u2)) || (url == null && u2 == null)) {
-                                if (hr2.text() != null) label.append(hr2.text());
-                                i++; continue;
-                            }
-                        }
-                        break;
-                    }
-                    String lbl = normalizeSpaces(label.toString());
-                    if (!lbl.isBlank() && url != null && !url.isBlank()) {
-                        sb.append("@[").append(lbl).append(": ").append(url).append("]");
-                    } else {
-                        sb.append(lbl);
-                    }
-                    continue;
-                }
-
-                // Images (inline/anchor/VML/embedded)
-                try {
-                    if (emitPicturesFromRun(run, doc, sb)) {
-                        // rien d’autre à faire, le marqueur est déjà append
-                    }
-                } catch (Exception ignored) {}
-
-                // Texte stylé
-                String t = getRunVisibleText(run);
-                TextStyle ts = new TextStyle();
-                try { ts.bold = run.isBold(); } catch (Exception ignored) {}
-                try { ts.italic = run.isItalic(); } catch (Exception ignored) {}
-                try {
-                    var u = run.getUnderline();
-                    ts.underline = (u != null && u != org.apache.poi.xwpf.usermodel.UnderlinePatterns.NONE);
-                } catch (Exception ignored) {}
-                if (t != null && !t.isEmpty()) sb.append(wrapSuperSub(wrapWithMarkers(t, ts), run));
-
-                // Notes de bas de page
-                try {
-                    var ctr = run.getCTR();
-                    var refs = ctr.getFootnoteReferenceList();
-                    if (refs != null) for (var r : refs) {
-                        var id = r.getId();
-                        String note = extractFootnoteInlineText(doc, id);
-                        if (!note.isBlank()) sb.append("@(").append(note).append(")");
-                    }
-                } catch (Exception ignored) {}
-
-                i++;
-            }
-        }
-
-        // Fallback si vide
-        if (sb.length() == 0) sb.append(normalizeSpaces(paragraphToVisible(p)));
-        return sb.toString();
+	    StringBuilder sb = new StringBuilder();
+	
+	    // ✅ Calculer une fois pour ce paragraphe
+	    boolean paraHasModernPic = paragraphHasModernPicture(p);
+	
+	    var runs = p.getRuns();
+	    if (runs != null) {
+	        int i = 0;
+	        while (i < runs.size()) {
+	            XWPFRun run = runs.get(i);
+	
+	            // --- Liens fusionnés (inchangé) ---
+	            if (run instanceof XWPFHyperlinkRun hrun) {
+	                String url = null;
+	                try { if (hrun.getHyperlink(doc) != null) url = hrun.getHyperlink(doc).getURL(); } catch (Exception ignored) {}
+	                if ((url == null || url.isBlank()) && hrun.getHyperlinkId() != null) {
+	                    try { var link = doc.getHyperlinkByID(hrun.getHyperlinkId()); if (link != null) url = link.getURL(); } catch (Exception ignored) {}
+	                }
+	                StringBuilder label = new StringBuilder();
+	                while (i < runs.size()) {
+	                    XWPFRun r = runs.get(i);
+	                    if (r instanceof XWPFHyperlinkRun hr2) {
+	                        String u2 = null;
+	                        try {
+	                            if (hr2.getHyperlink(doc) != null) u2 = hr2.getHyperlink(doc).getURL();
+	                            if ((u2 == null || u2.isBlank()) && hr2.getHyperlinkId() != null) {
+	                                var link = doc.getHyperlinkByID(hr2.getHyperlinkId()); if (link != null) u2 = link.getURL();
+	                            }
+	                        } catch (Exception ignored) {}
+	                        if ((url != null && url.equals(u2)) || (url == null && u2 == null)) {
+	                            if (hr2.text() != null) label.append(hr2.text());
+	                            i++; continue;
+	                        }
+	                    }
+	                    break;
+	                }
+	                String lbl = normalizeSpaces(label.toString());
+	                if (!lbl.isBlank() && url != null && !url.isBlank()) sb.append("@[").append(lbl).append(": ").append(url).append("]");
+	                else sb.append(lbl);
+	                continue;
+	            }
+	
+	            // --- Images : passer le flag pour ignorer VML si déjà un drawing/embedded dans le paragraphe ---
+	            try {
+	                if (emitPicturesFromRun(run, doc, sb, paraHasModernPic)) {
+	                    // rien d’autre à faire ici
+	                }
+	            } catch (Exception ignored) {}
+	
+	            // --- Texte stylé (inchangé) ---
+	            String t = getRunVisibleText(run);
+	            TextStyle ts = new TextStyle();
+	            try { ts.bold = run.isBold(); } catch (Exception ignored) {}
+	            try { ts.italic = run.isItalic(); } catch (Exception ignored) {}
+	            try { var u = run.getUnderline(); ts.underline = (u != null && u != org.apache.poi.xwpf.usermodel.UnderlinePatterns.NONE); } catch (Exception ignored) {}
+	            if (t != null && !t.isEmpty()) sb.append(wrapSuperSub(wrapWithMarkers(t, ts), run));
+	
+	            // --- Notes (inchangé) ---
+	            try {
+	                var ctr = run.getCTR();
+	                var refs = ctr.getFootnoteReferenceList();
+	                if (refs != null) for (var r : refs) {
+	                    var id = r.getId();
+	                    String note = extractFootnoteInlineText(doc, id);
+	                    if (!note.isBlank()) sb.append("@(").append(note).append(")");
+	                }
+	            } catch (Exception ignored) {}
+	
+	            i++;
+	        }
+	    }
+	
+	    if (sb.length() == 0) sb.append(normalizeSpaces(paragraphToVisible(p)));
+	    return sb.toString();
     }
 
     /** Échappe les barres verticales et antislash pour la syntaxe de tableau LW. */
@@ -931,9 +927,10 @@ public class DocxReader {
 
     /** Émet tous les marqueurs d'images présents dans un run (inline, anchor, embedded, VML). */
     @SuppressWarnings("unused")
-	private static boolean emitPicturesFromRun(org.apache.poi.xwpf.usermodel.XWPFRun run,
-                                           org.apache.poi.xwpf.usermodel.XWPFDocument doc,
-                                           StringBuilder sb) {
+    private static boolean emitPicturesFromRun(XWPFRun run,
+            XWPFDocument doc,
+            StringBuilder sb,
+            boolean suppressVMLInThisParagraph) {
 	    boolean wrote = false;
 	    java.util.Set<String> seen = new java.util.HashSet<>();
 	
@@ -1062,6 +1059,23 @@ public class DocxReader {
         if (seen.contains(key)) return false;
         seen.add(key);
         return true;
+    }
+
+    private static boolean paragraphHasModernPicture(XWPFParagraph p) {
+        var runs = p.getRuns();
+        if (runs == null) return false;
+        for (XWPFRun r : runs) {
+            try {
+                var ctr = r.getCTR();
+                if (ctr == null) continue;
+                var drawings = ctr.getDrawingList();
+                if (drawings != null && !drawings.isEmpty()) return true;
+                // ou images haut niveau
+                var pics = r.getEmbeddedPictures();
+                if (pics != null && !pics.isEmpty()) return true;
+            } catch (Exception ignored) {}
+        }
+        return false;
     }
 
 
