@@ -24,7 +24,7 @@ LisioWriter intègre de nombreuses fonctionnalités de traitement de texte, mais
 
 ### Capture écran de l'importation d'un fichier Ms Word
 
-Les titres, listes, mises en forme (gras, italique, souligné), indices, exposants, tabulations, notes de bas de page, images avec sa description, liens et les tables sont automatiquement convertis en codes LisioWriter directement visibles dans l’éditeur.
+Les titres, listes, mises en forme (gras, italique, souligné), indices, exposants, tabulations, notes de bas de page, images avec sa description, liens et les tableaux sont automatiquement convertis en codes LisioWriter directement visibles dans l’éditeur.
 
 Le résultat offre une structure entièrement lisible sur la barre de braille et accessible au clavier.
 
@@ -77,12 +77,12 @@ Cependant, l’expérimentation menée auprès d’un **seul étudiant non-voyan
   - Fichiers  **.html** (page web)
   - Exportation en **PDF**
 - **Vérification orthographique intégrée** (basée sur *LanguageTool*).  
-- **Tag des erreurs preffix °° et surlignage des erreurs avec suggestion des corrections**.  
+- **Marquage des erreurs : preffix °° et surlignage des erreurs avec suggestion des corrections**.  
 - **Mode documentation LisioWriter** : **ALT+A** permet de basculer sur la documentation et **ALT+B** permet de basculer sur son fichier.
-- **Navigateur et navigation** : Fenêtre simple pour la navigation par les titres, racourci clavier pour atteindre le titre suivant ou précédent..
-- **Marque page** : intégration très simple de marque page et de note.
+- **Navigateur et navigation** : Fenêtre simple pour la navigation par les titres, raccourci clavier pour atteindre le titre suivant ou précédent..
+- **Marque-page** : intégration très simple de marque page et de note.
 - **Système de mise à jour automatique** : télécharge et installe la dernière version en arrière-plan (mode silencieux).  
-- 🪶 **Recherche et insertion d’articles Wikipédia** : recherche, sélectionne et insére un article complet dans l’éditeur, déjà mis en forme et structuré.
+- 🪶 **Recherche et insertion d’articles Wikipédia** : recherche, sélectionne et insère un article complet dans l’éditeur, déjà mis en forme et structuré.
 
 ---
 
@@ -158,10 +158,19 @@ Chaque élément de mise en forme est représenté directement dans le texte pou
 *^mot en italique^*             → Texte en italique
 __mots soulignés__              → Texte souligné
 _*mots gras soulignés*_         → Texte gras et souligné
+_¨indice¨_                       → Indice
+^¨exposant¨^                     → Exposant
 
 @saut de page                   → Saut de page manuel
 @(note de bas de page)          → Note de bas de page
 °°Faute                         → Indique une erreur orthographique
+
+@[Texte du lien : https://exemple.com]      → Lien accessible
+![Image: Moineau. Légende : Oiseau sur une branche] → Image + légende
+@t                               → Début tableau
+|! Colonne A | Colonne B         → En-têtes
+| Valeur 1  | Valeur 2           → Ligne
+@/t                              → Fin tableau
 ```
 
 ---
@@ -202,7 +211,7 @@ Vous pouvez :
 
 ## 🪪 Licence
 
-Ce logiciel est distribué sous licence **GNU GLP3.0**.  
+Ce logiciel est distribué sous licence **GNU GPL-3.0**.  
 Vous pouvez l’utiliser, le modifier et le redistribuer librement à condition de conserver la mention du copyright.
 
 ---
