@@ -250,39 +250,15 @@ public class DocxReader {
                     continue; // saute les runs déjà fusionnés
                 }
 
-             // === 🖼️ Cas spécial : images ===
+                // === 🖼️ Images (inline/anchor/VML/embedded) ===
                 try {
-                    var ctr = run.getCTR();
-                    var drawingList = ctr.getDrawingList();
-                    if (drawingList != null && !drawingList.isEmpty()) {
-                        for (var drawing : drawingList) {
-                            var inlineList = drawing.getInlineList();
-                            if (inlineList != null) {
-                                for (var inline : inlineList) {
-                                    String altText = null;
-                                    try {
-                                        altText = inline.getDocPr().getDescr(); // le texte de remplacement
-                                    } catch (Exception ignored) {}
-
-                                    if (altText == null || altText.isBlank()) {
-                                        // fallback : titre éventuel
-                                        try { altText = inline.getDocPr().getTitle(); } catch (Exception ignored) {}
-                                    }
-
-                                    if (altText != null && !altText.isBlank()) {
-                                        sb.append("![Image : ").append(altText.trim()).append("]");
-                                    } else {
-                                        sb.append("![Image]");
-                                    }
-
-                                    hadVisibleText = true;
-                                }
-                            }
-                        }
+                    if (emitPicturesFromRun(run, doc, sb)) {
+                        hadVisibleText = true;
                     }
                 } catch (Exception ignored) {}
+
                 
-             // === ⬛ Sauts de page dans le run: <w:br w:type="page"/> ===
+                // === ⬛ Sauts de page dans le run: <w:br w:type="page"/> ===
                 try {
                     var ctr = run.getCTR();
                     if (ctr != null) {
@@ -747,21 +723,10 @@ public class DocxReader {
                     continue;
                 }
 
-                // Images (alt/title)
+                // Images (inline/anchor/VML/embedded)
                 try {
-                    var ctr = run.getCTR();
-                    var drawingList = ctr.getDrawingList();
-                    if (drawingList != null && !drawingList.isEmpty()) {
-                        for (var drawing : drawingList) {
-                            var inlineList = drawing.getInlineList();
-                            if (inlineList != null) for (var inl : inlineList) {
-                                String alt = null;
-                                try { alt = inl.getDocPr().getDescr(); } catch (Exception ignored) {}
-                                if (alt == null || alt.isBlank()) try { alt = inl.getDocPr().getTitle(); } catch (Exception ignored) {}
-                                if (alt != null && !alt.isBlank()) sb.append("![Image : ").append(alt.trim()).append("]");
-                                else sb.append("![Image]");
-                            }
-                        }
+                    if (emitPicturesFromRun(run, doc, sb)) {
+                        // rien d’autre à faire, le marqueur est déjà append
                     }
                 } catch (Exception ignored) {}
 
@@ -877,6 +842,228 @@ public class DocxReader {
         if (len > 0 && sb.charAt(len - 1) != '\n') sb.append('\n');
         sb.append("@saut de page manuel\n");
     }
+    
+ // === Helpers images DOCX ===============================================
+
+    /** Ajoute le marqueur d'image avec un fallback sûr. */
+    private static void appendImageMarker(String alt, StringBuilder sb) {
+        String label = (alt == null || alt.trim().isEmpty()) ? "Image" : alt.trim();
+        sb.append("![Image : ").append(label).append("]");
+    }
+
+    /** Déduit un libellé à partir d'un rId (nom de fichier) si possible. */
+    private static String altFromRelationId(XWPFDocument doc, String rId) {
+        if (doc == null || rId == null || rId.isEmpty()) return null;
+        try {
+            org.apache.poi.ooxml.POIXMLDocumentPart part = doc.getRelationById(rId);
+            if (part instanceof org.apache.poi.xwpf.usermodel.XWPFPictureData pd) {
+                String name = pd.getFileName(); // ex: "photo_001.jpg"
+                if (name != null && !name.isBlank()) {
+                    int dot = name.lastIndexOf('.');
+                    if (dot > 0) name = name.substring(0, dot);
+                    return name.replace('_', ' ').trim();
+                }
+            } else if (part != null && part.getPackagePart() != null) {
+                String name = part.getPackagePart().getPartName().getName(); // /word/media/image1.png
+                if (name != null) {
+                    int slash = name.lastIndexOf('/');
+                    if (slash >= 0) name = name.substring(slash + 1);
+                    int dot = name.lastIndexOf('.');
+                    if (dot > 0) name = name.substring(0, dot);
+                    return name.replace('_', ' ').trim();
+                }
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    /** Extrait ALT depuis CTInline/CTAnchor (docPr) puis fallback via rId du blip. */
+    private static String altFromInlineOrAnchor(Object inlineOrAnchor, XWPFDocument doc) {
+        try {
+            // CTInline ou CTAnchor ont getDocPr()
+            java.lang.reflect.Method mDocPr = inlineOrAnchor.getClass().getMethod("getDocPr");
+            Object docPr = mDocPr.invoke(inlineOrAnchor); // CTNonVisualDrawingProps
+            String alt = null;
+            try {
+                java.lang.reflect.Method mDescr = docPr.getClass().getMethod("getDescr");
+                Object descr = mDescr.invoke(docPr);
+                if (descr != null) alt = descr.toString();
+            } catch (Exception ignored) {}
+            if (alt == null || alt.isBlank()) {
+                try {
+                    java.lang.reflect.Method mTitle = docPr.getClass().getMethod("getTitle");
+                    Object title = mTitle.invoke(docPr);
+                    if (title != null) alt = title.toString();
+                } catch (Exception ignored) {}
+            }
+            // Chercher rId du blip (embed/link) pour nom de fichier
+            if (alt == null || alt.isBlank()) {
+                // inlineOrAnchor.getGraphic().getGraphicData().getPic().getBlipFill().getBlip()
+                java.lang.reflect.Method mGraphic = inlineOrAnchor.getClass().getMethod("getGraphic");
+                Object graphic = mGraphic.invoke(inlineOrAnchor);
+                if (graphic != null) {
+                    Object gdata = graphic.getClass().getMethod("getGraphicData").invoke(graphic);
+                    if (gdata != null) {
+                        Object pic = gdata.getClass().getMethod("getPic").invoke(gdata);
+                        if (pic != null) {
+                            Object blipFill = pic.getClass().getMethod("getBlipFill").invoke(pic);
+                            if (blipFill != null) {
+                                Object blip = blipFill.getClass().getMethod("getBlip").invoke(blipFill);
+                                if (blip != null) {
+                                    String rId = null;
+                                    try { rId = (String) blip.getClass().getMethod("getEmbed").invoke(blip); } catch (Exception ignored) {}
+                                    if ((rId == null || rId.isBlank())) {
+                                        try { rId = (String) blip.getClass().getMethod("getLink").invoke(blip); } catch (Exception ignored) {}
+                                    }
+                                    String byName = altFromRelationId(doc, rId);
+                                    if (byName != null && !byName.isBlank()) alt = byName;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return (alt == null || alt.isBlank()) ? null : alt.trim();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Émet tous les marqueurs d'images présents dans un run (inline, anchor, embedded, VML). */
+    @SuppressWarnings("unused")
+	private static boolean emitPicturesFromRun(org.apache.poi.xwpf.usermodel.XWPFRun run,
+                                           org.apache.poi.xwpf.usermodel.XWPFDocument doc,
+                                           StringBuilder sb) {
+	    boolean wrote = false;
+	    java.util.Set<String> seen = new java.util.HashSet<>();
+	
+	    try {
+	        var ctr = run.getCTR();
+	        boolean hadDrawing = false;
+	
+	        if (ctr != null) {
+	            // --- w:drawing -> inline/anchor ---
+	            var drawings = ctr.getDrawingList();
+	            if (drawings != null) {
+	                for (var drawing : drawings) {
+	                    // inline
+	                    var inlines = drawing.getInlineList();
+	                    if (inlines != null) {
+	                        for (var inl : inlines) {
+	                            String rId = blipRelationIdFromInlineOrAnchor(inl);
+	                            String alt = altFromInlineOrAnchor(inl, doc);
+	                            if (registerOnce(seen, rId, alt)) {
+	                                appendImageMarker(alt, sb);
+	                                wrote = true;
+	                                hadDrawing = true;
+	                            }
+	                        }
+	                    }
+	                    // anchor (si API dispo)
+	                    try {
+	                        var anchors = drawing.getAnchorList();
+	                        if (anchors != null) {
+	                            for (var anc : anchors) {
+	                                String rId = blipRelationIdFromInlineOrAnchor(anc);
+	                                String alt = altFromInlineOrAnchor(anc, doc);
+	                                if (registerOnce(seen, rId, alt)) {
+	                                    appendImageMarker(alt, sb);
+	                                    wrote = true;
+	                                    hadDrawing = true;
+	                                }
+	                            }
+	                        }
+	                    } catch (Throwable ignored) {}
+	                }
+	            }
+	
+	            // --- VML <w:pict> (fallback) ---
+	            // On n'ajoute le générique que si aucun drawing/embedded n'a déjà été vu.
+	            try {
+	                var picts = ctr.getPictList();
+	                if ((picts != null && !picts.isEmpty()) && seen.isEmpty()) {
+	                    if (registerOnce(seen, null, "Image")) {
+	                        appendImageMarker("Image", sb);
+	                        wrote = true;
+	                    }
+	                }
+	            } catch (Throwable ignored) {}
+	        }
+	
+	        // --- API haut-niveau embeddedPictures ---
+	        // ATTENTION : souvent redondant avec w:drawing. On ne l'utilise
+	        // que si on n'a rien émis via drawings/VML.
+	        if (seen.isEmpty()) {
+	            java.util.List<org.apache.poi.xwpf.usermodel.XWPFPicture> pics = run.getEmbeddedPictures();
+	            if (pics != null) {
+	                for (var p : pics) {
+	                    String alt = null;
+	                    try { alt = p.getDescription(); } catch (Exception ignored) {}
+	
+	                    String rId = null;
+	                    try {
+	                        rId = p.getCTPicture().getBlipFill().getBlip().getEmbed();
+	                        if (rId == null || rId.isBlank()) {
+	                            rId = p.getCTPicture().getBlipFill().getBlip().getLink();
+	                        }
+	                    } catch (Exception ignored) {}
+	
+	                    if (alt == null || alt.isBlank()) {
+	                        try {
+	                            String name = p.getPictureData().getFileName();
+	                            if (name != null) {
+	                                int dot = name.lastIndexOf('.');
+	                                if (dot > 0) name = name.substring(0, dot);
+	                                alt = name.replace('_', ' ').trim();
+	                            }
+	                        } catch (Exception ignored) {}
+	                    }
+	
+	                    if (registerOnce(seen, rId, alt)) {
+	                        appendImageMarker(alt, sb);
+	                        wrote = true;
+	                    }
+	                }
+	            }
+	        }
+	
+	    } catch (Exception ignored) {}
+	
+	    return wrote;
+	}
+
+    // Renvoie l'ID de relation du blip (embed/link) si dispo, sinon null.
+    private static String blipRelationIdFromInlineOrAnchor(Object inlineOrAnchor) {
+        try {
+            Object graphic = inlineOrAnchor.getClass().getMethod("getGraphic").invoke(inlineOrAnchor);
+            if (graphic == null) return null;
+            Object gdata = graphic.getClass().getMethod("getGraphicData").invoke(graphic);
+            if (gdata == null) return null;
+            Object pic = gdata.getClass().getMethod("getPic").invoke(gdata);
+            if (pic == null) return null;
+            Object blipFill = pic.getClass().getMethod("getBlipFill").invoke(pic);
+            if (blipFill == null) return null;
+            Object blip = blipFill.getClass().getMethod("getBlip").invoke(blipFill);
+            if (blip == null) return null;
+            String rId = null;
+            try { rId = (String) blip.getClass().getMethod("getEmbed").invoke(blip); } catch (Exception ignored) {}
+            if (rId == null || rId.isBlank()) {
+                try { rId = (String) blip.getClass().getMethod("getLink").invoke(blip); } catch (Exception ignored) {}
+            }
+            return (rId != null && !rId.isBlank()) ? rId : null;
+        } catch (Exception e) { return null; }
+    }
+
+    // Enregistre une image une seule fois (clé = rId sinon ALT).
+    private static boolean registerOnce(java.util.Set<String> seen, String rId, String alt) {
+        String key = (rId != null && !rId.isBlank())
+                ? "RID:" + rId
+                : "ALT:" + (alt == null ? "" : alt.trim());
+        if (seen.contains(key)) return false;
+        seen.add(key);
+        return true;
+    }
+
 
 
 }
