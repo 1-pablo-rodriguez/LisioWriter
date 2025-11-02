@@ -246,9 +246,6 @@ public class HtmlBrowserDialog extends JDialog {
 	                		    "table.infobox_v2, " +              // classe 'infobox_v2' (issue de 'infobox&#95;v2')
 	                		    "table.infobox--frwiki"             // variante frwiki
 	                		).remove();
-
-	                    
-	                    //content.select("[class~=\\bmw-heading(\\d+)?\\b]").remove();
 	                    
 	                    content.select(
 	                    	    "[class~=\\bbandeau-container\\b]" +
