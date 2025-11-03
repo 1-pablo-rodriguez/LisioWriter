@@ -97,21 +97,36 @@ public final class ParagraphHighlighter {
     }
 
     /** ✅ Peint chaque ligne du paragraphe sur toute la largeur, sans décalage */
+    /** 🎨 Surlignage adaptatif avec dégradé vertical doux */
     private static class ParagraphPainter extends DefaultHighlighter.DefaultHighlightPainter {
-        private final Color color;
-        ParagraphPainter(Color c) { super(c); this.color = c; }
+        ParagraphPainter(Color unused) { super(unused); }
 
         @Override
         public void paint(Graphics g, int p0, int p1, Shape bounds, JTextComponent c) {
             if (bounds == null) return;
 
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setColor(color);
-
-            // Swing fournit bounds = zone visible de la ligne actuelle.
-            // On étend à toute la largeur pour un surlignage uniforme.
             java.awt.Rectangle r = bounds.getBounds();
+
+            // --- Détection automatique du thème ---
+            Color bg = c.getBackground();
+            int brightness = (bg.getRed() + bg.getGreen() + bg.getBlue()) / 3;
+            boolean darkTheme = brightness < 128;
+
+            // --- Couleur principale (selon le thème) ---
+            Color baseColor = darkTheme
+                    ? new Color(255, 255, 255, 30) // clair sur fond sombre
+                    : new Color(0, 0, 0, 25);      // foncé sur fond clair
+
+            // --- Dégradé vertical (haut plus transparent que bas) ---
+            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g;
+            java.awt.GradientPaint grad = new java.awt.GradientPaint(
+                    0, r.y, new Color(baseColor.getRed(), baseColor.getGreen(), baseColor.getBlue(), 0),
+                    0, r.y + r.height, baseColor
+            );
+
+            g2.setPaint(grad);
             g2.fillRect(0, r.y, c.getWidth(), r.height);
         }
     }
+
 }

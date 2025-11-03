@@ -30,6 +30,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 
 import writer.TraitementSonPourTTS;
@@ -126,10 +127,36 @@ public class navigateurT1 extends JFrame{
 
 		list.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 
-		allTitle(editor.getText());
-		// au lieu de ajouteTousLesTitreUnDansList();
-		rebuildVisibleModel();
-		//ajouteTousLesTitreUnDansList();
+		// --- Analyse du texte dans un thread séparé (évite le gel de l’UI) ---
+		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+
+		new javax.swing.SwingWorker<Void, Void>() {
+		    @Override protected Void doInBackground() {
+		        String raw = editor.getText();
+		        if (needsNormalization(raw)) {
+		            String norm = normalize(raw);
+		            if (!norm.equals(raw)) {
+		                SwingUtilities.invokeLater(() -> {
+		                    editor.setText(norm);
+		                    editor.setCaretPosition(0);
+		                });
+		            }
+		        }
+		        allTitle(editor.getText());
+		        return null;
+		    }
+
+		    @Override protected void done() {
+		        rebuildVisibleModel();
+		        setCursor(java.awt.Cursor.getDefaultCursor());
+
+		        // Sélectionner le premier élément une fois la liste prête
+		        if (!listModel.isEmpty()) {
+		            list.setSelectedIndex(0);
+		            updateSelectionContextAndSpeak();
+		        }
+		    }
+		}.execute();
 
 		// Sélectionner le premier élément de la liste après avoir ajouté les titres
         if (!listModel.isEmpty()) {
@@ -179,8 +206,15 @@ public class navigateurT1 extends JFrame{
             	            java.awt.geom.Rectangle2D r2d = editor.modelToView2D(caret);
             	            if (r2d != null) {
             	                java.awt.Rectangle r = r2d.getBounds();
-            	                int h = parent.getScrollPane().getViewport().getHeight();
-            	                parent.getScrollPane().scrollRectToVisible(new java.awt.Rectangle(r.x, r.y, r.width, h));
+
+            	                // --- Centrer verticalement le titre dans la vue ---
+            	                javax.swing.JViewport vp = parent.getScrollPane().getViewport();
+            	                java.awt.Rectangle view = vp.getViewRect();
+
+            	                int centerY = r.y - (view.height / 2) + (r.height / 2);
+            	                if (centerY < 0) centerY = 0;
+
+            	                vp.setViewPosition(new java.awt.Point(0, centerY));
             	            }
             	        } catch (Exception ex) {
             	            ex.printStackTrace();
@@ -264,55 +298,51 @@ public class navigateurT1 extends JFrame{
 	}
 	
 	// Découpage de la structure par les titres du documents
+	/** Analyse le texte et extrait tous les titres (#1. à #5.) avec leurs positions et hiérarchie. */
 	private void allTitle(String text) {
-
-		allTitles = new StringBuilder();
+		
+		System.out.println("Longueur texte brute : " + editor.getText().length());
+		System.out.println("Premier caractère (codepoint) : " + (int)editor.getText().charAt(0));
+		
+	    allTitles = new StringBuilder();
 	    structure = new LinkedHashMap<>();
 	    titresOrdre.clear();
 	    titresOffsets.clear();
-	    titresNiveaux.clear();   // <-- AJOUT IMPORTANT
-
+	    titresNiveaux.clear();
+	    parents.clear();
+	
+	    if (text == null || text.isEmpty()) return;
+	
+	    // --- Recherche des lignes de titre (#1. à #5.) ---
 	    Pattern pattern = Pattern.compile("(?m)^\\s*#[1-5]\\..*$");
 	    Matcher matcher = pattern.matcher(text);
-
+	
 	    while (matcher.find()) {
 	        String line = matcher.group();
-	        int startLine = matcher.start();
-
-	        // Avance jusqu’au vrai début du '#' en ignorant \r\n ou espaces
-	        int offset = 0;
-	        while (offset < line.length()) {
-	            char c = line.charAt(offset);
-	            if (c == '#' || c == '\0') break;   // trouvé le début du titre
-	            if (c == '\r' || c == '\n' || Character.isWhitespace(c)) {
-	                offset++;
-	                continue;
-	            }
-	            break;
-	        }
-
-	        int caretPos = startLine + offset;
-
+	
+	        // ✅ Position exacte du début du titre (le caractère '#')
+	        int caretPos = matcher.start();
+	
 	        titresOrdre.add(line.trim());
 	        titresNiveaux.add(niveauDuTitre(line));
 	        titresOffsets.add(caretPos);
+	
 	        allTitles.append(line.trim()).append(System.lineSeparator());
 	        structure.putIfAbsent(keyOf(line), "");
 	    }
-
-
-	    // Compléments TTS pour #1
+	
+	    // --- Calcul du complément TTS pour les titres de niveau 1 ---
 	    int count = 0;
 	    String courantH1 = null;
-
+	
 	    for (String k : titresOrdre) {
 	        if (k.matches("^\\s*#1\\..*")) {
 	            if (courantH1 != null) {
 	                structure.put(
 	                    keyOf(courantH1),
 	                    (count > 0)
-	                      ? ". Dans cette partie, il y a " + count + " titres de niveau inférieurs."
-	                      : ". Dans cette partie, il n'y a pas de titre de niveau inférieur."
+	                        ? ". Dans cette partie, il y a " + count + " titres de niveau inférieurs."
+	                        : ". Dans cette partie, il n'y a pas de titre de niveau inférieur."
 	                );
 	            }
 	            courantH1 = k;
@@ -321,16 +351,17 @@ public class navigateurT1 extends JFrame{
 	            count++;
 	        }
 	    }
+	
 	    if (courantH1 != null) {
 	        structure.put(
 	            keyOf(courantH1),
 	            (count > 0)
-	              ? ". Dans cette partie, il y a " + count + " titres de niveau inférieurs."
-	              : ". Dans cette partie, il n'y a pas de titre de niveau inférieur."
+	                ? ". Dans cette partie, il y a " + count + " titres de niveau inférieurs."
+	                : ". Dans cette partie, il n'y a pas de titre de niveau inférieur."
 	        );
 	    }
-	    
-	    parents.clear();
+	
+	    // --- Calcul de la hiérarchie des titres (parents/enfants) ---
 	    java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();
 	    for (int i = 0; i < titresOrdre.size(); i++) {
 	        int lvl = titresNiveaux.get(i);
@@ -341,12 +372,10 @@ public class navigateurT1 extends JFrame{
 	        parents.add(par);
 	        stack.push(i);
 	    }
-
-	    // quand on relit le document, on repart avec tout refermé
+	
+	    // --- Tous les titres sont repliés au démarrage ---
 	    expanded.clear();
-
 	}
-
 
 	//Utilitaire : mets à jour le contexte de sélection
 	private void updateSelectionContextAndSpeak() {
@@ -1777,5 +1806,22 @@ public class navigateurT1 extends JFrame{
 		    }
 		}
 
+		private static String normalize(String s) {
+		    if (s == null) return "";
+		    return s
+		        .replace("\r\n", "\n")
+		        .replace("\r", "\n")
+		        .replace("\uFEFF", "")  // BOM
+		        .replace("\u200B", "")  // ZWSP
+		        .replace("\u200E", "")  // LRM
+		        .replace("\u200F", "")  // RLM
+		        .replaceFirst("^\\s+", "");
+		}
+		
+		private static boolean needsNormalization(String s) {
+		    return s.contains("\r") || s.contains("\uFEFF")
+		        || s.contains("\u200B") || s.contains("\u200E")
+		        || s.contains("\u200F");
+		}
 
 }
