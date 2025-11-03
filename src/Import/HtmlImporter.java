@@ -90,10 +90,15 @@ public final class HtmlImporter {
 	                out.append(text);
 	                if (href != null && !href.isEmpty()) {
 	                    out.append(" (").append(href).append(")");
-	                }
+	                	}
 	                continue;
-	            }
-
+	            	}
+	            	
+	            case "table":
+	            	convertTable(e, out);
+	            	out.append("\n"); // petit espace après le tableau
+	            	continue;
+	            	
 	            case "img": {
 	                String alt = e.attr("alt");
 	                String src = e.absUrl("src");
@@ -272,6 +277,113 @@ public final class HtmlImporter {
 
 	    // Nettoyage final du texte
 	    return tidyOutput(out.toString());
+	}
+
+	// --- Conversion TABLE → syntaxe LisioWriter -------------------------------
+
+	/** Convertit <table> HTML en:
+	 *  @t
+	 *  |! h1 | h2
+	 *  | c1  | c2
+	 *  @/t
+	 */
+	private static void convertTable(Element table, StringBuilder out) {
+	    // Ligne blanche avant le tableau si besoin
+	    if (out.length() > 0 && !out.toString().endsWith("\n\n")) out.append("\n");
+
+	    out.append("@t").append("\n");
+
+	    // 1) thead (en-têtes)
+	    Element thead = table.selectFirst("thead");
+	    if (thead != null) {
+	        for (Element tr : thead.select("> tr")) {
+	            appendTableRow(tr, out, true);
+	        }
+	    }
+
+	    // 2) tr directement sous table et dans tbody (pour couvrir les deux cas)
+	    for (Element tr : table.select("> tr, > tbody > tr")) {
+	        // Si on a déjà émis des en-têtes via <thead>, on traite ces <tr> comme des lignes normales
+	        appendTableRow(tr, out, hasTh(tr) && thead == null /* header seulement si pas de thead */);
+	    }
+
+	    // 3) tfoot (souvent des totaux) → lignes normales
+	    Element tfoot = table.selectFirst("tfoot");
+	    if (tfoot != null) {
+	        for (Element tr : tfoot.select("> tr")) {
+	            appendTableRow(tr, out, false);
+	        }
+	    }
+
+	    out.append("@/t").append("\n");
+	}
+
+	/** Ajoute une ligne de tableau. */
+	private static void appendTableRow(Element tr, StringBuilder out, boolean header) {
+	    // Choix du préfixe: |! pour en-tête, | sinon
+	    StringBuilder line = new StringBuilder(header ? "|!" : "|");
+
+	    // On parcourt les cellules dans l’ordre d’apparition
+	    for (Element cell : tr.children()) {
+	        String tag = cell.tagName().toLowerCase();
+	        if (!tag.equals("td") && !tag.equals("th")) continue;
+
+	        String cellText = renderCell(cell);
+
+	        // Échappe les caractères spéciaux de la grammaire LisioWriter (| et \)
+	        cellText = escapeTableCell(cellText);
+
+	        line.append(" ").append(cellText).append(" ").append("|");
+
+	        // Gestion (très) simple des colspans: on ajoute des cellules vides en plus
+	        int colspan = parsePositiveInt(cell.attr("colspan"), 1);
+	        for (int i = 1; i < colspan; i++) {
+	            line.append(" ").append("").append(" ").append("|");
+	        }
+
+	        // NB: rowspan n’a pas d’équivalent dans la grammaire actuelle → ignoré
+	    }
+
+	    // Supprime un éventuel pipe final doublon proprement (si souhaité)
+	    // (optionnel) on peut trim mais on garde le pipe de fin pour rester cohérent
+	    out.append(line).append("\n");
+	}
+
+	/** Rendu de la cellule: on réutilise la logique inline existante (gras/italique/liens...). */
+	private static String renderCell(Element cell) {
+	    StringBuilder sb = new StringBuilder();
+	    // On réutilise la traversée existante pour convertir le contenu HTML interne
+	    traverseChildren(cell, sb, 0, null);
+
+	    // Nettoyage léger: une cellule n’a pas besoin d’avoir des sauts multiples
+	    String s = sb.toString().trim();
+	    // Evite que le tidy global doublement saute des lignes dans une cellule
+	    s = s.replace('\n', ' ').replaceAll("\\s+", " ").trim();
+	    return s;
+	}
+
+	/** Échappe les caractères réservés par la syntaxe des tableaux LisioWriter. */
+	private static String escapeTableCell(String s) {
+	    if (s == null || s.isEmpty()) return "";
+	    // Attention à l’ordre: d’abord \ puis |
+	    s = s.replace("\\", "\\\\"); // \\ littéral
+	    s = s.replace("|", "\\|");   // barre verticale littérale
+	    return s.trim();
+	}
+
+	/** Lit un entier positif, ou renvoie fallback. */
+	private static int parsePositiveInt(String s, int fallback) {
+	    try {
+	        int v = Integer.parseInt(s.trim());
+	        return (v > 0) ? v : fallback;
+	    } catch (Exception ignore) {
+	        return fallback;
+	    }
+	}
+
+	/** Détecte s’il y a au moins un <th> dans la ligne. */
+	private static boolean hasTh(Element tr) {
+	    return !tr.select("> th").isEmpty();
 	}
 
 
