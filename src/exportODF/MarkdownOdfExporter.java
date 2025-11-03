@@ -7,25 +7,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.odftoolkit.odfdom.doc.OdfTextDocument;
+import org.odftoolkit.odfdom.dom.element.table.TableTableCellElement;
+import org.odftoolkit.odfdom.dom.element.table.TableTableColumnElement;
+import org.odftoolkit.odfdom.dom.element.table.TableTableElement;
+import org.odftoolkit.odfdom.dom.element.table.TableTableHeaderRowsElement;
+import org.odftoolkit.odfdom.dom.element.table.TableTableRowElement;
+import org.odftoolkit.odfdom.dom.element.text.TextAElement;
 import org.odftoolkit.odfdom.dom.element.text.TextListElement;
 import org.odftoolkit.odfdom.dom.element.text.TextListItemElement;
 import org.odftoolkit.odfdom.dom.element.text.TextPElement;
+import org.odftoolkit.odfdom.dom.element.text.TextTabElement;
 import org.odftoolkit.odfdom.dom.style.OdfStyleFamily;
 import org.odftoolkit.odfdom.incubator.doc.style.OdfStyle;
 import org.odftoolkit.odfdom.pkg.OdfFileDom;
-import org.odftoolkit.odfdom.dom.element.text.TextAElement;
-import org.odftoolkit.odfdom.dom.element.text.TextTabElement;
 
 import writer.ui.editor.TableSyntax;
-
-import org.odftoolkit.odfdom.dom.element.table.TableTableElement;
-import org.odftoolkit.odfdom.dom.element.table.TableTableColumnElement;
-import org.odftoolkit.odfdom.dom.element.table.TableTableRowElement;
-import org.odftoolkit.odfdom.dom.element.table.TableTableCellElement;
-import org.odftoolkit.odfdom.dom.element.table.TableTableHeaderRowsElement;
-
-
-import writer.commandes;
 
 public final class MarkdownOdfExporter {
 
@@ -88,6 +84,8 @@ public final class MarkdownOdfExporter {
     public static void export(String src, File outFile) throws Exception {
         OdfTextDocument odt = OdfTextDocument.newTextDocument();
 
+        dropInitialEmptyParagraph(odt);          // ← empêche le 1er paragraphe vide
+        
         // Prépare quelques styles utiles
         prepareSpanTextStyles(odt);
 
@@ -111,19 +109,14 @@ public final class MarkdownOdfExporter {
             String line = lines[i];
 
             // 0) Ligne vide : on ferme une liste éventuelle et on ajoute un paragraphe vide
+         // 0) Ligne vide : on *ne* crée pas de paragraphe vide
             if (line.trim().isEmpty()) {
-                // flush liste si besoin
+                // on ferme juste une liste éventuelle ; on garde un éventuel saut de page
                 if (listState != ListKind.NONE) {
                     currentList = null;
                     listState = ListKind.NONE;
-                } else {
-                    TextPElement p = odt.newParagraph();
-                    if (pageBreakForNextParagraph) {
-                        applyBreakBefore(odt, p);
-                        pageBreakForNextParagraph = false;
-                    }
-                    // paragraphe vide
                 }
+                // NE RIEN AJOUTER AU DOM ICI
                 continue;
             }
 
@@ -753,90 +746,190 @@ public final class MarkdownOdfExporter {
         System.out.println("ODT écrit : export_demo.odt");
     }
     
-	private static void applyMetadata(org.odftoolkit.odfdom.doc.OdfTextDocument odt) throws Exception {
-        // DOM de meta.xml
-        org.odftoolkit.odfdom.pkg.OdfFileDom metaDom = odt.getMetaDom();
+    
+    /** Supprime le premier <text:p> effectivement vide (en ignorant sequence-decls, etc.). 
+     * @throws Exception */
+    private static void dropInitialEmptyParagraph(OdfTextDocument odt) throws Exception {
+        var root = odt.getContentRoot();
+        if (root == null) return;
 
-        // Utilise l’interface W3C pour naviguer
-        org.w3c.dom.Document w3c = (org.w3c.dom.Document) metaDom;
-        org.w3c.dom.Element root = w3c.getDocumentElement(); // <office:document-meta>
-
-        // Trouver ou créer <office:meta>
-        final String OFFICE_NS = org.odftoolkit.odfdom.dom.element.office.OfficeMetaElement.ELEMENT_NAME.getUri();
-        final String OFFICE_META_LOCAL = org.odftoolkit.odfdom.dom.element.office.OfficeMetaElement.ELEMENT_NAME.getLocalName();
-
-        org.w3c.dom.Element officeMetaEl = findChildByName(root, OFFICE_NS, OFFICE_META_LOCAL);
-        if (officeMetaEl == null) {
-            var officeMetaOdf =
-                metaDom.newOdfElement(org.odftoolkit.odfdom.dom.element.office.OfficeMetaElement.class);
-            officeMetaEl = (org.w3c.dom.Element) officeMetaOdf;   // ✅ cast explicite
-            root.appendChild(officeMetaEl);
+        org.w3c.dom.Node n = root.getFirstChild();
+        while (n != null && !(n instanceof org.odftoolkit.odfdom.dom.element.text.TextPElement)) {
+            n = n.getNextSibling();
         }
+        if (!(n instanceof org.odftoolkit.odfdom.dom.element.text.TextPElement p)) return;
 
+        if (isEffectivelyEmptyParagraph(p)) {
+            root.removeChild(p);
+        }
+    }
 
-        // Nettoyer les précédents champs pour éviter les doublons
-        removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcTitleElement.ELEMENT_NAME);
-        removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcSubjectElement.ELEMENT_NAME);
-        removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcCreatorElement.ELEMENT_NAME);
-        removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaInitialCreatorElement.ELEMENT_NAME);
-        removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaKeywordElement.ELEMENT_NAME);
-        removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcDescriptionElement.ELEMENT_NAME);
-        removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcLanguageElement.ELEMENT_NAME);
-        removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaGeneratorElement.ELEMENT_NAME);
-        removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaCreationDateElement.ELEMENT_NAME);
-        removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaUserDefinedElement.ELEMENT_NAME);
-
-        // Écrire les champs (création via ODFDOM, texte via W3C)
-        putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcTitleElement.class,
-                commandes.meta.retourneFirstEnfant("titre").getAttributs("LeTitre"));
-
-        putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcSubjectElement.class,
-        		commandes.meta.retourneFirstEnfant("sujet").getAttributs("LeSujet"));
-
-        putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcCreatorElement.class,
-        		commandes.meta.retourneFirstEnfant("auteur").getAttributs("nom"));
-
-        if (commandes.meta.retourneFirstEnfant("motsCles") != null) {
-            for (String kw : commandes.meta.retourneFirstEnfant("motsCles").getAttributs("mots").split(",")) {
-                String k = kw.trim();
-                if (!k.isEmpty()) {
-                    putTextElem(metaDom, officeMetaEl,
-                            org.odftoolkit.odfdom.dom.element.meta.MetaKeywordElement.class, k);
+    /** Un paragraphe est “vide” s’il ne contient que des blancs, <text:s/> ou <text:tab/>. */
+    private static boolean isEffectivelyEmptyParagraph(org.odftoolkit.odfdom.dom.element.text.TextPElement p) {
+        final String TEXT_NS = "urn:oasis:names:tc:opendocument:xmlns:text:1.0";
+        var kids = p.getChildNodes();
+        for (int i = 0; i < kids.getLength(); i++) {
+            var c = kids.item(i);
+            switch (c.getNodeType()) {
+                case org.w3c.dom.Node.TEXT_NODE -> {
+                    if (!c.getTextContent().trim().isEmpty()) return false;
+                }
+                case org.w3c.dom.Node.ELEMENT_NODE -> {
+                    String local = c.getLocalName();
+                    String ns = c.getNamespaceURI();
+                    // autoriser seulement text:s (espace) et text:tab
+                    if (!(TEXT_NS.equals(ns) && ("s".equals(local) || "tab".equals(local)))) {
+                        return false;
+                    }
                 }
             }
         }
-
-        putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcDescriptionElement.class,
-        		commandes.meta.retourneFirstEnfant("description").getAttributs("resume"));
-
-        putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcLanguageElement.class,
-        		commandes.meta.retourneFirstEnfant("langue").getAttributs("lang"));
-
-        putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaGeneratorElement.class,
-                "blindWriter/MarkdownOdfExporter");
-
-        String creationIso = (commandes.meta.retourneFirstEnfant("date_creation").getAttributs("date") != null 
-        		&& !commandes.meta.retourneFirstEnfant("date_creation").getAttributs("date").isBlank())
-                ? commandes.meta.retourneFirstEnfant("date_creation").getAttributs("date").trim()
-                : java.time.OffsetDateTime.now().toString();
-        putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaCreationDateElement.class,
-                creationIso);
-        
-
-        // -- Société (méta user-defined) --
-        var societyNode = commandes.meta.retourneFirstEnfant("society");
-        String soc = (societyNode != null) ? societyNode.getAttributs("nom") : null;
-        if (soc != null && !soc.isBlank()) {
-            // Crée l’élément via ODFDOM           
-            putUserDefined(metaDom, officeMetaEl, "Société", soc, w3c);
-        }
-
-
-
-        odt.updateMetaData();
+        String t = p.getTextContent();
+        return t == null || t.trim().isEmpty();
     }
 
-   
+    
+    
+    // -- Ajoute les méta-données --
+	private static void applyMetadata(org.odftoolkit.odfdom.doc.OdfTextDocument odt) throws Exception {
+	    // DOM de meta.xml
+	    org.odftoolkit.odfdom.pkg.OdfFileDom metaDom = odt.getMetaDom();
+	
+	    // Racine <office:document-meta> → <office:meta>
+	    org.w3c.dom.Document w3c = (org.w3c.dom.Document) metaDom;
+	    org.w3c.dom.Element root = w3c.getDocumentElement();
+	    final String OFFICE_NS = org.odftoolkit.odfdom.dom.element.office.OfficeMetaElement.ELEMENT_NAME.getUri();
+	    final String OFFICE_META_LOCAL = org.odftoolkit.odfdom.dom.element.office.OfficeMetaElement.ELEMENT_NAME.getLocalName();
+	
+	    org.w3c.dom.Element officeMetaEl = findChildByName(root, OFFICE_NS, OFFICE_META_LOCAL);
+	    if (officeMetaEl == null) {
+	        var officeMetaOdf = metaDom.newOdfElement(
+	                org.odftoolkit.odfdom.dom.element.office.OfficeMetaElement.class);
+	        officeMetaEl = (org.w3c.dom.Element) officeMetaOdf;
+	        root.appendChild(officeMetaEl);
+	    }
+	
+	    // Nettoyage pour éviter les doublons
+	    removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcTitleElement.ELEMENT_NAME);
+	    removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcSubjectElement.ELEMENT_NAME);
+	    removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcCreatorElement.ELEMENT_NAME);
+	    removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaInitialCreatorElement.ELEMENT_NAME);
+	    removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaKeywordElement.ELEMENT_NAME);
+	    removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcDescriptionElement.ELEMENT_NAME);
+	    removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcLanguageElement.ELEMENT_NAME);
+	    removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaGeneratorElement.ELEMENT_NAME);
+	    removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaCreationDateElement.ELEMENT_NAME);
+	    removeChildrenByName(officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaUserDefinedElement.ELEMENT_NAME);
+	
+	    // ====== Lecture des valeurs depuis commandes.meta (null-safe) ======
+	    String titre       = metaAttr("titre", "LeTitre");
+	    String sujet       = metaAttr("sujet", "LeSujet");
+	    String auteur      = metaAttr("auteur", "nom");          // auteur principal
+	    String coAuteurStr = firstNonBlank(
+	            metaAttr("coauteur", "noms"),
+	            metaAttr("coauteur", "nom"),
+	            metaAttr("coauteur", "liste"));
+	    String societe     = metaAttr("society", "nom");         // "society" dans tes données
+	    // --- Description -> "Commentaires" de LibreOffice ---
+	    String description = metaAttr("description", "resume");
+	    putTextElem(metaDom, officeMetaEl,
+	            org.odftoolkit.odfdom.dom.element.dc.DcDescriptionElement.class,
+	            description);
+	    // --- Mots-clés -> un seul <meta:keyword> avec liste "kw1, kw2, kw3"
+	    String motsCles = metaAttr("motsCles", "mots");
+	    if (motsCles != null && !motsCles.isBlank()) {
+	        for (String kw : motsCles.split("[,;]")) {
+	            String k = kw.trim();
+	            if (!k.isEmpty()) {
+	                putTextElem(metaDom, officeMetaEl,
+	                        org.odftoolkit.odfdom.dom.element.meta.MetaKeywordElement.class, k);
+	            }
+	        }
+	    }
+
+
+	    // --- Langue -> <dc:language> + propriété personnalisée "Langue"
+	    String langue = metaAttr("langue", "lang");
+	    putTextElem(metaDom, officeMetaEl,
+	            org.odftoolkit.odfdom.dom.element.dc.DcLanguageElement.class,
+	            langue);
+	    if (langue != null && !langue.isBlank()) {
+	        putUserDefined(metaDom, officeMetaEl, "Langue", langue, w3c);
+	    }
+
+	    String creationIso = firstNonBlank(
+	            metaAttr("date_creation", "date"),
+	            java.time.OffsetDateTime.now().toString());
+	
+	    // ====== Émission dans <office:meta> ======
+	    putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcTitleElement.class, titre);
+	    putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcSubjectElement.class, sujet);
+	
+	    // Auteur principal : <dc:creator> + <meta:initial-creator>
+	    putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcCreatorElement.class, auteur);
+	    putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaInitialCreatorElement.class, auteur);
+	
+	    // Co-auteurs : on ajoute d'autres <dc:creator> (un par nom, séparateur virgule/point-virgule)
+	    if (coAuteurStr != null && !coAuteurStr.isBlank()) {
+	        for (String raw : coAuteurStr.split("[,;]")) {
+	            String name = raw.trim();
+	            if (!name.isEmpty() && !name.equalsIgnoreCase(auteur)) {
+	                putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcCreatorElement.class, name);
+	            }
+	        }
+	    }
+	
+	    // Mots-clés : un <meta:keyword> par mot (séparés par , ou ;)
+	    if (motsCles != null && !motsCles.isBlank()) {
+	        for (String kw : motsCles.split("[,;]")) {
+	            String k = kw.trim();
+	            if (!k.isEmpty()) {
+	                putTextElem(metaDom, officeMetaEl,
+	                        org.odftoolkit.odfdom.dom.element.meta.MetaKeywordElement.class, k);
+	            }
+	        }
+	    }
+	
+	    // Description & langue
+	    putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcDescriptionElement.class, description);
+	    putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcLanguageElement.class, langue);
+	
+	    // Générateur & date de création
+	    putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaGeneratorElement.class,
+	            "LisioWriter/MarkdownOdfExporter");
+	    putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.meta.MetaCreationDateElement.class,
+	            creationIso);
+	
+	    // Société → meta:user-defined name="Société"
+	    if (societe != null && !societe.isBlank()) {
+	        putUserDefined(metaDom, officeMetaEl, "Société", societe, w3c);
+	    }
+	
+	    // Laisse ODFDOM recalculer les champs dérivés
+	    odt.updateMetaData();
+	}
+
+// --- petit helper null-safe pour lire commandes.meta.retourneFirstEnfant(...).getAttributs(...) ---
+private static String metaAttr(String childName, String attrName) {
+    try {
+        var node = writer.commandes.meta.retourneFirstEnfant(childName);
+        if (node == null) return null;
+        String v = node.getAttributs(attrName);
+        return (v == null || v.isBlank()) ? null : v.trim();
+    } catch (Exception ignore) {
+        return null;
+    }
+}
+
+// retourne le premier string non vide
+private static String firstNonBlank(String... vals) {
+    if (vals == null) return null;
+    for (String v : vals) {
+        if (v != null && !v.isBlank()) return v.trim();
+    }
+    return null;
+}
+
  // Trouve le premier enfant par (namespace, localName) sous parentEl
     private static org.w3c.dom.Element findChildByName(org.w3c.dom.Element parentEl,
                                                        String ns, String local) {
@@ -885,7 +978,6 @@ public final class MarkdownOdfExporter {
         // Ajoute le texte
         ((org.w3c.dom.Element) el).appendChild(((org.w3c.dom.Document) dom).createTextNode(text));
     }
-
 
     private static void putUserDefined(org.odftoolkit.odfdom.pkg.OdfFileDom metaDom,
             org.w3c.dom.Element officeMetaEl,
