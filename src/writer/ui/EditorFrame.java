@@ -241,6 +241,9 @@ public class EditorFrame extends JFrame implements EditorApi {
         // Le TAB ne doit pas changer le focus lorsque le focus est dans l'éditeur
         this.editorPane.setFocusTraversalKeysEnabled(false);
         
+        // Navigation paragraphe par paragraphe sur ↑ / ↓
+        writer.ui.editor.ParagraphNavigator.install(this.editorPane);
+        
     	// --- Setup de la frame ---
     	setupEditorPane();
     	

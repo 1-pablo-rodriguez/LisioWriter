@@ -148,6 +148,7 @@ public class commandes {
         nodeblindWriter.addEnfant( commandes.contentText);
         
         listMotsDico.add("blindWriter");
+        listMotsDico.add("LisioWriter");
         listMotsDico.add("@saut de page manuel");
         listMotsDico.add("@(");
     }
@@ -453,7 +454,7 @@ public class commandes {
     private static node coauteur() {
     	node n = new node();
     	n.setNameNode("coauteur");
-    	n.getAttributs().put("nom", "blindWriter");
+    	n.getAttributs().put("nom", "LisioWriter; ...");
     	return n;
     }
     
