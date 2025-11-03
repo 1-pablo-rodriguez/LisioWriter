@@ -1,198 +1,310 @@
 package dia;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Frame;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import javax.swing.AbstractAction;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import writer.commandes;
 import writer.ui.EditorFrame;
 
-
 public class boiteMeta {
-	private static JDialog dialog = new JDialog((Frame) null, "Modifier le nom de fichier", true);
-	private static JTextField sujetField = new JTextField(20);
-	private static JTextField titreField = new JTextField(20);
-	private static JTextField auteurField = new JTextField(20);
-	private static JTextField coauteurField = new JTextField(20);
-	private static JTextField societyField = new JTextField(20);
-	
-	private final EditorFrame parent;
-	
-	public boiteMeta(EditorFrame parent) {
-		this.parent = parent;
-		dialog = new JDialog((Frame) null, "Modifier les méta-données", true);
-        dialog.setLayout(new GridLayout(5, 0));
+    private final EditorFrame parent;
+    private JDialog dialog;
+
+    // Champs existants
+    private JTextField titreField, sujetField, auteurField, coauteurField, societyField;
+    // Nouveaux champs
+    private JTextArea descriptionField;
+    private JTextField motsClesField;
+    private JComboBox<String> langueField;
+
+    public boiteMeta(EditorFrame parent) {
+        this.parent = parent;
+        buildUI();
+    }
+
+    private void buildUI() {
+        dialog = new JDialog((Frame) null, "Modifier les méta-données", true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setLayout(new BorderLayout(15, 15));
 
-        
-        dialog.getContentPane().add(new JLabel("Entrez le titre :"));
-        titreField.setText(commandes.meta.retourneFirstEnfant("titre").getAttributs().get("LeTitre"));
-        titreField.getAccessibleContext().setAccessibleName("Titre.");
-        dialog.getContentPane().add(titreField);
-        
-        dialog.getContentPane().add(new JLabel("Entrez le sujet :"));
-        sujetField.setText(commandes.meta.retourneFirstEnfant("sujet").getAttributs().get("LeSujet"));
-        sujetField.getAccessibleContext().setAccessibleName("Sujet.");
-        dialog.getContentPane().add(sujetField);
-        
-        dialog.getContentPane().add(new JLabel("Entrez l'auteur :"));
-        auteurField.setText(commandes.meta.retourneFirstEnfant("auteur").getAttributs().get("nom"));
-        auteurField.getAccessibleContext().setAccessibleName("Nom de l'auteur.");
-        dialog.getContentPane().add(auteurField);
-        
-        dialog.getContentPane().add(new JLabel("Entrez le coauteur :"));
-        coauteurField.setText(commandes.meta.retourneFirstEnfant("coauteur").getAttributs().get("nom"));
-        coauteurField.getAccessibleContext().setAccessibleName("Nom du coauteur.");
-        dialog.getContentPane().add(coauteurField);
-        
-        dialog.getContentPane().add(new JLabel("Entrez le nom de votre société :"));
-        societyField.setText(commandes.meta.retourneFirstEnfant("coauteur").getAttributs().get("nom"));
-        societyField.getAccessibleContext().setAccessibleName("Nom de votre société, ou entreprise.");
-        dialog.getContentPane().add(societyField);
-     
+        Font font = new Font("Segoe UI", Font.PLAIN, 18);
 
-        // Ajoute un KeyListener pour bloquer les caractères spéciaux lors de la saisie
-        titreField.addKeyListener(new KeyAdapter() {
-            @Override
-                 public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(Color.WHITE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 12, 8, 12);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+
+        // --- Crée les champs
+        titreField = createTextField(font);
+        sujetField = createTextField(font);
+        auteurField = createTextField(font);
+        coauteurField = createTextField(font);
+        societyField = createTextField(font);
+
+        descriptionField = createTextArea(font);
+        enableTabTraversal(descriptionField);
+        
+        motsClesField = createTextField(font);
+
+        langueField = new JComboBox<>(new String[] {
+        	    "allemand",
+        	    "anglais",
+        	    "danois",
+        	    "espagnol",
+        	    "finnois",
+        	    "français",
+        	    "grec",
+        	    "italien",
+        	    "néerlandais",
+        	    "norvégien",
+        	    "polonais",
+        	    "portugais",
+        	    "suédois"
+        	});
+        langueField.setEditable(true);
+        langueField.setFont(font);
+        langueField.getAccessibleContext().setAccessibleName("Langue : liste déroulante, éditable");
+        langueField.getAccessibleContext().setAccessibleDescription(
+            "Choisissez ou saisissez la langue du document, par exemple français ou anglais."
+        );
+
+        // valeur par défaut avant override par les métas (si présentes)
+        langueField.setSelectedItem("français");
+        
+        langueField.setEditable(true);
+        langueField.setFont(font);
+        langueField.getAccessibleContext().setAccessibleName("Langue : liste, éditable");
+        
+        // --- Valeurs initiales depuis commandes.meta
+        setTextSafe(titreField,      "titre",     "LeTitre");
+        setTextSafe(sujetField,      "sujet",     "LeSujet");
+        setTextSafe(auteurField,     "auteur",    "nom");
+        setTextSafe(coauteurField,   "coauteur",  "nom");
+        setTextSafe(societyField,    "society",   "nom");
+        setTextAreaSafe(descriptionField, "description", "description");
+        setTextSafe(motsClesField,   "motsCles",  "motsCles");
+
+        String langueInit = getMetaAttr("langue", "langue");
+        if (langueInit != null && !langueInit.isBlank()) {
+            langueField.setSelectedItem(langueInit);
+        }
+
+        int row = 0;
+        addRow(formPanel, gbc, row++, "Titre :", titreField);
+        addRow(formPanel, gbc, row++, "Sujet :", sujetField);
+        addRow(formPanel, gbc, row++, "Auteur :", auteurField);
+        addRow(formPanel, gbc, row++, "Coauteur :", coauteurField);
+        addRow(formPanel, gbc, row++, "Société :", societyField);
+        addRowTextArea(formPanel, gbc, row++, "Description :", descriptionField, 4);
+        addRowCombo(formPanel, gbc, row++, "Mots-clés :", motsClesField); // champ simple mais placé ici pour la lisibilité
+        addRowCombo(formPanel, gbc, row++, "Langue :", langueField);
+
+        // --- Boutons
+        JButton okBtn = new JButton("OK");
+        JButton cancelBtn = new JButton("Annuler");
+        okBtn.setFont(font);
+        cancelBtn.setFont(font);
+        okBtn.addActionListener(e -> valide());
+        cancelBtn.addActionListener(e -> fermeture());
+
+        JPanel btnPanel = new JPanel();
+        btnPanel.setBackground(Color.WHITE);
+        btnPanel.add(okBtn);
+        btnPanel.add(cancelBtn);
+
+        // --- Raccourcis clavier (Entrée valide, Échap annule)
+        KeyAdapter keys = new KeyAdapter() {
+            @Override public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER && !(e.getSource() instanceof JTextArea)) {
+                    // Enter dans les champs mono-ligne => Valider
                     valide();
+                } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    fermeture();
                 }
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    fermeture();  // Ferme la boîte de dialogue
-                }
-                if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-                	sujetField.requestFocus();
-                }
-                if(e.getKeyCode() == KeyEvent.VK_UP) {
-                	coauteurField.requestFocus();
-                }
-            } 
+            }
+        };
+        for (JTextField f : new JTextField[]{titreField, sujetField, auteurField, coauteurField, societyField, motsClesField}) {
+            f.addKeyListener(keys);
+        }
+        // Pour la zone Description : Enter = nouvelle ligne ; Ctrl+Enter = Valider
+        descriptionField.addKeyListener(new KeyAdapter() {
+            @Override public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER && e.isControlDown()) valide();
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) fermeture();
+            }
         });
-        
-        // Ajoute un KeyListener pour bloquer les caractères spéciaux lors de la saisie
-        sujetField.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    // Valide la saisie lorsque la touche "Entrée" est appuyée
-                    valide();
-                }
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    // Valide la saisie lorsque la touche "Echappe" est appuyée
-                	fermeture();
-                }
-                if(e.getKeyCode() == KeyEvent.VK_UP) {
-                	titreField.requestFocus();
-                }
-                if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-                	auteurField.requestFocus();
-                }
-            } 
-        });
-        
-        // Ajoute un KeyListener pour bloquer les caractères spéciaux lors de la saisie
-        auteurField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    // Valide la saisie lorsque la touche "Entrée" est appuyée
-                    valide();
-                }
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    // Valide la saisie lorsque la touche "Echappe" est appuyée
-                	fermeture();
-                }
-                if(e.getKeyCode() == KeyEvent.VK_UP) {
-                	sujetField.requestFocus();
-                }
-                if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-                	coauteurField.requestFocus();
-                }
-            } 
-        });
-        
-        // Ajoute un KeyListener pour bloquer les caractères spéciaux lors de la saisie
-        coauteurField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    // Valide la saisie lorsque la touche "Entrée" est appuyée
-                    valide();
-                }
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    // Valide la saisie lorsque la touche "Echappe" est appuyée
-                	fermeture();
-                }
-                if(e.getKeyCode() == KeyEvent.VK_UP) {
-                	auteurField.requestFocus();
-                }
-                if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-                	societyField.requestFocus();
-                }
-                
-            } 
-        });
-        
-        
-        // Ajoute un KeyListener pour bloquer les caractères spéciaux lors de la saisie
-        societyField.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    // Valide la saisie lorsque la touche "Entrée" est appuyée
-                    valide();
-                }
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    // Valide la saisie lorsque la touche "Echappe" est appuyée
-                	fermeture();
-                }
-                if(e.getKeyCode() == KeyEvent.VK_UP) {
-                	coauteurField.requestFocus();
-                }
-                if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-                	titreField.requestFocus();
-                }
-            } 
-        });
-        
-        
-        
-        // Configure et affiche la boîte de dialogue
+
+        dialog.add(formPanel, BorderLayout.CENTER);
+        dialog.add(btnPanel, BorderLayout.SOUTH);
+        dialog.getRootPane().setDefaultButton(okBtn);
+
         dialog.pack();
+        dialog.setSize(640, 560);
         dialog.setLocationRelativeTo(null);
-        
-        // Assure que le JTextField a le focus quand la boîte apparaît
         SwingUtilities.invokeLater(titreField::requestFocusInWindow);
         dialog.setVisible(true);
-     
-        
+    }
+
+    // ===== Helpers UI accessibles =====
+    private JTextField createTextField(Font font) {
+        JTextField f = new JTextField(25);
+        f.setFont(font);
+        return f;
+    }
+
+    private JTextArea createTextArea(Font font) {
+        JTextArea ta = new JTextArea();
+        ta.setFont(font);
+        ta.setLineWrap(true);
+        ta.setWrapStyleWord(true);
+        return ta;
+    }
+
+    private void addRow(JPanel panel, GridBagConstraints gbc, int y, String labelText, JTextField field) {
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        label.setLabelFor(field);
+
+        field.getAccessibleContext().setAccessibleName(labelText + " Champ d’édition de texte");
+        field.getAccessibleContext().setAccessibleDescription("Saisissez " + labelText.replace(" :", "").toLowerCase());
+
+        gbc.gridx = 0; gbc.gridy = y; gbc.weightx = 0.0;
+        panel.add(label, gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        panel.add(field, gbc);
+    }
+
+    private void addRowTextArea(JPanel panel, GridBagConstraints gbc, int y,
+            String labelText, JTextArea area, int rows) {
+		JLabel label = new JLabel(labelText);
+		label.setFont(new Font("Segoe UI", Font.BOLD, 18));
+		label.setLabelFor(area);
+		
+		area.getAccessibleContext().setAccessibleName(labelText + " Zone de texte multiligne");
+		area.getAccessibleContext().setAccessibleDescription(
+		"Saisissez " + labelText.replace(" :", "").toLowerCase());
+		
+		area.setRows(rows);        // ← Swing calcule la hauteur
+		area.setColumns(35);       // ← largeur raisonnable
+		JScrollPane sp = new JScrollPane(area);
+		
+		gbc.gridx = 0; gbc.gridy = y; gbc.weightx = 0.0; gbc.fill = GridBagConstraints.NONE;
+		panel.add(label, gbc);
+		
+		gbc.gridx = 1; gbc.weightx = 1.0; gbc.fill = GridBagConstraints.HORIZONTAL;
+		panel.add(sp, gbc);
 	}
-	
-	/** 
-	 * fermeture de la dialog
-	 */
-	private void fermeture() {
+
+
+    private void addRowCombo(JPanel panel, GridBagConstraints gbc, int y, String labelText, JComponent comp) {
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        label.setLabelFor(comp);
+
+        comp.getAccessibleContext().setAccessibleName(labelText + " Champ d’édition de texte");
+        comp.getAccessibleContext().setAccessibleDescription("Saisissez " + labelText.replace(" :", "").toLowerCase());
+
+        gbc.gridx = 0; gbc.gridy = y; gbc.weightx = 0.0;
+        panel.add(label, gbc);
+
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        panel.add(comp, gbc);
+    }
+
+    // ===== Accès sûrs aux méta =====
+    private static void setTextSafe(JTextField field, String node, String attr) {
+        String v = getMetaAttr(node, attr);
+        field.setText(v != null ? v : "");
+    }
+    private static void setTextAreaSafe(JTextArea area, String node, String attr) {
+        String v = getMetaAttr(node, attr);
+        area.setText(v != null ? v : "");
+    }
+    private static String getMetaAttr(String node, String attr) {
+        try {
+            var n = commandes.meta.retourneFirstEnfant(node);
+            if (n == null) return null;
+            return n.getAttributs().get(attr);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // ===== Fermer / Valider =====
+    private void fermeture() {
         if (parent != null) {
             SwingUtilities.invokeLater(() -> {
-                parent.requestFocus();              // redonne le focus à la frame
-                parent.getEditor().requestFocusInWindow(); // et au JTextArea
+                parent.requestFocus();
+                parent.getEditor().requestFocusInWindow();
             });
         }
         dialog.dispose();
     }
-	
-	private void valide() {
-		 commandes.meta.retourneFirstEnfant("titre").getAttributs().put("LeTitre", titreField.getText().trim());
-		 commandes.meta.retourneFirstEnfant("sujet").getAttributs().put("LeSujet", sujetField.getText().trim());
-		 commandes.meta.retourneFirstEnfant("auteur").getAttributs().put("nom", auteurField.getText().trim());
-		 commandes.meta.retourneFirstEnfant("coauteur").getAttributs().put("nom", auteurField.getText().trim());
-		 commandes.meta.retourneFirstEnfant("society").getAttributs().put("nom", societyField.getText().trim());
-		 fermeture();
-	}
-	
+
+    private void valide() {
+        // existants
+        commandes.meta.retourneFirstEnfant("titre").getAttributs().put("LeTitre",  titreField.getText().trim());
+        commandes.meta.retourneFirstEnfant("sujet").getAttributs().put("LeSujet",  sujetField.getText().trim());
+        commandes.meta.retourneFirstEnfant("auteur").getAttributs().put("nom",     auteurField.getText().trim());
+        commandes.meta.retourneFirstEnfant("coauteur").getAttributs().put("nom",   coauteurField.getText().trim());
+        commandes.meta.retourneFirstEnfant("society").getAttributs().put("nom",    societyField.getText().trim());
+
+        // nouveaux
+        commandes.meta.retourneFirstEnfant("description").getAttributs()
+                .put("description", descriptionField.getText().trim());
+        commandes.meta.retourneFirstEnfant("motsCles").getAttributs()
+                .put("motsCles", motsClesField.getText().trim());
+        Object langValue = langueField.getEditor().getItem();
+        commandes.meta.retourneFirstEnfant("langue").getAttributs()
+                .put("langue", langValue != null ? langValue.toString().trim() : "");
+
+        fermeture();
+    }
+    
+ // === À mettre dans ta classe (méthode utilitaire) ===
+    @SuppressWarnings("serial")
+	private static void enableTabTraversal(JTextArea area) {
+        // Tab -> focus suivant
+        area.getInputMap(JComponent.WHEN_FOCUSED).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), "focusNext");
+        area.getActionMap().put("focusNext", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                area.transferFocus();
+            }
+        });
+
+        // Shift+Tab -> focus précédent
+        area.getInputMap(JComponent.WHEN_FOCUSED).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_TAB, KeyEvent.SHIFT_DOWN_MASK), "focusPrev");
+        area.getActionMap().put("focusPrev", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                area.transferFocusBackward();
+            }
+        });
+    }
+
 }
