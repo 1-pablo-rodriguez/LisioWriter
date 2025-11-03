@@ -371,20 +371,7 @@ public class HtmlBrowserDialog extends JDialog {
 	                String formatted = "#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
 	                
 	                System.out.println("✅ Article inséré : " + articleTitle);
-	                
-//	                // 🔧 Normalisation des fins de ligne pour éviter les décalages
-//	                try {
-//	                     formatted
-//	                        .replace("\r\n", "\n")  // Windows → Unix
-//	                        .replace('\r', '\n');   // vieux Mac → Unix
-//
-//	                    javax.swing.text.Document d = editorPane.getDocument();
-//	                    d.remove(0, d.getLength());
-//	                    d.insertString(0, formatted, null);
-//	                } catch (Exception ex) {
-//	                    ex.printStackTrace();
-//	                }
-	               	                
+	                	               	                
 	                doc.insertString(pos, formatted, null);
 	                
 	                editorPane.setCaretPosition(pos);
