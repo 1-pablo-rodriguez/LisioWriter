@@ -132,38 +132,29 @@ public final class MarkdownOdfExporter {
             }
             
             // === TABLEAUX @t ... @/t ===
-            if (TableSyntax.isTableStart(line)) {
-                // 1) Fermer une liste éventuelle
-                if (listState != ListKind.NONE) {
-                    currentList = null;
-                    listState = ListKind.NONE;
-                }
+            if (writer.ui.editor.TableSyntax.isTableStart(line)) {
+                // fermer liste éventuelle
+                if (listState != ListKind.NONE) { currentList = null; listState = ListKind.NONE; }
 
-                // 2) Récupérer toutes les lignes jusqu'à @/t (non inclus)
-                List<String> rows = new ArrayList<>();
-                int j = i + 1;
-                for (; j < lines.length; j++) {
-                    String l = lines[j];
-                    if (TableSyntax.isTableEnd(l)) break;
-                    // on ignore les lignes vides au milieu du bloc table
-                    if (l != null && !l.strip().isEmpty()) rows.add(l);
-                }
+                // récupérer les lignes du bloc
+                java.util.List<String> rows = new java.util.ArrayList<>();
+                int j = exportODF.OdfTableExporter.collectTableBlock(lines, i, rows);
 
-                // 3) Insérer un saut de page si demandé pour "le prochain paragraphe"
+                // éventuel saut de page pour le prochain bloc
                 if (pageBreakForNextParagraph) {
                     TextPElement dummy = odt.newParagraph();
                     applyBreakBefore(odt, dummy);
                     pageBreakForNextParagraph = false;
                 }
 
-                // 4) Construire la table dans l’ODT
-                buildOdfTable(odt, contentDom, rows, footBox);
+                // construire la table (en réutilisant ta logique inline via appendInlineRuns)
+                exportODF.OdfTableExporter.buildOdfTable(odt, contentDom, rows,
+                    (p, cellText) -> appendInlineRuns(contentDom, p, cellText, odt, footBox)
+                );
 
-                // 5) Sauter jusqu'à la fin du bloc
-                i = (j < lines.length ? j : lines.length - 1);
+                i = j; // sauter jusqu’à @/t
                 continue;
             }
-
             
             // --- Titres spéciaux #P. et #S. ---
             Matcher m;
@@ -528,6 +519,7 @@ public final class MarkdownOdfExporter {
         int get() { return v; }
         void inc() { v++; }
     }
+    
     private static IntBox footnoteCounterRef(int start) { return new IntBox(start); }
 
     /** Parse le texte et insère dans le paragraphe les spans/notes. */
@@ -1053,93 +1045,7 @@ private static String firstNonBlank(String... vals) {
         }
     }
 
-    /** Construit un <table:table> avec une éventuelle ligne d’en-tête "|!".
-     *  - Respecte les échappements \| et \\ via TableSyntax.splitCells
-     *  - Rend les cellules avec appendInlineRuns(...) pour garder le inline
-     */
-    private static void buildOdfTable(
-            OdfTextDocument odt,
-            OdfFileDom contentDom,
-            List<String> rawRows,
-            IntBox footnoteCounter) throws Exception {
-
-        if (rawRows == null || rawRows.isEmpty()) return;
-
-        // 1) Convertir chaque ligne en liste de cellules
-        List<List<String>> parsed = new ArrayList<>();
-        boolean hasHeader = false;
-
-        int maxCols = 0;
-        for (int r = 0; r < rawRows.size(); r++) {
-            String row = rawRows.get(r);
-            if (!TableSyntax.isTableRow(row)) continue; // sécurité
-
-            List<String> cells = TableSyntax.splitCells(row);
-            // Si la ligne est en-tête, splitCells a déjà ignoré le préfixe "|!"
-            if (TableSyntax.isHeaderRow(row)) hasHeader = true;
-
-            parsed.add(cells);
-            if (cells.size() > maxCols) maxCols = cells.size();
-        }
-        if (parsed.isEmpty() || maxCols == 0) return;
-
-        // 2) Créer <table:table> et colonnes
-        TableTableElement table = contentDom.newOdfElement(TableTableElement.class);
-        odt.getContentRoot().appendChild(table);
-
-        // colonnes (on peut aussi utiliser number-columns-repeated)
-        for (int c = 0; c < maxCols; c++) {
-            TableTableColumnElement col = contentDom.newOdfElement(TableTableColumnElement.class);
-            table.appendChild(col);
-        }
-
-        // 3) Si en-tête, prendre la/les premières lignes "|!" en header-rows
-        int rowIndex = 0;
-        if (hasHeader) {
-            TableTableHeaderRowsElement thead = contentDom.newOdfElement(TableTableHeaderRowsElement.class);
-            table.appendChild(thead);
-
-            // On met TOUTES les lignes initiales commençant par "|!" dans l’en-tête
-            while (rowIndex < parsed.size() && TableSyntax.isHeaderRow(rawRows.get(rowIndex))) {
-                List<String> cells = parsed.get(rowIndex);
-                TableTableRowElement tr = contentDom.newOdfElement(TableTableRowElement.class);
-                thead.appendChild(tr);
-
-                // cells -> table:table-cell + <text:p> + inline
-                for (int c = 0; c < maxCols; c++) {
-                    TableTableCellElement tc = contentDom.newOdfElement(TableTableCellElement.class);
-                    tr.appendChild(tc);
-
-                    TextPElement p = contentDom.newOdfElement(TextPElement.class);
-                    tc.appendChild(p);
-
-                    String cellText = (c < cells.size()) ? cells.get(c) : "";
-                    appendInlineRuns(contentDom, p, cellText, odt, footnoteCounter);
-                }
-                rowIndex++;
-            }
-        }
-
-        // 4) Corps du tableau
-        for (; rowIndex < parsed.size(); rowIndex++) {
-            List<String> cells = parsed.get(rowIndex);
-            TableTableRowElement tr = contentDom.newOdfElement(TableTableRowElement.class);
-            table.appendChild(tr);
-
-            for (int c = 0; c < maxCols; c++) {
-                TableTableCellElement tc = contentDom.newOdfElement(TableTableCellElement.class);
-                tr.appendChild(tc);
-
-                TextPElement p = contentDom.newOdfElement(TextPElement.class);
-                tc.appendChild(p);
-
-                String cellText = (c < cells.size()) ? cells.get(c) : "";
-                appendInlineRuns(contentDom, p, cellText, odt, footnoteCounter);
-            }
-        }
-    }
-
-
+    
 
 
 }
