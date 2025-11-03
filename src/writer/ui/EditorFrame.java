@@ -40,8 +40,6 @@ import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.JTextComponent;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
 
@@ -78,7 +76,8 @@ public class EditorFrame extends JFrame implements EditorApi {
   	);
   	
   	// Détecte une image au format ![Image : description]
-  	private static final Pattern IMAGE_PATTERN = Pattern.compile(
+  	@SuppressWarnings("unused")
+	private static final Pattern IMAGE_PATTERN = Pattern.compile(
   	    "!\\[\\s*Image\\s*:\\s*([^\\]]+)\\]"
   	);
 

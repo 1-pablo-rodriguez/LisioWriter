@@ -2,6 +2,9 @@ package writer.ui.text;
 
 import javax.swing.text.*;
 
+/*
+ * Class permettant de placer le cursseur dans le document.
+ */
 public final class Lines {
 
     private Lines() {}
