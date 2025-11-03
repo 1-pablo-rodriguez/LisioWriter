@@ -29,14 +29,14 @@ public class LisioWriter extends writer.ui.EditorFrame {
 
 	    // Démarrage du logiciel
 	    public static void main(String[] args) {
-	        // 1️⃣ — Chemin du fichier fourni au démarrage (si double-clic)
+	        // 1️) Chemin du fichier fourni au démarrage (si double-clic)
 	        final String startupPath = (args != null && args.length > 0) ? args[0] : null;
 
 	        try {
 	            System.setProperty("file.encoding", "UTF-8");
 	            commandes.init(); // initialisation de tes préférences et chemins
 
-	            // 2️⃣ — Lancer l’UI sur le thread Swing (EDT)
+	            // 2) Lancer l’UI sur le thread Swing (EDT)
 	            SwingUtilities.invokeLater(() -> {
 	                EditorFrame frame = new EditorFrame();
 	                frame.setVisible(true);
@@ -46,6 +46,7 @@ public class LisioWriter extends writer.ui.EditorFrame {
 		                openFileOnStartup(startupPath, frame); // méthode static (voir ci-dessous)
 		            }
 		            
+		            // 4) Affichage fenêtre de bienvenue
 		            new bienvenueAffichage(frame);
 	            });
 

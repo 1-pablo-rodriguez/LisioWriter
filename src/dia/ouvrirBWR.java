@@ -78,6 +78,13 @@ public final class ouvrirBWR extends JDialog {
 	public ouvrirBWR(EditorFrame parent){
         super(parent);
 		this.parent = parent;
+		
+		// Fond noir + texte clair
+		getContentPane().setBackground(java.awt.Color.BLACK);
+		fileList.setBackground(java.awt.Color.BLACK);
+		fileList.setForeground(java.awt.Color.WHITE);
+		status.setBackground(java.awt.Color.BLACK);
+		status.setForeground(java.awt.Color.LIGHT_GRAY);
 
         setTitle("Ouvrir un fichier");
         setModal(true);
@@ -478,26 +485,30 @@ public final class ouvrirBWR extends JDialog {
         }
     }
 
-    /** Applique la charte "grands caractères" aux composants. */
+    /** Applique la charte "grands caractères" et contraste élevé. */
     private void applyLargePrint() {
         var listFont = new java.awt.Font(UI_FONT_FAMILY, java.awt.Font.PLAIN, UI_FONT_SIZE_LIST);
         var statusFont = new java.awt.Font(UI_FONT_FAMILY, java.awt.Font.PLAIN, UI_FONT_SIZE_STATUS);
 
-        // La JList + sa hauteur de ligne
+        // --- Police et dimensions ---
         fileList.setFont(listFont);
         fileList.setFixedCellHeight(UI_ROW_HEIGHT);
         fileList.setVisibleRowCount(16);
 
-        // Contrastes (facultatif mais utile en basse vision)
-        fileList.setSelectionBackground(new java.awt.Color(30, 144, 255)); // bleu "dodger"
+        // --- Thème sombre à fort contraste ---
+        fileList.setBackground(java.awt.Color.BLACK);
+        fileList.setForeground(java.awt.Color.WHITE);
+        fileList.setSelectionBackground(new java.awt.Color(0, 120, 215)); // bleu Windows 10
         fileList.setSelectionForeground(java.awt.Color.WHITE);
+        fileList.setBorder(javax.swing.BorderFactory.createEmptyBorder(10,10,10,10));
 
-        // Barre d’état
+        // Barre d’état sombre aussi
         status.setFont(statusFont);
-
-        // Indiquer au renderer d’utiliser la même police (voir plus bas)
-        // (On ne fait rien ici: c’est géré dans FileRenderer via setFont(list.getFont()))
+        status.setBackground(java.awt.Color.BLACK);
+        status.setForeground(java.awt.Color.LIGHT_GRAY);
+        status.setOpaque(true);
     }
+
     
     private void maximizeToUsableScreen() {
         java.awt.GraphicsConfiguration gc = getGraphicsConfiguration();
