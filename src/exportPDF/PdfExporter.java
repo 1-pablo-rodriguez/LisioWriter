@@ -28,6 +28,9 @@ import org.jsoup.nodes.Document.OutputSettings;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
+import writer.ui.editor.TableSyntax;
+
+
 
 public class PdfExporter {
 
@@ -219,6 +222,50 @@ public class PdfExporter {
                 continue;
             }
 
+         // ==== TABLEAUX PERSONNALISÉS ====
+            if (TableSyntax.isTableStart(trimmed)) {
+                // Fermer les paragraphes/listes en cours
+                if (inOl) { body.append("</ol>\n"); inOl = false; }
+                if (inUl) { body.append("</ul>\n"); inUl = false; }
+                if (paragraphOpen) {
+                    body.append("<p>").append(paragraph).append("</p>\n");
+                    paragraph.setLength(0); paragraphOpen = false;
+                }
+
+                // Lire les lignes du tableau jusqu'à @/t
+                StringBuilder tableHtml = new StringBuilder();
+                tableHtml.append("<table class=\"bw-table\">\n");
+
+                boolean headerDone = false;
+                i++; // passer la ligne @t
+                while (i < lines.length && !TableSyntax.isTableEnd(lines[i])) {
+                    String line = lines[i];
+                    if (TableSyntax.isHeaderRow(line)) {
+                    	List<String> cells = TableSyntax.splitCellsTrimmed(line);
+                        tableHtml.append("<thead><tr>");
+                        for (String c : cells) {
+                            tableHtml.append("<th>").append(escapeHtml(c)).append("</th>");
+                        }
+                        tableHtml.append("</tr></thead>\n");
+                        headerDone = true;
+                    } else if (TableSyntax.isTableRow(line)) {
+                    	List<String> cells = TableSyntax.splitCellsTrimmed(line);
+                        if (!headerDone) { tableHtml.append("<tbody>\n"); headerDone = true; }
+                        tableHtml.append("<tr>");
+                        for (String c : cells) {
+                            tableHtml.append("<td>").append(escapeHtml(c)).append("</td>");
+                        }
+                        tableHtml.append("</tr>\n");
+                    }
+                    i++;
+                }
+                if (headerDone) tableHtml.append("</tbody>\n");
+                tableHtml.append("</table>\n");
+
+                body.append(tableHtml.toString());
+                continue;
+            }
+            
             // ==== Texte normal ====
             if (inOl) { body.append("</ol>\n"); inOl = false; }
             if (inUl) { body.append("</ul>\n"); inUl = false; }
@@ -268,6 +315,9 @@ public class PdfExporter {
             + "ol,ul{margin:.5em 0 .5em 1.5em;}"
             + "ol{list-style:decimal;}"
             + "ul{list-style:disc;}"
+            + "table.bw-table{border-collapse:collapse;width:100%;margin:1em 0;font-size:10pt;}"
+            + "table.bw-table th,table.bw-table td{border:1px solid #999;padding:4px 6px;text-align:left;}"
+            + "table.bw-table th{background:#f0f0f0;font-weight:bold;}"
             + ".footnotes{font-size:.9em;margin-top:1em;}"
             + ".footnotes ol{margin:.5em 0 .5em 1.5em;}"
             + ".footnotes li{margin:.25em 0;}"
