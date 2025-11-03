@@ -67,6 +67,7 @@ public class commandes {
     	defaultStyles();
         loadDocumentation();
         loadManuel();
+        init_meta();
     }
     
     // Création du node blindWriter

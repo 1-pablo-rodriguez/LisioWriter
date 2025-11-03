@@ -378,7 +378,9 @@ public class HtmlBrowserDialog extends JDialog {
 	                
 	                // ✅ Fermer la fenêtre et redonner le focus à l’éditeur
 	                dispose();
+	                commandes.init();
 	                commandes.nameFile = articleTitle;
+	                
 	                SwingUtilities.invokeLater(() -> editorPane.requestFocusInWindow());
 	
 	            } catch (Exception ex) {

@@ -7,11 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.odftoolkit.odfdom.doc.OdfTextDocument;
-import org.odftoolkit.odfdom.dom.element.table.TableTableCellElement;
-import org.odftoolkit.odfdom.dom.element.table.TableTableColumnElement;
-import org.odftoolkit.odfdom.dom.element.table.TableTableElement;
-import org.odftoolkit.odfdom.dom.element.table.TableTableHeaderRowsElement;
-import org.odftoolkit.odfdom.dom.element.table.TableTableRowElement;
 import org.odftoolkit.odfdom.dom.element.text.TextAElement;
 import org.odftoolkit.odfdom.dom.element.text.TextListElement;
 import org.odftoolkit.odfdom.dom.element.text.TextListItemElement;
@@ -20,8 +15,6 @@ import org.odftoolkit.odfdom.dom.element.text.TextTabElement;
 import org.odftoolkit.odfdom.dom.style.OdfStyleFamily;
 import org.odftoolkit.odfdom.incubator.doc.style.OdfStyle;
 import org.odftoolkit.odfdom.pkg.OdfFileDom;
-
-import writer.ui.editor.TableSyntax;
 
 public final class MarkdownOdfExporter {
 
@@ -882,8 +875,9 @@ public final class MarkdownOdfExporter {
 	        }
 	    }
 	
-	    // Description & langue
-	    putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcDescriptionElement.class, description);
+	    	// Description & langue
+	    // --- Commentaires (onglet Description) ---
+	    putDescriptionAsTextP(metaDom, officeMetaEl, description);
 	    putTextElem(metaDom, officeMetaEl, org.odftoolkit.odfdom.dom.element.dc.DcLanguageElement.class, langue);
 	
 	    // Générateur & date de création
@@ -901,28 +895,53 @@ public final class MarkdownOdfExporter {
 	    odt.updateMetaData();
 	}
 
-// --- petit helper null-safe pour lire commandes.meta.retourneFirstEnfant(...).getAttributs(...) ---
-private static String metaAttr(String childName, String attrName) {
-    try {
-        var node = writer.commandes.meta.retourneFirstEnfant(childName);
-        if (node == null) return null;
-        String v = node.getAttributs(attrName);
-        return (v == null || v.isBlank()) ? null : v.trim();
-    } catch (Exception ignore) {
-        return null;
-    }
-}
+	// --- petit helper null-safe pour lire commandes.meta.retourneFirstEnfant(...).getAttributs(...) ---
+	private static String metaAttr(String childName, String attrName) {
+	    try {
+	        var node = writer.commandes.meta.retourneFirstEnfant(childName);
+	        if (node == null) return null;
+	        String v = node.getAttributs(attrName);
+	        return (v == null || v.isBlank()) ? null : v.trim();
+	    } catch (Exception ignore) {
+	        return null;
+	    }
+	}
+	
+	// Écrit <dc:description><text:p>...</text:p></dc:description>
+	private static void putDescriptionAsTextP(
+	        org.odftoolkit.odfdom.pkg.OdfFileDom metaDom,
+	        org.w3c.dom.Element officeMetaEl,
+	        String description) throws Exception {
 
-// retourne le premier string non vide
-private static String firstNonBlank(String... vals) {
-    if (vals == null) return null;
-    for (String v : vals) {
-        if (v != null && !v.isBlank()) return v.trim();
-    }
-    return null;
-}
+	    if (description == null || description.isBlank()) return;
 
- // Trouve le premier enfant par (namespace, localName) sous parentEl
+	    // crée l’élément <dc:description>
+	    var desc = metaDom.newOdfElement(
+	            org.odftoolkit.odfdom.dom.element.dc.DcDescriptionElement.class);
+
+	    // supporte les retours à la ligne → plusieurs <text:p>
+	    for (String line : description.split("\\R", -1)) {
+	        var p = metaDom.newOdfElement(
+	                org.odftoolkit.odfdom.dom.element.text.TextPElement.class);
+	        p.appendChild(((org.w3c.dom.Document) metaDom).createTextNode(line));
+	        desc.appendChild(p);
+	    }
+
+	    officeMetaEl.appendChild((org.w3c.dom.Element) desc);
+	}
+
+	
+	// retourne le premier string non vide
+	private static String firstNonBlank(String... vals) {
+	    if (vals == null) return null;
+	    for (String v : vals) {
+	        if (v != null && !v.isBlank()) return v.trim();
+	    }
+	    return null;
+	}
+
+	
+	// Trouve le premier enfant par (namespace, localName) sous parentEl
     private static org.w3c.dom.Element findChildByName(org.w3c.dom.Element parentEl,
                                                        String ns, String local) {
         for (org.w3c.dom.Node n = parentEl.getFirstChild(); n != null; n = n.getNextSibling()) {
@@ -984,7 +1003,7 @@ private static String firstNonBlank(String... vals) {
 	}
 
     
- // Insère du texte qui peut contenir [tab] dans un PARAGRAPHE <text:p>
+    // Insère du texte qui peut contenir [tab] dans un PARAGRAPHE <text:p>
     private static void appendTextWithTabsToParagraph(
             org.odftoolkit.odfdom.pkg.OdfFileDom dom,
             org.odftoolkit.odfdom.dom.element.text.TextPElement p,
