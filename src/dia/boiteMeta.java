@@ -2,7 +2,9 @@ package dia;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -22,6 +24,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 
 import writer.commandes;
@@ -37,6 +40,10 @@ public class boiteMeta {
     private JTextArea descriptionField;
     private JTextField motsClesField;
     private JComboBox<String> langueField;
+    
+    // En haut de la classe
+    private static final int LV_FONT_SIZE = 22; // adapte si besoin (20–24 conseillé)
+
 
     public boiteMeta(EditorFrame parent) {
         this.parent = parent;
@@ -176,11 +183,15 @@ public class boiteMeta {
         return f;
     }
 
-    private JTextArea createTextArea(Font font) {
+    private JTextArea createTextArea(Font ignored) {
         JTextArea ta = new JTextArea();
-        ta.setFont(font);
+        ta.setFont(new Font("Segoe UI", Font.PLAIN, LV_FONT_SIZE));
         ta.setLineWrap(true);
         ta.setWrapStyleWord(true);
+        ta.setMargin(new Insets(6, 8, 6, 8)); // lisibilité
+        ta.setCaretColor(Color.BLACK);
+        ta.setSelectedTextColor(Color.BLACK);
+        ta.setSelectionColor(new Color(255, 230, 150)); // contraste doux
         return ta;
     }
 
@@ -204,19 +215,46 @@ public class boiteMeta {
 		label.setFont(new Font("Segoe UI", Font.BOLD, 18));
 		label.setLabelFor(area);
 		
+		// Accessibilité
 		area.getAccessibleContext().setAccessibleName(labelText + " Zone de texte multiligne");
 		area.getAccessibleContext().setAccessibleDescription(
-		"Saisissez " + labelText.replace(" :", "").toLowerCase());
+		"Saisissez " + labelText.replace(" :", "").toLowerCase()
+		+ ". Tab pour changer de champ. Ctrl+Entrée pour valider.");
 		
-		area.setRows(rows);        // ← Swing calcule la hauteur
-		area.setColumns(35);       // ← largeur raisonnable
+		// ≥ N lignes visibles
+		int visibleRows = Math.max(rows, 5);     // ← mets 5 (ou 6) pour bien voir le texte
+		area.setRows(visibleRows);
+		area.setColumns(40);
+		area.setLineWrap(true);
+		area.setWrapStyleWord(true);
+		area.setMargin(new Insets(6, 8, 6, 8));
+		
+		// Calcule une hauteur préférée fiable à partir de la police
+		FontMetrics fm = area.getFontMetrics(area.getFont());
+		int lineHeight = fm.getHeight();
+		int height = lineHeight * visibleRows + 20;  // marge incluse
+		
 		JScrollPane sp = new JScrollPane(area);
+		sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		sp.setPreferredSize(new Dimension(600, height));
+		sp.setMinimumSize(new Dimension(300, height));
 		
-		gbc.gridx = 0; gbc.gridy = y; gbc.weightx = 0.0; gbc.fill = GridBagConstraints.NONE;
+		// Colonne label
+		gbc.gridx = 0; gbc.gridy = y;
+		gbc.weightx = 0.0; gbc.weighty = 0.0;        // le label ne grandit pas
+		gbc.fill = GridBagConstraints.NONE;
 		panel.add(label, gbc);
 		
-		gbc.gridx = 1; gbc.weightx = 1.0; gbc.fill = GridBagConstraints.HORIZONTAL;
+		// Colonne zone de texte : elle peut grandir en hauteur
+		gbc.gridx = 1;
+		gbc.weightx = 1.0;
+		gbc.weighty = 1.0;                           // ← donne de la hauteur à cette ligne
+		gbc.fill = GridBagConstraints.BOTH;          // ← s’étire en largeur ET hauteur
 		panel.add(sp, gbc);
+		
+		// IMPORTANT : réinitialiser pour les lignes suivantes
+		gbc.weighty = 0.0;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
 	}
 
 
@@ -306,5 +344,8 @@ public class boiteMeta {
             }
         });
     }
+    
+
+
 
 }
