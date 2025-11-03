@@ -33,7 +33,9 @@ public class PdfExporter {
 
 	private static PrintWriter LOG = null;
 	private static final Object LOG_LOCK = new Object();
- 
+	// === Liens @[texte : URL] ===
+	final Pattern RE_LINK = Pattern.compile("@\\[([^:\\]]+?)\\s*:\\s*(https?://[^\\]]+?)\\]");
+
     
 
     private static String escapeHtml(String s) {
@@ -831,13 +833,28 @@ public class PdfExporter {
 
     // Chaîne d’enrichissement inline standard : escape → mise en forme → notes → [tab]
     private static String renderInline(String raw,
-                                       java.util.function.Function<String,String> replaceFootnotesFn) {
-        String x = escapeHtml(raw);
-        x = applyInlineMarkers(x);
-        x = replaceFootnotesFn.apply(x);
-        x = replaceVisibleTabs(x);
-        return x;
-    }
+            java.util.function.Function<String,String> replaceFootnotesFn) {
+		String x = escapeHtml(raw);
+		x = applyInlineMarkers(x);
+		
+		// --- Nouveau : convertir @[texte : URL] en lien HTML cliquable ---
+		Matcher linkMatcher = Pattern.compile("@\\[([^:\\]]+?)\\s*:\\s*(https?://[^\\]]+?)\\]").matcher(x);
+		StringBuffer out = new StringBuffer();
+		while (linkMatcher.find()) {
+		String text = escapeHtml(linkMatcher.group(1).trim());
+		String url  = escapeHtml(linkMatcher.group(2).trim());
+		String link = "<a href=\"" + url + "\" target=\"_blank\">" + text + "</a>";
+		linkMatcher.appendReplacement(out, Matcher.quoteReplacement(link));
+		}
+		linkMatcher.appendTail(out);
+		x = out.toString();
+		
+		x = replaceFootnotesFn.apply(x);
+		x = replaceVisibleTabs(x);
+		return x;
+	}
+
+
 
 
 
