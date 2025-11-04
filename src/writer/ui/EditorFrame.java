@@ -90,6 +90,10 @@ public class EditorFrame extends JFrame implements EditorApi {
  	private static final int FONT_MIN = 14, FONT_MAX = 130, FONT_STEP = 2;
   	private float editorFontSize = 34f;
   	private final JScrollPane scrollPane;
+  	
+  	// === ANNONCE LA POSITION DANS LE TEXTE DU CURSEUR ===
+  	private final Action actAnnouncePosition = new writer.ui.editor.AnnouncePositionAction(this.editorPane);
+
 
 
     // === CONSTRUCTEUR ===
@@ -450,42 +454,9 @@ public class EditorFrame extends JFrame implements EditorApi {
 	     return true;
 	 }
 
-	//=====================================================
-	// === ANNONCE LA POSITION DANS LE TEXTE DU CURSEUR ===
-	public final Action actAnnouncePosition = new AbstractAction("Position dans le texte") {
-		 @Override
-	        public void actionPerformed(ActionEvent e) {
-			 final javax.swing.text.Document doc = editorPane.getDocument();
-	 	        final int caretPara = safeParagraphIndexAt(doc, editorPane.getCaretPosition());
-
-	 	        final HeadingFound above = findEnclosingHeading(); // titre au-dessus
-	 	        final HeadingFound below = findNextHeadingBelow();  // titre en-dessous
-
-	 	        StringBuilder msg = new StringBuilder(64);
-	 	        msg.append("TITRES proches :\n");
-	 	        msg.append(formatHeadingLine("• Au-dessus : ", above)).append(" ↓\n");
-	 	        msg.append(formatHeadingLine("• En-dessous : ", below)).append(" ↓\n");
-	 	        msg.append("• Curseur dans le § : ").append(caretPara);
-
-	 	        java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(editorPane);
-	 	        dia.InfoDialog.show(owner, "Position dans le texte", msg.toString());
-		 }
-	};
-	 
 	@Override
-	public Action actAnnouncePosition() {
-		return this.actAnnouncePosition;
-	}
+  	public Action actAnnouncePosition() { return this.actAnnouncePosition; }
 
-	private static int safeParagraphIndexAt(javax.swing.text.Document doc, int pos) {
- 	    try { return paragraphIndexAt(doc, pos); } catch (Exception ex) { return -1; }
- 	}
-	
- 	private static int paragraphIndexAt(javax.swing.text.Document doc, int offset) {
- 	    javax.swing.text.Element root = doc.getDefaultRootElement();
- 	    int idx = root.getElementIndex(Math.max(0, Math.min(offset, doc.getLength())));
- 	    return idx + 1;
- 	}
  	
  	static final class HeadingFound {
  	    final String levelLabel;
@@ -533,38 +504,7 @@ public class EditorFrame extends JFrame implements EditorApi {
  	    } catch (Exception ignore) {}
  	    return null;
  	}
- 	
- 	/** Renvoie le premier titre EN-DESSOUS du caret (ligne courante incluse). */
- 	private HeadingFound findNextHeadingBelow() {
- 	    try {
- 	        final javax.swing.text.Document doc = editorPane.getDocument();
- 	        final javax.swing.text.Element root = doc.getDefaultRootElement();
 
- 	        int caret = Math.max(0, editorPane.getCaretPosition());
- 	        int startIdx = Math.max(0, root.getElementIndex(caret)); // démarre à la ligne courante
-
- 	        for (int i = startIdx; i < root.getElementCount(); i++) {
- 	            javax.swing.text.Element lineEl = root.getElement(i);
- 	            int start = lineEl.getStartOffset();
- 	            int end   = Math.min(lineEl.getEndOffset(), doc.getLength());
- 	            String line = doc.getText(start, end - start).replaceAll("\\R$", "");
-
- 	            java.util.regex.Matcher m = HEADING_PATTERN.matcher(line);
- 	            if (m.matches()) {
- 	                int lvl   = Integer.parseInt(m.group(1)); // 1..6
- 	                String tx = m.group(2).trim();
- 	                return new HeadingFound("Titre " + lvl, tx, i + 1); // 1-based
- 	            }
- 	        }
- 	    } catch (Exception ignore) {}
- 	    return null;
- 	}
- 	
- 	private String formatHeadingLine(String prefix, HeadingFound h) {
- 	    if (h == null) return prefix + "Aucun titre détecté.";
- 	    // Exemple : "Au-dessus : Titre 2 Mon chapitre (§ 128)"
- 	    return String.format("%s%s %s (§ %d)", prefix, h.levelLabel, h.text, h.paraIndex);
- 	}
 
  	//===============================
  	//=== ACCEDE AU TITRE SUIVANT ===
