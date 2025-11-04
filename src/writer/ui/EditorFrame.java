@@ -210,6 +210,32 @@ public class EditorFrame extends JFrame implements EditorApi {
             }
         });
         
+        // Ctrl+Suppr -> supprimer mot en avant
+        im.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DELETE, java.awt.event.KeyEvent.CTRL_DOWN_MASK),
+              "bw-delete-next-word");
+        am.put("bw-delete-next-word", new writer.ui.editor.DeleteNextWordAction(this.editorPane));
+
+        // Ctrl+Backspace -> supprimer le mot en arrière
+        im.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_BACK_SPACE, java.awt.event.KeyEvent.CTRL_DOWN_MASK),
+              "bw-delete-prev-word");
+        am.put("bw-delete-prev-word", new writer.ui.editor.DeletePrevWordAction(this.editorPane));
+        
+        // Ctrl+Maj+Suppr -> supprimer le paragraphe courant et aller au suivant
+        im.put(KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_DELETE,
+                java.awt.event.KeyEvent.CTRL_DOWN_MASK | java.awt.event.KeyEvent.SHIFT_DOWN_MASK),
+              "bw-delete-paragraph-forward");
+        am.put("bw-delete-paragraph-forward",
+              new writer.ui.editor.DeleteParagraphForwardAction(this.editorPane));
+        
+        // Ctrl+Maj+Backspace -> supprime le paragraphe courant et va à la fin du précédent
+        im.put(KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_BACK_SPACE,
+                java.awt.event.KeyEvent.CTRL_DOWN_MASK | java.awt.event.KeyEvent.SHIFT_DOWN_MASK),
+              "bw-delete-paragraph-backward");
+        am.put("bw-delete-paragraph-backward",
+              new writer.ui.editor.DeleteParagraphBackwardAction(this.editorPane));
+        
         // Récupère l’action Backspace par défaut (supprime le caractère précédent)
         Action defaultBackspace = this.editorPane.getActionMap().get(DefaultEditorKit.deletePrevCharAction);
 
