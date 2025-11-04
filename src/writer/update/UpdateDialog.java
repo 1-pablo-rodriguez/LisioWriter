@@ -118,12 +118,27 @@ public final class UpdateDialog extends JDialog {
         btnDownload.setMnemonic(KeyEvent.VK_T);
         btnLater.setMnemonic(KeyEvent.VK_P);
 
-        btnDownload.getAccessibleContext().setAccessibleDescription("Ouvrir le lien de téléchargement dans le navigateur.");
-        btnLater.getAccessibleContext().setAccessibleDescription("Fermer la fenêtre de mise à jour.");
-
         buttons.add(btnDownload);
         buttons.add(btnLater);
         add(buttons, BorderLayout.SOUTH);
+        
+        // 1) ENTER doit activer "Télécharger" quand ce bouton a le focus
+        btnDownload.registerKeyboardAction(
+            ev -> btnDownload.doClick(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+            JComponent.WHEN_FOCUSED
+        );
+
+        // 2) Basculer le bouton par défaut selon le focus
+        btnDownload.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override public void focusGained(java.awt.event.FocusEvent e) {
+                getRootPane().setDefaultButton(btnDownload);
+            }
+            @Override public void focusLost(java.awt.event.FocusEvent e) {
+                getRootPane().setDefaultButton(btnLater);
+            }
+        });
+
 
         // ==== Actions ====
         btnDownload.addActionListener(e -> {
