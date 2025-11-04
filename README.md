@@ -11,17 +11,19 @@
 **LisioWriter** est bien plus qu’un **traitement de texte** pour les personnes **non-voyantes** ou **malvoyantes** : il intègre, au sein même de l’éditeur, un navigateur qui rend tous les articles de Wikipédia en français accessibles, rapidement et très simplement.
 Tout se pilote au clavier, fonctionne avec NVDA ou JAWS, et la mise en forme est exprimée par de petits codes lisibles inspirés du Markdown (ex. #P. , #1. , ^^italique^^, @t, ...), directement dans le texte.
 
-### Pourquoi c’est précieux pour les aidants ?
+## Pourquoi c’est précieux pour les aidants ?
 
 - Moins d’ambiguïtés : la mise en forme n’est pas “cachée” dans un ruban — elle est visible et verbalisable (lecteur d’écran & braille).
 
-- Accompagnement facilité : vous pouvez relire, corriger, guider à distance sans ouvrir un traitement de texte lourd.
+- Accompagnement facilité : vous pouvez relire, corriger, guider à distance sans ouvrir un traitement de texte lourd dans lequels l'accessibilité et pensée pour la souris.
 
 - Transferts fluides : import/export Word, Writer/ODT, HTML, texte brut → pas d’impasse technique dans les échanges avec l’école, l’université ou l’entreprise.
 
 - Montée en autonomie : l’élève/l’étudiant sait où est un titre, une liste, une note… et apprend plus vite les bonnes pratiques.
 
-### Comment ça marche ?
+- Mises à jour silencieuses : après la première installation, les suivantes se font sans fenêtre ni action. Fermez LisioWriter, patientez ~2 minutes, puis relancez-le pour bénéficier de la nouvelle version.
+
+## Comment ça marche ?
 
 - Les titres, listes, emphases, indices/exposants, tabulations, notes de bas de page, images (avec description & légende), liens et tableaux sont importés depuis Word/Writer et convertis en codes LisioWriter visibles dans l’éditeur.
 
@@ -29,30 +31,24 @@ Tout se pilote au clavier, fonctionne avec NVDA ou JAWS, et la mise en forme est
 
 - À tout moment, on peut exporter vers Word/ODT/HTML/texte pour partager un document accessible et proprement structuré.
 
-### À qui s’adresse LisioWriter ?
+## À qui s’adresse LisioWriter ?
 
 - Étudiants post-bac et professionnels souhaitant produire des documents accessibles et bien structurés au clavier.
 
 - Aidants (enseignants, tuteurs, AESH, services handicap) qui ont besoin d’un outil fiable, léger et interopérable pour accompagner, relire et corriger.
 
-### Capture d’écran — Import d’un fichier Word
+
+## 🎯 Pourquoi ? 
+
+- L’ambition de LisioWriter est de favoriser l’**autonomie numérique** et l’**inclusion**, tout en restant proche des **standards bureautiques** connus (Word, Writer, Markdown) afin de faciliter l’apprentissage et l’intégration dans les **environnements éducatifs et professionnels**.
+
+## Capture d’écran — Import d’un fichier Word
 
 Après import, la structure est explicitée : titres, listes, styles (gras, italique, souligné), indices/exposants, tabulations, notes, images (description + légende), liens et tableaux deviennent des codes LisioWriter.
-Résultat : tout est lisible en braille et navigable au clavier (par ex. le titre principal apparaît avec #P). 
+Résultat : tout est lisible en braille et navigable au clavier (par ex. le titre principal apparaît avec #P.). 
 
 ![Démonstration de LisioWriter](docs/demo.png)
 
----
-
-## 🎯 Objectif 
-
-**LisioWriter** a pour objectif de permettre à toute personne **non-voyante** ou **déficiente visuelle** de rédiger, lire et mettre en forme des documents de manière fluide, rapide et autonome, grâce à une interface **accessible**, **simple d’utilisation** et compatible avec les **lecteurs d’écran**.
-
-Le logiciel s’adresse en priorité :
-- aux **étudiants** non-voyants ou malvoyants,  
-- ainsi qu’aux **adultes** expérimentés dans l’usage des **traitements de texte**.
-
-L’ambition de LisioWriter est de favoriser l’**autonomie numérique** et l’**inclusion**, tout en restant proche des **standards bureautiques** connus (Word, Writer, Markdown) afin de faciliter l’apprentissage et l’intégration dans les **environnements éducatifs et professionnels**.
 
 ---
 
