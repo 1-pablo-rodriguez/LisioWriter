@@ -6,27 +6,39 @@
 ![License](https://img.shields.io/badge/license-GPL--3.0-green)
 
 
-**LisioWriter** est un logiciel de **traitement de texte** conçu spécialement pour les personnes **non-voyantes ou malvoyantes**.
-Son interface est pensée pour être utilisée entièrement au clavier et d'un usage simple tout en restant compatible avec les lecteurs d’écran tels que **NVDA** ou **JAWS** et la **barre de braille**.
+# LisioWriter — l’éditeur qui rend la mise en forme visible et lisible pour tous
 
-La mise en forme du texte (titres, listes, emphase, etc.) n’est pas appliquée de manière invisible, mais indiquée directement par de petits codes lisibles inspirés du **Markdown**.
+**LisioWriter** est bien plus qu’un **traitement de texte** pour les personnes **non-voyantes** ou **malvoyantes** : il intègre, au sein même de l’éditeur, un navigateur qui rend tous les articles de Wikipédia en français accessibles, rapidement et très simplement.
+Tout se pilote au clavier, fonctionne avec NVDA ou JAWS, et la mise en forme est exprimée par de petits codes lisibles inspirés du Markdown (ex. #P. , #1. , ^^italique^^, @t, ...), directement dans le texte.
 
-**Ces codes sont intégrés directement dans le texte**. Ils sont ensuite lus par le lecteur d’écran et transmis à la barre braille, ce qui permet à l’utilisateur de savoir exactement quelle mise en forme est appliquée.
+### Pourquoi c’est précieux pour les aidants ?
 
-Cependant, il peut être utilisé de façon classique avec l'usage d'une souris pour les malvoyants. La colorisation des codes permettant de distinguer le texte de la mise en forme.
+- Moins d’ambiguïtés : la mise en forme n’est pas “cachée” dans un ruban — elle est visible et verbalisable (lecteur d’écran & braille).
 
-LisioWriter permet **d'importer et/ou d'exporter** dans les formats **Word**, **Writer**, **HTML**, et **texte brut** depuis son editeur de texte.
+- Accompagnement facilité : vous pouvez relire, corriger, guider à distance sans ouvrir un traitement de texte lourd.
 
-Ce logiciel s’adresse particulièrement aux **étudiants de niveau post-bac**, engagés dans des études supérieures, ainsi qu’à toute personne souhaitant rédiger des documents structurés de manière autonome malgré un handicap visuel.
-LisioWriter facilite la production de rapports, mémoires, travaux universitaires et documents professionnels accessibles et correctement formatés.
+- Transferts fluides : import/export Word, Writer/ODT, HTML, texte brut → pas d’impasse technique dans les échanges avec l’école, l’université ou l’entreprise.
 
-LisioWriter intègre de nombreuses fonctionnalités de traitement de texte, mais aussi de nouvelles, spécialement conçues pour les personnes non-voyantes ou malvoyantes.
+- Montée en autonomie : l’élève/l’étudiant sait où est un titre, une liste, une note… et apprend plus vite les bonnes pratiques.
 
-### Capture écran de l'importation d'un fichier Writer ou Word
+### Comment ça marche ?
 
-Les titres, listes, mises en forme (gras, italique, souligné), indices, exposants, tabulations, notes de bas de page, images avec sa description, liens et les tableaux sont automatiquement convertis en codes LisioWriter directement visibles dans l’éditeur.
+- Les titres, listes, emphases, indices/exposants, tabulations, notes de bas de page, images (avec description & légende), liens et tableaux sont importés depuis Word/Writer et convertis en codes LisioWriter visibles dans l’éditeur.
 
-Le résultat offre une structure entièrement lisible sur la barre de braille et accessible au clavier.
+- La colorisation rend ces codes confortables aussi pour les malvoyants à la souris.
+
+- À tout moment, on peut exporter vers Word/ODT/HTML/texte pour partager un document accessible et proprement structuré.
+
+### À qui s’adresse LisioWriter ?
+
+- Étudiants post-bac et professionnels souhaitant produire des documents accessibles et bien structurés au clavier.
+
+- Aidants (enseignants, tuteurs, AESH, services handicap) qui ont besoin d’un outil fiable, léger et interopérable pour accompagner, relire et corriger.
+
+### Capture d’écran — Import d’un fichier Word
+
+Après import, la structure est explicitée : titres, listes, styles (gras, italique, souligné), indices/exposants, tabulations, notes, images (description + légende), liens et tableaux deviennent des codes LisioWriter.
+Résultat : tout est lisible en braille et navigable au clavier (par ex. le titre principal apparaît avec #P). 
 
 ![Démonstration de LisioWriter](docs/demo.png)
 
