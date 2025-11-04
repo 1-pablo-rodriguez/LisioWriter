@@ -247,16 +247,24 @@ public class HtmlBrowserDialog extends JDialog {
 	                		    "table.infobox--frwiki"             // variante frwiki
 	                		).remove();
 	                    
-	                    content.select(
-	                    	    "[class~=\\bbandeau-container\\b]" +
-	                    	    "[class~=\\bbandeau-section\\b]" +
-	                    	    "[class~=\\bmetadata\\b]" +
-	                    	    "[class~=\\bbandeau-niveau-information\\b]"
-	                    	).remove();
+	                	content.select(
+	                		    "[class~=\\bbandeau-container\\b], " +
+	                		    "[class~=\\bbandeau-section\\b], " +
+	                		    "[class~=\\bmetadata\\b], " +
+	                		    "[class~=\\bbandeau-niveau-information\\b]"
+	                		).remove();
 	                    
 	                    content.select("li[id^=cite_note]").remove();
 	                    content.select("[id^=cite_note], [id^=cite_ref]").remove();  // enlève tout élément dont l'id commence par cite_note ou cite_ref
 	                    content.select("ol.references > li[id^=cite_note]").remove();
+	                    
+	                    // --- Images ---
+		                 // 1) remplacer figure/thumb par un marqueur (supprime aussi les légendes)
+		                 convertFiguresAndThumbs(content);
+
+		                 // 2) convertir les <img> restantes (hors figure/thumb)
+		                 convertLooseImages(content);
+	                    
 	                    
 	                    // --- Convertir les tableaux en @t ... @/t ---
 		                convertAllTables(content);
@@ -279,66 +287,32 @@ public class HtmlBrowserDialog extends JDialog {
 	                        }
 	                    }
 	
-	                    // --- Convertir les images en descriptions accessibles ---
-	                    Elements images = content.select("img");
-	                    for (Element img : images) {
-	                        String alt = img.attr("alt").trim();
-	
-	                        // 1️⃣ Essayer d'abord avec alt
-	                        // 2️⃣ Puis chercher une légende figcaption ou thumbcaption
-	                        if (alt.isEmpty()) {
-	                            Element fig = img.closest("figure");
-	                            Element caption = null;
-	
-	                            if (fig != null)
-	                                caption = fig.selectFirst("figcaption");
-	
-	                            if (caption == null) {
-	                                Element thumb = img.closest("div.thumb");
-	                                if (thumb != null)
-	                                    caption = thumb.selectFirst(".thumbcaption");
-	                            }
-	
-	                            if (caption != null && !caption.text().isBlank()) {
-	                                alt = caption.text().trim();
-	                            } else {
-	                                // ⚠️ Pas de description utile → on supprime complètement l'image
-	                                img.remove();
-	                                continue;
-	                            }
-	                        }
-	
-	                        // ✅ On ne garde que les images avec vraie description
-	                        img.after("![Image : " + alt + "]");
-	                        img.remove();
-	                    }
-	
-	                 // --- Conversion finale du HTML vers le format LisioWriter ---
-	                    String html = content.html();
-	                    converted = HtmlImporter.importFromHtml(html);
-	                    if (converted != null) {
-	                        converted = converted
-	                            .replace('\u00A0', ' ')      // espace insécable → espace normal
-	                            .replace('\u2028', '\n')     // séparateur de ligne → vrai saut de ligne
-	                            .replace('\u2029', '\n')     // séparateur de paragraphe → saut de ligne
-	                            .replaceAll("[\\r\\n]{3,}", "\n\n") // pas plus de 2 sauts consécutifs
+	                // --- Conversion finale du HTML vers le format LisioWriter ---
+                    String html = content.html();
+                    converted = HtmlImporter.importFromHtml(html);
+                    if (converted != null) {
+                        converted = converted
+                            .replace('\u00A0', ' ')      // espace insécable → espace normal
+                            .replace('\u2028', '\n')     // séparateur de ligne → vrai saut de ligne
+                            .replace('\u2029', '\n')     // séparateur de paragraphe → saut de ligne
+                            .replaceAll("[\\r\\n]{3,}", "\n\n") // pas plus de 2 sauts consécutifs
 
-	                            // 1) Enlever les espaces AVANT le marqueur de liste en début de ligne
-	                            .replaceAll("(?m)^[ \\t]+(?=(?:-\\.|\\*|\\d+\\.)\\s)", "")
+                            // 1) Enlever les espaces AVANT le marqueur de liste en début de ligne
+                            .replaceAll("(?m)^[ \\t]+(?=(?:-\\.|\\*|\\d+\\.)\\s)", "")
 
-	                            // 2) Choisir ce que tu veux APRÈS le marqueur :
-	                            //    a) AUCUN espace après le marqueur:
-	                            .replaceAll("(?m)^(?:\\s*)(-\\.|\\*|\\d+\\.)\\s+", "$1")
-	                            //    b) (Alternative) EXACTEMENT 1 espace après le marqueur:
-	                            // .replaceAll("(?m)^(?:\\s*)(-\\.|\\*|\\d+\\.)\\s+", "$1 ")
+                            // 2) Choisir ce que tu veux APRÈS le marqueur :
+                            //    a) AUCUN espace après le marqueur:
+                            .replaceAll("(?m)^(?:\\s*)(-\\.|\\*|\\d+\\.)\\s+", "$1")
+                            //    b) (Alternative) EXACTEMENT 1 espace après le marqueur:
+                            // .replaceAll("(?m)^(?:\\s*)(-\\.|\\*|\\d+\\.)\\s+", "$1 ")
 
-	                            .trim();
-	                    }
-	                }
-	            } catch (Exception ex) {
-	                error = ex.getMessage();
-	            }
-	            return null;
+                            .trim();
+                    }
+                }
+            } catch (Exception ex) {
+                error = ex.getMessage();
+            }
+            return null;
 	        }
 	
 	        @Override
@@ -545,8 +519,84 @@ public class HtmlBrowserDialog extends JDialog {
 	    }
 	}
 
+	// --- A mettre dans HtmlBrowserDialog (même classe) --- 
+	private static void convertFiguresAndThumbs(org.jsoup.nodes.Element content) {
+	    // 1) <figure> avec <figcaption>
+	    for (org.jsoup.nodes.Element fig : new ArrayList<>(content.select("figure:has(img)"))) {
+	        org.jsoup.nodes.Element img = fig.selectFirst("img");
+	        if (img == null) { fig.remove(); continue; }
 
-    
+	        String desc = img.attr("alt").trim();
+	        if (desc.isEmpty()) {
+	            org.jsoup.nodes.Element cap = fig.selectFirst("figcaption");
+	            if (cap != null) desc = cap.text().trim();
+	        }
+	        if (desc.isEmpty()) desc = "Image";
+
+	        fig.after("![Image : " + sanitizeAlt(desc) + "]");
+	        fig.remove(); // supprime image + légende -> pas de doublon
+	    }
+
+	    // 2) Vignettes Wikipedia: <div class="thumb"> ... <div class="thumbcaption"> ...</div>
+	    for (org.jsoup.nodes.Element thumb : new ArrayList<>(content.select("div.thumb:has(img)"))) {
+	        org.jsoup.nodes.Element img = thumb.selectFirst("img");
+	        if (img == null) { thumb.remove(); continue; }
+
+	        String desc = img.attr("alt").trim();
+	        if (desc.isEmpty()) {
+	            org.jsoup.nodes.Element cap = thumb.selectFirst(".thumbcaption");
+	            if (cap != null) desc = cap.text().trim();
+	        }
+	        if (desc.isEmpty()) desc = "Image";
+
+	        thumb.after("![Image : " + sanitizeAlt(desc) + "]");
+	        thumb.remove(); // supprime la vignette et sa légende
+	    }
+	}
+
+	/** Convertit toutes les <img> qui ne sont PAS dans <figure> ni .thumb */
+	private static void convertLooseImages(org.jsoup.nodes.Element content) {
+	    for (org.jsoup.nodes.Element img : new ArrayList<>(content.select("img"))) {
+	        // si déjà géré via figure/thumb, on saute
+	        if (img.closest("figure") != null || img.closest("div.thumb") != null) continue;
+
+	        String alt = img.attr("alt").trim();
+	        if (alt.isEmpty()) alt = img.attr("title").trim();
+
+	        // Dernier recours: déduire depuis le nom de fichier
+	        if (alt.isEmpty()) {
+	            String src = img.attr("src");
+	            if (src != null && !src.isBlank()) {
+	                String lower = src.toLowerCase();
+	                int end = Math.max(Math.max(lower.lastIndexOf(".jpg"), lower.lastIndexOf(".jpeg")),
+	                                   Math.max(lower.lastIndexOf(".png"), Math.max(lower.lastIndexOf(".gif"), lower.lastIndexOf(".webp"))));
+	                String file = src;
+	                if (end > 0) {
+	                    int start = src.lastIndexOf('/', end);
+	                    if (start >= 0) file = src.substring(start + 1, end);
+	                } else {
+	                    int last = src.lastIndexOf('/');
+	                    if (last >= 0) file = src.substring(last + 1);
+	                }
+	                alt = file.replace('_', ' ').trim();
+	            }
+	        }
+	        if (alt.isEmpty()) alt = "Image";
+
+	        img.after("![Image : " + sanitizeAlt(alt) + "]");
+	        img.remove();
+	    }
+	}
+	
+	private static String sanitizeAlt(String s) {
+	    if (s == null) return "Image";
+	    // pas de crochets fermants ni de sauts de ligne dans le marqueur
+	    return s.replace(']', ')').replaceAll("\\s+", " ").trim();
+	}
+
+
+
+   
     /** Classe interne représentant un résultat Wikipédia (titre + URL). */
     private static class WikiResult {
         final String title;
