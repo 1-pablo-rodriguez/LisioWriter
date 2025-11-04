@@ -19,7 +19,6 @@ import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
@@ -35,13 +34,12 @@ import exportODF.MarkdownOdfExporter;
 import exportOOXML.MarkdownOOXMLExporter;
 import exportPDF.PdfExporter;
 import exporterHTML.HtmlExporter;
-import maj.AutoUpdater;
-import maj.UpdateDialog;
 import writer.commandes;
 import writer.enregistre;
 import writer.model.Affiche;
 import writer.ui.EditorApi;
 import writer.ui.EditorFrame;
+import writer.update.UpdateChecker;
 
 public final class MenuBarFactory {
     private MenuBarFactory() {}
@@ -1052,52 +1050,14 @@ public final class MenuBarFactory {
       	    dia.BoiteVersionNV.show(owner, "LisioWriter " + version);
       	});
         
-        JMenuItem majItem = createSimpleMenuItem("Mise à Jour", e -> {
-      	    Toolkit.getDefaultToolkit().beep(); // feedback immédiat : début de la vérif
-      	    new SwingWorker<AutoUpdater.UpdateInfo, Void>() {
-      	        private final AutoUpdater updater =
-      	            new AutoUpdater("https://raw.githubusercontent.com/1-pablo-rodriguez/LisioWriter/refs/heads/main/updates.json",
-      	            		writer.util.AppInfo.getAppVersion());
-
-      	        @Override protected AutoUpdater.UpdateInfo doInBackground() throws Exception {
-      	            return updater.fetchMetadata();
-      	        }
-
-      	        @Override protected void done() {
-      	            try {
-      	                AutoUpdater.UpdateInfo info = get();
-      	                if (info == null || info.version == null) {
-      	                	Toolkit.getDefaultToolkit().beep();
-      	                	Window owner = SwingUtilities.getWindowAncestor(ctx.getEditor());
-      	                	dia.InfoDialog.show(owner, "Mise à jour", "Impossible de vérifier les mises à jour.");
-      	                    return;
-      	                }
-      	                // (facultatif) log de diagnostic
-      	                int cmp = AutoUpdater.versionCompare(info.version, updater.getCurrentVersion());
-      	                 if (cmp > 0) {
-      	                    UpdateDialog dlg = new UpdateDialog(ctx.getWindow(), updater, info);
-      	                    dlg.setVisible(true);
-      	                } else if (cmp == 0) {
-      	                    Toolkit.getDefaultToolkit().beep();
-      	                    Window owner = SwingUtilities.getWindowAncestor(ctx.getEditor());
-      	                    dia.InfoDialog.show(owner,"Mise à jour", "Vous avez déjà la dernière version : " + updater.getCurrentVersion());
-      	                } else {
-      	                    Toolkit.getDefaultToolkit().beep();
-      	                    Window owner = SwingUtilities.getWindowAncestor(ctx.getEditor());
-      	                    dia.InfoDialog.show(owner,"Mise à jour", "Votre version (" + updater.getCurrentVersion() 
-      	                    + ") est plus récente que celle du serveur (" + info.version + ")");
-      	                }
-
-      	            } catch (Exception ex) {
-      	                Toolkit.getDefaultToolkit().beep();
-      	                Window owner = SwingUtilities.getWindowAncestor(ctx.getEditor());
-      	                dia.InfoDialog.show(owner,  "Mise à jour", "Erreur lors de la vérification : " + ex.getMessage());
-      	                ex.printStackTrace();
-      	            }
-      	        }
-      	    }.execute();
-      	});
-
+        JMenuItem majItem = createMenuItem("Mise à jour…", KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK,e -> {
+            // feedback immédiat facultatif
+            java.awt.Toolkit.getDefaultToolkit().beep();
+            // vérification asynchrone + dialogues
+            UpdateChecker.checkNow(ctx); // ctx : ton EditorApi (ex: EditorFrame)
+        });
+        majItem.getAccessibleContext().setAccessibleDescription("Vérifier s’il existe une nouvelle version.");
+        
 
         JMenu m = new JMenu("Affichage");
         m.setFont(new Font("Segoe UI", Font.PLAIN, 18));
