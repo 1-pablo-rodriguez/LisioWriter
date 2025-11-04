@@ -42,6 +42,9 @@ import writer.ui.EditorFrame;
 import writer.update.UpdateChecker;
 
 public final class MenuBarFactory {
+	
+	private static int tailleFont = 22;
+	
     private MenuBarFactory() {}
 
     public static JMenuBar create(EditorApi ctx) {
@@ -60,26 +63,28 @@ public final class MenuBarFactory {
         
         return bar;
     }
+    
+    
 
     private static JMenuItem createMenuItem(String text, int key, int mod, ActionListener action) {
         JMenuItem mi = new JMenuItem(text);
-        mi.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         if (key != 0) mi.setAccelerator(KeyStroke.getKeyStroke(key, mod));
         mi.addActionListener(action);
+        mi.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
         return mi;
     }
     
     private static JMenuItem createSimpleMenuItem(String text, ActionListener action) {
         JMenuItem mi = new JMenuItem(text);
-        mi.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         mi.addActionListener(action);
+        mi.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
         return mi;
     }
 
     // Menu Fichier
     private static JMenu menuFichier(EditorApi ctx) {
         JMenu m = new JMenu("Fichier");
-        m.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        m.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
         m.setMnemonic(KeyEvent.VK_F);
         m.getAccessibleContext().setAccessibleName("Fichier");
         m.addMenuListener(new MenuListener() {
@@ -199,7 +204,7 @@ public final class MenuBarFactory {
     //Menu Edition
     private static JMenu menuEdition(EditorApi ctx) {
     	JMenu editionMenu = new JMenu("Édition");
-    	editionMenu.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+    	editionMenu.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
     	editionMenu.setMnemonic(KeyEvent.VK_E); // Utiliser ALT+e pour ouvrir le menu
     	editionMenu.getAccessibleContext().setAccessibleName("Édition");
     	editionMenu.addMenuListener(new MenuListener() {
@@ -263,7 +268,7 @@ public final class MenuBarFactory {
 		
 		// Mode temps réel (ON/OFF)
 		javax.swing.JCheckBoxMenuItem live = new javax.swing.JCheckBoxMenuItem("Vérification durant la frappe");
-		live.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+		live.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
 		writer.spell.SpellCheckLT spell = ctx.getSpell();
 		live.setSelected(spell != null && spell.isRealtime());
 		live.addActionListener(e -> { 
@@ -305,7 +310,7 @@ public final class MenuBarFactory {
     //Menu Import
     private static JMenu menuImporte(EditorApi ctx) {
     	JMenu fileMenu = new JMenu("Importer");
-        fileMenu.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        fileMenu.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
         fileMenu.setMnemonic(KeyEvent.VK_M); // Utiliser ALT+M pour ouvrir le menu
         fileMenu.getAccessibleContext().setAccessibleName("Importer");
         // Listener déclenché à l’ouverture du menu
@@ -330,7 +335,7 @@ public final class MenuBarFactory {
             @Override public void menuCanceled(MenuEvent e) {}
         });
         
-        JMenuItem open2Item = createMenuItem("Importer fichier LibreOffice Writer", KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK, e -> {
+        JMenuItem importWriter = createMenuItem("Importer fichier LibreOffice Writer", KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK, e -> {
             System.out.println("Ouverture fichier .odt");
             var win = ctx.getWindow();
             if (win instanceof EditorFrame frame) {
@@ -339,7 +344,7 @@ public final class MenuBarFactory {
             }
         });
         
-        JMenuItem openItem = createSimpleMenuItem("Importer fichier texte", e -> {
+        JMenuItem importTxt = createSimpleMenuItem("Importer fichier texte", e -> {
             System.out.println("Ouverture fichier .txt");
             var win = ctx.getWindow();
             if (win instanceof EditorFrame frame) {
@@ -348,7 +353,7 @@ public final class MenuBarFactory {
             }
         });
        
-        JMenuItem open3Item = createMenuItem("Importer fichier Microsoft Word", KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK, e -> {
+        JMenuItem importWord = createMenuItem("Importer fichier Microsoft Word", KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK, e -> {
             System.out.println("Ouverture fichier .docx");
             var win = ctx.getWindow();
             if (win instanceof EditorFrame frame) {
@@ -374,15 +379,15 @@ public final class MenuBarFactory {
              }
         });
         
-        ctx.addItemChangeListener(open2Item);
-        ctx.addItemChangeListener(openItem);
-        ctx.addItemChangeListener(open3Item);
+        ctx.addItemChangeListener(importWriter);
+        ctx.addItemChangeListener(importWord);
+        ctx.addItemChangeListener(importTxt);
         ctx.addItemChangeListener(importHtml);
         ctx.addItemChangeListener(importWikipedia);
  
-        fileMenu.add(open2Item);
-        fileMenu.add(openItem);
-        fileMenu.add(open3Item);
+        fileMenu.add(importWriter);
+        fileMenu.add(importWord);
+        fileMenu.add(importTxt);
         fileMenu.add(importHtml);
         fileMenu.addSeparator();
         fileMenu.add(importWikipedia);
@@ -393,7 +398,7 @@ public final class MenuBarFactory {
     // Menu aplliquer un style
     private static JMenu menuAppliquerStyle(EditorApi ctx) {
     	JMenu fileAppliqueStyle = new JMenu("Appliquer un style");
-    	fileAppliqueStyle.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+    	fileAppliqueStyle.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
     	fileAppliqueStyle.setMnemonic(KeyEvent.VK_U); 
     	fileAppliqueStyle.getAccessibleContext().setAccessibleName("Appliquer un style");
     	// Listener déclenché à l’ouverture du menu
@@ -493,7 +498,7 @@ public final class MenuBarFactory {
     // Menu formatage de texte
     private static JMenu menuFormatageTexte(EditorApi ctx) {
     	JMenu fileFormatage = new JMenu("Formatage local texte");
-    	fileFormatage.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+    	fileFormatage.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
     	fileFormatage.setMnemonic(KeyEvent.VK_O); // Utiliser ALT+F pour ouvrir le menu
     	fileFormatage.getAccessibleContext().setAccessibleName("Formatage local texte");
     	// Listener déclenché à l’ouverture du menu
@@ -576,7 +581,7 @@ public final class MenuBarFactory {
     // Menu Insertion
     private static JMenu menuInsertion(EditorApi ctx) {
     	JMenu Insertion = new JMenu("Insertion");
-    	Insertion.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+    	Insertion.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
     	Insertion.setMnemonic('i'); // Utiliser ALT+N pour ouvrir le menu
     	Insertion.getAccessibleContext().setAccessibleName("Insertion");
     	// Listener déclenché à l’ouverture du menu
@@ -633,7 +638,7 @@ public final class MenuBarFactory {
     // Menu Exporter
     private static JMenu menuExporter(EditorApi ctx) {
     	JMenu fileMenu = new JMenu("Exporter");
-        fileMenu.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        fileMenu.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
         fileMenu.setMnemonic(KeyEvent.VK_X); // Utiliser ALT+x pour ouvrir le menu
         fileMenu.getAccessibleContext().setAccessibleName("Exporter");
         // Listener déclenché à l’ouverture du menu
@@ -778,7 +783,7 @@ public final class MenuBarFactory {
     //Menu Naviguer
     private static JMenu menuNaviguer(EditorApi ctx) {
     	JMenu naviguerMenu = new JMenu("Naviguer");
-    	naviguerMenu.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+    	naviguerMenu.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
     	naviguerMenu.setMnemonic(KeyEvent.VK_N); // Utiliser ALT+n pour ouvrir le menu
     	naviguerMenu.getAccessibleContext().setAccessibleName("Naviguer");
         // Listener déclenché à l’ouverture du menu
@@ -821,7 +826,7 @@ public final class MenuBarFactory {
 	
     	//-------------- Marque page ----------------
 	
-    	JMenuItem bmToggle = createSimpleMenuItem("Marque-page (basculer)", e -> {
+    	JMenuItem bmToggle = createMenuItem("Marque-page (basculer)",KeyEvent.VK_F2, InputEvent.CTRL_DOWN_MASK, e -> {
     	    var m = ctx.getBookmarks();
     	    if (m == null) {
     	        java.awt.Toolkit.getDefaultToolkit().beep();
@@ -833,11 +838,9 @@ public final class MenuBarFactory {
     	    dia.InfoDialog.show(owner, "Information", message);
     	    ctx.setModified(true);
     	});
-		bmToggle.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, InputEvent.CTRL_DOWN_MASK));
-		bmToggle.setFont(new Font("Segoe UI", Font.PLAIN, 18));
 		
 
-		JMenuItem bmNote = createSimpleMenuItem("Marque-page note", e -> { 
+		JMenuItem bmNote = createMenuItem("Marque-page note", KeyEvent.VK_F2,InputEvent.CTRL_DOWN_MASK | InputEvent.ALT_DOWN_MASK,e -> { 
 			var m = ctx.getBookmarks();                      
 		    if (m == null) {                   
 		        java.awt.Toolkit.getDefaultToolkit().beep();
@@ -845,11 +848,9 @@ public final class MenuBarFactory {
 		    }
 		    m.editNoteForNearest(javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor()));
 			});
-		bmNote.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2,InputEvent.CTRL_DOWN_MASK | InputEvent.ALT_DOWN_MASK));
-		bmNote.setFont(new Font("Segoe UI", Font.PLAIN, 18));
 		
 		
-		JMenuItem bmNext = createSimpleMenuItem("Marque-page suivant", e -> { 
+		JMenuItem bmNext = createMenuItem("Marque-page suivant", KeyEvent.VK_F4, 0, e -> { 
 		var m = ctx.getBookmarks();                      
 		if (m == null) {                   
 		    java.awt.Toolkit.getDefaultToolkit().beep();
@@ -857,10 +858,8 @@ public final class MenuBarFactory {
 		}
 		m.goNext(); 
 		});
-		bmNext.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0));
-		bmNext.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-
-		JMenuItem bmPrev = createSimpleMenuItem("Marque-page précédent", e -> { 
+		
+		JMenuItem bmPrev = createMenuItem("Marque-page précédent", KeyEvent.VK_F4, InputEvent.SHIFT_DOWN_MASK, e -> { 
 		var m = ctx.getBookmarks();                      
 		if (m == null) {                   
 		    java.awt.Toolkit.getDefaultToolkit().beep();
@@ -868,26 +867,24 @@ public final class MenuBarFactory {
 		}
 		m.goPrev(); 
 		});
-		bmPrev.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.SHIFT_DOWN_MASK));
-		bmPrev.setFont(new Font("Segoe UI", Font.PLAIN, 18));
 		
 		// -------- Position dans texte (F2) --------
 		JMenuItem posItem = new JMenuItem(ctx.actAnnouncePosition());
 		posItem.setText("Titre avant & après");
 		posItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
-		posItem.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+		posItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
 		
 		// -------- Titre suivant (F3) --------
 		JMenuItem nextHeadingItem = new JMenuItem(ctx.actGotoNextHeading());
 		nextHeadingItem.setText("Titre suivant");
 		nextHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
-		nextHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+		nextHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
 
 		// -------- Titre précédent (Shift+F3) --------
 		JMenuItem prevHeadingItem = new JMenuItem(ctx.actGotoPrevHeading());
 		prevHeadingItem.setText("Titre précédent");
 		prevHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, InputEvent.SHIFT_DOWN_MASK));
-		prevHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+		prevHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
 
 		 ctx.addItemChangeListener(navigateurItem);
 		 ctx.addItemChangeListener(rechercher);
@@ -919,7 +916,7 @@ public final class MenuBarFactory {
     // Menu Sources pour réaliser une bibilographie
     private static JMenu menuSources(EditorApi ctx) {
     	JMenu fileSources = new JMenu("Sources");
-    	fileSources.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+    	fileSources.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
     	fileSources.setMnemonic(KeyEvent.VK_S); 
     	fileSources.getAccessibleContext().setAccessibleName("Sources");
     	// Listener déclenché à l’ouverture du menu
@@ -950,7 +947,7 @@ public final class MenuBarFactory {
     // Menu Documentation
     private static JMenu menuDocumentation(EditorApi ctx) {
     	JMenu fileDocumentation = new JMenu("Documentation");
-        fileDocumentation.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        fileDocumentation.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
         fileDocumentation.setMnemonic('D'); // Utiliser ALT+F pour ouvrir le menu
         // Listener déclenché à l’ouverture du menu
         fileDocumentation.addMenuListener(new MenuListener() {
@@ -1008,11 +1005,9 @@ public final class MenuBarFactory {
     
     //Menu Préférence
     private static JMenu menuPreference(EditorApi ctx) {
-    	JMenu filepreference = new JMenu("Préférences");
-        filepreference.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+    	JMenu filepreference = new JMenu("Paramètres");
+        filepreference.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
         filepreference.setMnemonic(KeyEvent.VK_T);
-        //filepreference.setDisplayedMnemonicIndex(1); // 'r' est le 2e caractère de "Préférences"
-        // Listener déclenché à l’ouverture du menu
         filepreference.addMenuListener(new MenuListener() {
             @Override public void menuSelected(MenuEvent e) {
                 // Laisse Swing ouvrir le menu, puis enlève l’item armé

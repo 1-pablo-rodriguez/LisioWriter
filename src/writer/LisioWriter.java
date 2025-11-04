@@ -28,9 +28,8 @@ public class LisioWriter extends writer.ui.EditorFrame {
    
 
 	    // Démarrage du logiciel
-	    public static void main(String[] args) {
-	        // 1️) Chemin du fichier fourni au démarrage (si double-clic)
-	        final String startupPath = (args != null && args.length > 0) ? args[0] : null;
+	    public static void main(String[] args) {  
+        	final String startupPath = (args != null && args.length > 0) ? args[0] : null;
 
 	        try {
 	            System.setProperty("file.encoding", "UTF-8");
