@@ -122,21 +122,37 @@ public final class SpellCheckLT {
             }
         });
 
-        // navigation F7 / Shift+F7 -> utilise la liste matches
-        // nouveau : on met d'abord à jour matches (asynchrone) puis on navigue
+        // bind the key (garde ceci !)
         area.getInputMap().put(KeyStroke.getKeyStroke("F7"), "errNextMarker");
+        area.getInputMap().put(KeyStroke.getKeyStroke("shift F7"), "errPrevMarker");
+
+        // action: navigation immédiate + rafraîchissement asynchrone
         area.getActionMap().put("errNextMarker", new AbstractAction() {
           @Override public void actionPerformed(ActionEvent e) {
-            checkDocumentNowAsync(() -> SwingUtilities.invokeLater(() -> performGotoNextMatch()));
+            // 1) navigation immédiate sur l'état courant
+            boolean moved = performGotoNextMatch(); // voir ci-dessous : renvoyer boolean
+
+            // 2) rafraîchissement asynchrone (ne bloque pas la navigation)
+            checkDocumentNowAsync(null);
+
+            // 3) si on n'a rien trouvé, faire un scan local rapide (paragraphe / sélection)
+            if (!moved) {
+              checkSelectionOrParagraphNowAsync(() -> SwingUtilities.invokeLater(() -> performGotoNextMatch()));
+            }
           }
         });
 
-        area.getInputMap().put(KeyStroke.getKeyStroke("shift F7"), "errPrevMarker");
+        // même principe pour précédent (Shift+F7)
         area.getActionMap().put("errPrevMarker", new AbstractAction() {
           @Override public void actionPerformed(ActionEvent e) {
-            checkDocumentNowAsync(() -> SwingUtilities.invokeLater(() -> performGotoPrevMatch()));
+            boolean moved = performGotoPrevMatch();
+            checkDocumentNowAsync(null);
+            if (!moved) {
+              checkSelectionOrParagraphNowAsync(() -> SwingUtilities.invokeLater(() -> performGotoPrevMatch()));
+            }
           }
         });
+
 
 
         // suggestions clavier
@@ -723,33 +739,127 @@ public final class SpellCheckLT {
         matches.sort(java.util.Comparator.comparingInt(RuleMatch::getFromPos));
     }
     
-    // remplace la logique qui utilisait matches directement
-    private void performGotoNextMatch() {
-      if (matches.isEmpty()) { area.getToolkit().beep(); return; }
-      int caret = area.getCaretPosition();
-      for (RuleMatch m : matches) {
-        if (m.getFromPos() >= caret && m.getFromPos() < navEnd) { focusMatch(m, true); return; }
-      }
-      // wrap
-      for (RuleMatch m : matches) {
-        if (m.getFromPos() >= navStart && m.getFromPos() < navEnd) { focusMatch(m, true); return; }
-      }
-      area.getToolkit().beep();
-    }
+    private boolean performGotoNextMatch() {
+	  if (matches.isEmpty()) { area.getToolkit().beep(); return false; }
+	  int caret = area.getCaretPosition();
+	  for (RuleMatch m : matches) {
+	    if (m.getFromPos() >= caret && m.getFromPos() < navEnd) { focusMatch(m, true); return true; }
+	  }
+	  // wrap
+	  for (RuleMatch m : matches) {
+	    if (m.getFromPos() >= navStart && m.getFromPos() < navEnd) { focusMatch(m, true); return true; }
+	  }
+	  area.getToolkit().beep();
+	  return false;
+	}
 
-    private void performGotoPrevMatch() {
-      if (matches.isEmpty()) { area.getToolkit().beep(); return; }
-      int caret = area.getCaretPosition();
-      for (int i = matches.size()-1; i >= 0; i--) {
-        RuleMatch m = matches.get(i);
-        if (m.getToPos() <= caret && m.getToPos() > navStart) { focusMatch(m, true); return; }
-      }
-      // wrap to last in window
-      for (int i = matches.size()-1; i >= 0; i--) {
-        RuleMatch m = matches.get(i);
-        if (m.getFromPos() >= navStart && m.getFromPos() < navEnd) { focusMatch(m, true); return; }
-      }
-      area.getToolkit().beep();
+	private boolean performGotoPrevMatch() {
+	  if (matches.isEmpty()) { area.getToolkit().beep(); return false; }
+	  int caret = area.getCaretPosition();
+	  for (int i = matches.size()-1; i >= 0; i--) {
+	    RuleMatch m = matches.get(i);
+	    if (m.getToPos() <= caret && m.getToPos() > navStart) { focusMatch(m, true); return true; }
+	  }
+	  for (int i = matches.size()-1; i >= 0; i--) {
+	    RuleMatch m = matches.get(i);
+	    if (m.getFromPos() >= navStart && m.getFromPos() < navEnd) { focusMatch(m, true); return true; }
+	  }
+	  area.getToolkit().beep();
+	  return false;
+	}
+
+
+    /** 
+     * Analyse la sélection (ou le paragraphe courant si pas de sélection) hors-EDT,
+     * met à jour matches + highlights pour cette fenêtre, puis appelle onDone (sur EDT).
+     */
+    public void checkSelectionOrParagraphNowAsync(Runnable onDone) {
+        try {
+            final javax.swing.text.Document doc = area.getDocument();
+
+            // 1) Déterminer la fenêtre : sélection ou paragraphe courant
+            int start = area.getSelectionStart();
+            int end   = area.getSelectionEnd();
+            if (start == end) {
+                start = javax.swing.text.Utilities.getRowStart(area, area.getCaretPosition());
+                end   = javax.swing.text.Utilities.getRowEnd(area,   area.getCaretPosition());
+            }
+            final int s0 = Math.max(0, Math.min(start, doc.getLength()));
+            final int e0 = Math.max(s0, Math.min(end, doc.getLength()));
+            if (e0 <= s0) { if (onDone != null) SwingUtilities.invokeLater(onDone); return; }
+
+            final String sliceRaw = doc.getText(s0, e0 - s0);
+            final InlineMarkupFilter.Result filtered = InlineMarkupFilter.strip(sliceRaw);
+            final String sliceClean = filtered.cleaned;
+
+            new javax.swing.SwingWorker<java.util.List<RuleMatch>, Void>() {
+                @Override
+                protected java.util.List<RuleMatch> doInBackground() throws Exception {
+                    // lourd → hors EDT
+                    return tool.check(sliceClean);
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        final java.util.List<RuleMatch> found = get();
+                        EventQueue.invokeLater(() -> {
+                            try {
+                                // 1) enlever les highlights qui chevauchent la fenêtre
+                                for (Highlighter.Highlight h : highlighter.getHighlights()) {
+                                    if (h.getPainter() == painter) {
+                                        int hs = h.getStartOffset(), he = h.getEndOffset();
+                                        if (hs < e0 && he > s0) highlighter.removeHighlight(h);
+                                    }
+                                }
+
+                                // 2) retirer des matches ceux qui chevauchent la fenêtre (on les recalculera)
+                                matches.removeIf(m -> m.getFromPos() < e0 && m.getToPos() > s0);
+
+                                // 3) projeter les résultats LT (basés sur sliceClean) -> offsets absolus
+                                for (RuleMatch m : found) {
+                                    int fC = Math.max(0, Math.min(m.getFromPos(), sliceClean.length()));
+                                    int tC = Math.max(fC, Math.min(m.getToPos(), sliceClean.length()));
+                                    if (tC <= fC) continue;
+
+                                    int fOrig = s0 + filtered.mapStart(fC);
+                                    int tOrig = s0 + filtered.mapEnd(tC);
+                                    if (tOrig <= fOrig) continue;
+
+                                    // filtrage lexical (dictionnaire utilisateur / whitelist)
+                                    String token = "";
+                                    try { token = doc.getText(fOrig, tOrig - fOrig); } catch (Exception ignore) {}
+
+                                    if (shouldIgnoreToken(token)) continue;
+
+                                    RuleMatch nm = new RuleMatch(m.getRule(), m.getSentence(), fOrig, tOrig, m.getMessage(), m.getShortMessage());
+                                    if (m.getSuggestedReplacements() != null) nm.setSuggestedReplacements(m.getSuggestedReplacements());
+                                    if (m.getUrl() != null) nm.setUrl(m.getUrl());
+
+                                    matches.add(nm);
+                                    try { ((LayeredHighlighter) highlighter).addHighlight(fOrig, tOrig, painter); } catch (Exception ignore) {}
+                                }
+
+                                // 4) trier & limiter la fenêtre de navigation
+                                matches.sort(java.util.Comparator.comparingInt(RuleMatch::getFromPos));
+                                navStart = s0;
+                                navEnd   = e0;
+
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            } finally {
+                                if (onDone != null) onDone.run();
+                            }
+                        });
+                    } catch (Exception ex) {
+                        if (onDone != null) SwingUtilities.invokeLater(onDone);
+                    }
+                }
+            }.execute();
+
+        } catch (Exception ex) {
+            if (onDone != null) SwingUtilities.invokeLater(onDone);
+        }
     }
 
 

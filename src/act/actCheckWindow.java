@@ -3,7 +3,6 @@ package act;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
-
 import dia.VerifDialog;
 import writer.ui.EditorApi;
 
@@ -23,7 +22,7 @@ public class actCheckWindow extends AbstractAction{
 		writer.spell.SpellCheckLT spell = ctx.getSpell();
 		    if (spell == null) return;
 		   java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor());
-		    dia.VerifDialog dlg = VerifDialog.showNow(owner, "Vérif. para. en cours…");
+		    VerifDialog dlg = VerifDialog.showNow(owner, "Vérif. para. en cours…");
 		    //announceCaretLine(false, true, "Vérif. paragraphe. Utilisez F7 et Maj+F7 pour naviguer.");
 		    spell.checkSelectionOrParagraphNowAsync(() -> {
 		      //announceCaretLine(false, true,"Vérif. paragraphe terminée. " + spell.getMatchesCount() +" éléments détectés. F7 et Maj+F7 pour naviguer.");

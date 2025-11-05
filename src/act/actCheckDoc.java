@@ -23,7 +23,7 @@ public class actCheckDoc extends AbstractAction{
 		writer.spell.SpellCheckLT spell = ctx.getSpell();
 		    if (spell == null) return;
 		    java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor());
-		    dia.VerifDialog dlg = VerifDialog.showNow(owner, "Vérif. doc. en cours…");
+		    VerifDialog dlg = VerifDialog.showNow(owner, "Vérif. doc. en cours…");
 		    
 		    //announceCaretLine(false, true, "Vérif. document en cours.");
 		    spell.checkDocumentNowAsync(() -> {
