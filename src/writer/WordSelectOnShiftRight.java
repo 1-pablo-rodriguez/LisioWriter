@@ -320,9 +320,7 @@ public final class WordSelectOnShiftRight {
         return s;
     }
 
-    // ---------------------- TTS helpers ----------------------
-
-    private static void speakAddedWord(String word) {
+     private static void speakAddedWord(String word) {
         speak("Dernier mot sélectionné : ", word);
     }
     private static void speakRemovedWord(String word) {
@@ -338,12 +336,6 @@ public final class WordSelectOnShiftRight {
         if (content == null) return;
         content = content.trim();
         if (content.isEmpty()) return;
-        try {
-//            if (commandes.audio) {
-//                String tts = new TraitementSonPourTTS(content).returnTexte;
-//                commandes.tts.speak(prefix + tts, 2.0f, true, false);
-//            }
-        } catch (Throwable ignore) {}
     }
 
     // ---------------------- Presse-papiers ----------------------

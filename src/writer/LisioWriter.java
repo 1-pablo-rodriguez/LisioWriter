@@ -62,7 +62,6 @@ public class LisioWriter extends writer.ui.EditorFrame {
                  File f = new File(path);
                  if (!f.exists() || !f.isFile()) {
                      System.err.println("Fichier introuvable: " + path);
-                     // Optionnel: annoncer via TTS / barre braille
                      return;
                  }
 	            // tu peux ici appeler ta classe d’import :

@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -663,37 +664,90 @@ public final class SpellCheckLT {
     	    navEnd   = doc.getLength();
     	  } catch (BadLocationException ignore) {}
     	}
+ 
+    
+    	// solution - Le dic est dans la classpath (dans l'archive JAR)
+//    private static JLanguageTool createLT() {
+//	  try {
+//	    Language fr = org.languagetool.Languages.getLanguageForShortCode("fr");
+//	    JLanguageTool lt = new JLanguageTool(fr);
+//	    System.out.println("Langue du correcteur : " + lt.getLanguage().getName());
+//	
+//	    // 1) ce que tu ne veux jamais
+//	    lt.disableRule("MULTITOKEN_SPELLER_RULE");
+//	    lt.disableRule("MORFOLOGIK_RULE_FR_FR");
+//	
+//	    // 2) (optionnel) activer les règles "par défaut off"
+//	    for (org.languagetool.rules.Rule r : lt.getAllRules()) {
+//	      if (r.isDefaultOff() && r.supportsLanguage(fr)) {
+//	        lt.enableRule(r.getId());
+//	      }
+//	    }
+//	
+//	    // 3) Hunspell (dicos LibreOffice sur le classpath)
+//	    UserConfig uc = new UserConfig();
+//	    HUNSPELL_RULE = new HunspellRule(JLanguageTool.getMessageBundle(), lt.getLanguage(), uc);
+//	    lt.addRule(HUNSPELL_RULE);
+//	
+//	    // 4) Couper explicitement les règles gênantes (après les activations)
+//	    lt.disableRule("TIRET");
+//	    lt.disableRule("WRONG_ETRE_VPPA");   // ⇦ remplace “a/avait” par “est/était”
+//	    return lt;
+//	  } catch (Throwable t) {
+//	    throw new IllegalStateException("Init LanguageTool FR a échoué", t);
+//	  }
+//	}
 
     private static JLanguageTool createLT() {
-	  try {
-	    Language fr = org.languagetool.Languages.getLanguageForShortCode("fr");
-	    JLanguageTool lt = new JLanguageTool(fr);
-	    System.out.println("Langue du correcteur : " + lt.getLanguage().getName());
-	
-	    // 1) ce que tu ne veux jamais
-	    lt.disableRule("MULTITOKEN_SPELLER_RULE");
-	    lt.disableRule("MORFOLOGIK_RULE_FR_FR");
-	
-	    // 2) (optionnel) activer les règles "par défaut off"
-	    for (org.languagetool.rules.Rule r : lt.getAllRules()) {
-	      if (r.isDefaultOff() && r.supportsLanguage(fr)) {
-	        lt.enableRule(r.getId());
-	      }
-	    }
-	
-	    // 3) Hunspell (dicos LibreOffice sur le classpath)
-	    UserConfig uc = new UserConfig();
-	    HUNSPELL_RULE = new HunspellRule(JLanguageTool.getMessageBundle(), lt.getLanguage(), uc);
-	    lt.addRule(HUNSPELL_RULE);
-	
-	    // 4) Couper explicitement les règles gênantes (après les activations)
-	    lt.disableRule("TIRET");
-	    lt.disableRule("WRONG_ETRE_VPPA");   // ⇦ remplace “a/avait” par “est/était”
-	    return lt;
-	  } catch (Throwable t) {
-	    throw new IllegalStateException("Init LanguageTool FR a échoué", t);
-	  }
-	}
+        try {
+            // --- 📂 Répertoire externe des dictionnaires ---
+            // Exemple attendu :
+            // <dossier_app>/dic/org/languagetool/resource/fr/hunspell/fr_FR.dic
+            File dicRoot = new File(commandes.pathApp, "dic");
+            if (!dicRoot.exists()) dicRoot.mkdirs();
+
+            // 🔧 Indique à LanguageTool où se trouvent les ressources Hunspell externes
+            System.setProperty("languagetool.data.dir", dicRoot.getAbsolutePath());
+
+            // --- 📘 Initialisation du correcteur ---
+            Language fr = org.languagetool.Languages.getLanguageForShortCode("fr");
+            JLanguageTool lt = new JLanguageTool(fr);
+            System.out.println("Langue du correcteur : " + lt.getLanguage().getName());
+            System.out.println("📖 Répertoire des dictionnaires : " + dicRoot.getAbsolutePath());
+
+            // --- 🔕 Désactivation de certaines règles de base ---
+            lt.disableRule("MULTITOKEN_SPELLER_RULE");
+            lt.disableRule("MORFOLOGIK_RULE_FR_FR");
+
+            // --- 🔛 Active les règles désactivées par défaut ---
+            for (org.languagetool.rules.Rule r : lt.getAllRules()) {
+                if (r.isDefaultOff() && r.supportsLanguage(fr)) {
+                    lt.enableRule(r.getId());
+                }
+            }
+
+            // --- 🧠 Ajout du moteur Hunspell ---
+            UserConfig uc = new UserConfig();
+            HUNSPELL_RULE = new HunspellRule(
+                JLanguageTool.getMessageBundle(),
+                lt.getLanguage(),
+                uc
+            );
+            lt.addRule(HUNSPELL_RULE);
+
+            // --- ⚙️ Désactivation de règles trop intrusives ---
+            lt.disableRule("TIRET");
+            lt.disableRule("WRONG_ETRE_VPPA");
+
+            System.out.println("✅ Hunspell initialisé depuis : " + dicRoot.getAbsolutePath());
+            return lt;
+
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw new IllegalStateException("❌ Échec de l'initialisation du correcteur orthographique", t);
+        }
+    }
+
 
 
     // renvoie le premier index de match qui commence >= fromPos

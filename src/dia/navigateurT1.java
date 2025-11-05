@@ -330,7 +330,6 @@ public class navigateurT1 extends JFrame{
 	        structure.putIfAbsent(keyOf(line), "");
 	    }
 	
-	    // --- Calcul du complément TTS pour les titres de niveau 1 ---
 	    int count = 0;
 	    String courantH1 = null;
 	
@@ -384,10 +383,6 @@ public class navigateurT1 extends JFrame{
 	        return;
 	    }
 	    selectedGlobalIndex = viewToGlobal.get(viewIndex);
-
-//	    // ✅ dans la liste : on PRÉFIXE l’indicateur
-//	    String toSpeak = indicatorFor(selectedGlobalIndex) + buildNavTextBase(selectedGlobalIndex);
-//	    if (commandes.audio) commandes.tts.speak(toSpeak, 2.0f, true, false);
 	}
 
 
@@ -489,7 +484,6 @@ public class navigateurT1 extends JFrame{
 	        for (int i = 0; i < titresOrdre.size(); i++) {
 	            if (expanded.contains(i) && isVisible(i)) {
 	                String base = titresOrdre.get(i);
-	                // Passage par ton traitement TTS habituel pour un rendu propre
 	                ouvertsVisibles.add(new TraitementSonPourTTS(base).returnTexte);
 	            }
 	        }
@@ -523,9 +517,6 @@ public class navigateurT1 extends JFrame{
 		// Boîte modale, lisible par la barre braille, fermeture avec Échap
 		dia.InfoDialog.show(owner, "Navigateur", msg.toString());
 	    
-	    
-//	    announceAndRefocus(msg.toString(),15000);
-//	    commandes.tts.speak(msg.toString(), 2.0f, true, false);
 	}
 
 	 	  
@@ -755,7 +746,7 @@ public class navigateurT1 extends JFrame{
 		        } else if (listModel.getSize() > 0) {
 		            list.setSelectedIndex(0);
 		        }
-		        updateSelectionContextAndSpeak(); // met à jour selectedGlobalIndex + TTS du titre
+		        updateSelectionContextAndSpeak(); 
 
 		        if (after != null) after.run();   // ➜ parler ici
 		    });
@@ -982,8 +973,6 @@ public class navigateurT1 extends JFrame{
 
 		// Ctrl + + : tout développer, puis garder la sélection
 		private void expandAllKeepSelection() {
-		    int keepGlobal = selectedGlobalIndex;
-
 		    expanded.clear();
 		    for (int i = 0; i < titresOrdre.size(); i++) {
 		        if (hasChildrenAt(i)) expanded.add(i);
@@ -994,9 +983,6 @@ public class navigateurT1 extends JFrame{
 		    focusedBranch = null; // reset global
 
 		    rebuildVisibleModel();
-		    reselectByGlobalIndexLater(keepGlobal, () -> {
-		        //if (commandes.audio) commandes.tts.speak("Tous les titres développés.", 2.0f, true, false);
-		    });
 		}
 
 		
@@ -1739,7 +1725,7 @@ public class navigateurT1 extends JFrame{
 		    return new TraitementSonPourTTS(base).returnTexte + supplement;
 		}
 
-		/** Texte “contenu” sans indicateur, pour TTS/braille. */
+		/** Texte “contenu” sans indicateur*/
 		private String buildNavTextBase(int gi) {
 		    if (gi < 0 || gi >= titresOrdre.size()) return "";
 		    String raw  = titresOrdre.get(gi);
