@@ -310,10 +310,8 @@ public class HtmlBrowserDialog extends JDialog {
                             // supprime toutes les parenthèse contenant des chemins.
                             .replaceAll("(?is)\\([^)]*(?:[\\\\/]|(?:\\b(?:text|file|src|href|path|url)\\=))[^\"]*?\\)", "")
 
-
                             .trim();
-                        
-                        
+         
                         converted = converted
                                 // à nouveau : garantir qu'on n'a pas plus de 2 newlines de suite
                                 .replaceAll("\\n{2,}", "\n")
