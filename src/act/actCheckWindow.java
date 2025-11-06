@@ -32,7 +32,6 @@ public class actCheckWindow extends AbstractAction{
 		    	String msg = (n == 0) ? "Dans le paragraphe aucune faute détectée."
 		                  : (n == 1) ? "Dans le paragraphe 1 élément détecté."
 		                             : "Dans le paragraphe " + n + " éléments détectés.";
-		       msg += "\n Les éléments sont signalés par le préfix °°.";
 		       msg += "\n Astuce : F7 et Maj+F7 pour naviguer entre les éléments.";
 		       msg += "\n Astuce : Maj+F10 contextuel pour : ";
 		       msg += "\n  (1) Obtenir une ou des suggestions ;";

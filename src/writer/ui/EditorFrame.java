@@ -12,6 +12,8 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
 import java.net.URI;
 import java.util.regex.Matcher;
@@ -291,6 +293,15 @@ public class EditorFrame extends JFrame implements EditorApi {
          
      	// --- Maximise la fenêtre ---
      	setExtendedState(JFrame.MAXIMIZED_BOTH);
+     	
+     	this.addWindowListener(new WindowAdapter() {
+     	    @Override
+     	    public void windowOpened(WindowEvent e) {
+     	        writer.spell.SpellCheckLT.preloadInBackground(); // safe et idempotent
+     	    }
+     	});
+
+     	
     }
     
     // --- CONFIGURATION EDITORPANE ---

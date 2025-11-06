@@ -34,7 +34,6 @@ public class actCheckDoc extends AbstractAction{
 		       String msg = (n == 0) ? "Aucune faute détectée."
 		                  : (n == 1) ? "1 élément détecté."
 		                             : n + " éléments détectés.";
-		       msg += "\n Les éléments sont signalés par le préfix °°.";
 		       msg += "\n Astuce : F7 et Maj+F7 pour naviguer entre les éléments.";
 		       msg += "\n Astuce : Maj+F10 contextuel pour : ";
 		       msg += "\n  (1) Obtenir une ou des suggestions ;";

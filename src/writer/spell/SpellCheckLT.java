@@ -45,7 +45,11 @@ public final class SpellCheckLT {
     private final Highlighter highlighter;
     private final LayeredHighlighter.LayerPainter painter = new RedSquigglePainter();
     private final List<RuleMatch> matches = new ArrayList<>();
-    private final static JLanguageTool tool = createLT();
+    // lazy-holder : createLT() ne sera invoqué qu'au premier accès à ToolHolder.TOOL
+ // lazy-holder : createLT() n'est invoqué qu'au premier accès à ToolHolder.TOOL
+    private static class ToolHolder {
+        static final org.languagetool.JLanguageTool TOOL = createLT();
+    }
     private static HunspellRule HUNSPELL_RULE;
     private static final java.util.Set<String> HUNSPELL_WHITELIST =
             new java.util.HashSet<>(java.util.Arrays.asList("a", "à", "y", "le", "la", "de", "l'", "d'"));
@@ -213,7 +217,7 @@ public final class SpellCheckLT {
           InlineMarkupFilter.Result filtered = InlineMarkupFilter.strip(full);
           String clean = filtered.cleaned;
 
-          List<RuleMatch> found = tool.check(clean);
+          List<RuleMatch> found = ToolHolder.TOOL.check(clean);
 
           // projeter les offsets vers le document original et ajouter highlights
           for (RuleMatch m : found) {
@@ -268,7 +272,7 @@ public final class SpellCheckLT {
         String slice = doc.getText(start, end - start);
         InlineMarkupFilter.Result filtered = InlineMarkupFilter.strip(slice);
         String clean = filtered.cleaned;
-        List<RuleMatch> found = tool.check(clean);
+        List<RuleMatch> found = ToolHolder.TOOL.check(clean);
 
         // 4) projeter et ajouter highlights + matches
         for (RuleMatch m : found) {
@@ -362,7 +366,7 @@ public final class SpellCheckLT {
           String word = full.substring(startPos, Math.max(startPos, endPos));
           if (word.length() < 2) { JMenuItem none = new JMenuItem("Aucune suggestion (Hunspell)"); none.setEnabled(false); menu.add(none); }
           else {
-            java.util.List<String> sugg = hunspellSuggest(tool, word);
+            java.util.List<String> sugg = hunspellSuggest(ToolHolder.TOOL, word);
             if (sugg == null || sugg.isEmpty()) { JMenuItem none = new JMenuItem("Aucune suggestion (Hunspell)"); none.setEnabled(false); menu.add(none); }
             else {
               for (String rep : sugg) {
@@ -607,7 +611,7 @@ public final class SpellCheckLT {
     public void clearHighlights() { clear(); }
     public int getMatchesCount() { return matches.size(); }
 
-    // ========== createLT() et create Hunspell (ta version existante) ==========
+    // ========== createLT() et create Hunspell ==========
     private static JLanguageTool createLT() {
         try {
             File dicRoot = new File(commandes.pathApp, "dic");
@@ -653,7 +657,7 @@ public final class SpellCheckLT {
                 @Override
                 protected java.util.List<RuleMatch> doInBackground() throws Exception {
                     // lourd → hors EDT
-                    return tool.check(clean);
+                    return ToolHolder.TOOL.check(clean);
                 }
 
                 @Override
@@ -753,20 +757,33 @@ public final class SpellCheckLT {
 	  return false;
 	}
 
-	private boolean performGotoPrevMatch() {
-	  if (matches.isEmpty()) { area.getToolkit().beep(); return false; }
-	  int caret = area.getCaretPosition();
-	  for (int i = matches.size()-1; i >= 0; i--) {
-	    RuleMatch m = matches.get(i);
-	    if (m.getToPos() <= caret && m.getToPos() > navStart) { focusMatch(m, true); return true; }
-	  }
-	  for (int i = matches.size()-1; i >= 0; i--) {
-	    RuleMatch m = matches.get(i);
-	    if (m.getFromPos() >= navStart && m.getFromPos() < navEnd) { focusMatch(m, true); return true; }
-	  }
-	  area.getToolkit().beep();
-	  return false;
-	}
+    private boolean performGotoPrevMatch() {
+        if (matches.isEmpty()) { area.getToolkit().beep(); return false; }
+        int caret = area.getCaretPosition();
+
+        // Cherche le match le plus proche STRICTEMENT avant le caret :
+        for (int i = matches.size() - 1; i >= 0; i--) {
+            RuleMatch m = matches.get(i);
+            // match entièrement avant le caret et dans la fenêtre de navigation
+            if (m.getToPos() < caret && m.getFromPos() >= navStart && m.getFromPos() < navEnd) {
+                focusMatch(m, true);
+                return true;
+            }
+        }
+
+        // wrap : aller au dernier match dans la plage de navigation
+        for (int i = matches.size() - 1; i >= 0; i--) {
+            RuleMatch m = matches.get(i);
+            if (m.getFromPos() >= navStart && m.getFromPos() < navEnd) {
+                focusMatch(m, true);
+                return true;
+            }
+        }
+
+        area.getToolkit().beep();
+        return false;
+    }
+
 
 
     /** 
@@ -796,7 +813,7 @@ public final class SpellCheckLT {
                 @Override
                 protected java.util.List<RuleMatch> doInBackground() throws Exception {
                     // lourd → hors EDT
-                    return tool.check(sliceClean);
+                    return ToolHolder.TOOL.check(sliceClean);
                 }
 
                 @Override
@@ -862,6 +879,27 @@ public final class SpellCheckLT {
         }
     }
 
+    /** Force l'initialisation synchrone (utilisé si besoin). */
+    public static org.languagetool.JLanguageTool getTool() {
+        return ToolHolder.TOOL;
+    }
+
+    /** Force l'initialisation sans bloquer l'appelant (lance en background). */
+    public static java.util.concurrent.CompletableFuture<Void> preloadInBackground() {
+        return java.util.concurrent.CompletableFuture.runAsync(() -> {
+            try {
+                // hashCode() est juste pour forcer l'initialisation de la classe Holder
+                ToolHolder.TOOL.hashCode();
+            } catch (Throwable t) {
+                // log, mais ne laisse pas l'exception remonter
+                t.printStackTrace();
+            }
+        }, java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+            Thread th = new Thread(r, "spell-preload");
+            th.setDaemon(true);
+            return th;
+        }));
+    }
 
 
 }
