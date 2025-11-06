@@ -4,9 +4,6 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
-import writer.commandes;
-import writer.playSound;
-
 public class select_OK extends AbstractAction{
 
 	/**
@@ -18,7 +15,6 @@ public class select_OK extends AbstractAction{
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
 		System.out.println("OK obtient le focus !");
-		if(commandes.audioActif) new playSound(commandes.getPathApp + "/bouton_OK.wav");
 	}
 
 }

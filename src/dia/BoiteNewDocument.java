@@ -19,7 +19,6 @@ import javax.swing.SwingUtilities;
 import act.select_CANCEL;
 import act.select_OK;
 import writer.commandes;
-import writer.playSound;
 import writer.ui.EditorFrame;
 
 public class BoiteNewDocument  {
@@ -69,7 +68,7 @@ public class BoiteNewDocument  {
                     // Valide la saisie lorsque la touche "Entrée" est appuyée
                     String texte = textField.getText();
                     if (texte.isBlank()) {
-                    	 if(commandes.audioActif) new playSound(commandes.getPathApp + "/erreur_nom_fichier.wav");
+                    	
                     } else {
                         commandes.nameFile = texte;
                         commandes.hash=0;
@@ -81,7 +80,7 @@ public class BoiteNewDocument  {
                         commandes.defaultStyles();
                         
                         parent.getEditor().setText("");
-                        if(commandes.audioActif) new playSound(commandes.getPathApp + "/nouveau_document_vierge.wav");
+                       
                         fermeture();  // Ferme la boîte de dialogue
                     }
                 }
@@ -183,7 +182,6 @@ public class BoiteNewDocument  {
         	@Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                	if(commandes.audioActif) new playSound(commandes.getPathApp + "/cancel_nom_fichier.wav");
                 	fermeture();  // Ferme la boîte de dialogue
                 }
         	}

@@ -32,7 +32,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
-import writer.TraitementSonPourTTS;
 import writer.ui.EditorFrame;
 
 
@@ -483,7 +482,7 @@ public class navigateurT1 extends JFrame{
 	        for (int i = 0; i < titresOrdre.size(); i++) {
 	            if (expanded.contains(i) && isVisible(i)) {
 	                String base = titresOrdre.get(i);
-	                ouvertsVisibles.add(new TraitementSonPourTTS(base).returnTexte);
+	                ouvertsVisibles.add(base);
 	            }
 	        }
 
@@ -1517,9 +1516,7 @@ public class navigateurT1 extends JFrame{
 		
 		    // Titre lisible (sans indicateur [+]/[-])
 		    String titreBrut = titresOrdre.get(idx);
-		    String titreLisible = new TraitementSonPourTTS(
-		            titreBrut.replaceFirst("^\\s*(\\[\\+\\]|\\[\\-\\])\\s*", "").trim()
-		    ).returnTexte;
+		    String titreLisible =         titreBrut.replaceFirst("^\\s*(\\[\\+\\]|\\[\\-\\])\\s*", "").trim();
 		
 		    int niveau = Math.max(1, titresNiveaux.get(idx));
 		    boolean aDesEnfants = hasChildrenAt(idx);
@@ -1721,7 +1718,7 @@ public class navigateurT1 extends JFrame{
 		    String raw = titresOrdre.get(globalIndex);              // ex: "[+] #1. Titre"
 		    String base = raw.replaceFirst("^\\s*(\\[\\+\\]|\\[\\-\\])\\s*", "").trim();
 		    String supplement = structure.getOrDefault(keyOf(base), "");
-		    return new TraitementSonPourTTS(base).returnTexte + supplement;
+		    return base + supplement;
 		}
 
 		/** Texte “contenu” sans indicateur*/
@@ -1730,7 +1727,7 @@ public class navigateurT1 extends JFrame{
 		    String raw  = titresOrdre.get(gi);
 		    String base = raw.replaceFirst("^\\s*(\\[\\+\\]|\\[\\-\\])\\s*", "").trim();
 		    String supplement = structure.getOrDefault(keyOf(base), "");
-		    return new TraitementSonPourTTS(base).returnTexte + supplement;
+		    return base + supplement;
 		}
 
 		/** Indicateur à préfixer dans la liste (vide si pas d’enfants). */

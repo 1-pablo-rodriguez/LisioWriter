@@ -28,7 +28,6 @@ import javax.swing.text.JTextComponent;
 import act.select_CANCEL;
 import act.select_OK;
 import writer.commandes;
-import writer.playSound;
 import writer.ui.EditorFrame;
 
 @SuppressWarnings("serial")
@@ -137,13 +136,12 @@ public final class BoiteRenameFile extends JDialog {
         final String texte = nameField.getText().trim();
         if (texte.isEmpty()) {
             feedbackError("Le nom ne peut pas être vide.");
-            if (commandes.audioActif) new playSound(commandes.getPathApp + "/erreur_nom_fichier.wav");
+           
             return;
         }
         // (optionnel) vous pouvez ajouter d'autres règles (taille max, pas d'espace initial, etc.)
 
         // ok
-        if (commandes.audioActif) new playSound(commandes.getPathApp + "/nom_fichier_modifier.wav");
         new select_OK().actionPerformed(null);
         commandes.nameFile = texte;
         if (commandes.nodeblindWriter != null) {
