@@ -83,13 +83,31 @@ public class PdfExporter {
         if (text == null) return "";
 
         StringBuilder body = new StringBuilder();
+
+	     // --- Pré-traitement des marqueurs d'images ---
+	     // 1) Si la ligne ne contient QUE le marqueur d'image -> supprimer toute la ligne (conserve les autres sauts de ligne)
+	     text = text.replaceAll("(?im)^\\s*!\\[\\s*image\\b[^\\]]*\\]\\s*$", "");
+	
+	     // 2) Autres occurrences inline : remplacer par un espace pour ne pas concaténer des mots
+	     text = text.replaceAll("(?i)!\\[\\s*image\\b[^\\]]*\\]", " ");
+
+        // Élimine les lignes qui ne contiennent plus que des espaces (issues de la suppression)
+        text = text.replaceAll("(?m)^[tab]+$", "");
+
+        // Ne garde pas plus de deux sauts de ligne consécutifs (évite paragraphes vides)
+        text = text.replaceAll("\\n{2,}", "\n");
+
+        
         String[] lines = text.split("\\r?\\n", -1);
+        
         StringBuilder paragraph = new StringBuilder();
         boolean paragraphOpen = false;
 
         // === Listes (déclarations en dehors de la boucle) ===
-        final Pattern RE_OL = Pattern.compile("^(\\d+)\\.\\s+(.*)$");      // "1. Item"
-        final Pattern RE_UL = Pattern.compile("^(?:-\\.|[-\\*])\\s+(.*)$"); // "-. Item" ou "- Item" / "* Item"
+        // accepte "1.", "1. " (avec ou sans espace après le point)
+        final Pattern RE_OL = Pattern.compile("^(\s?\\d+)\\.\\s?(.*)$");
+        // accepte "-.", "-. " (avec ou sans espace), "-" ou "*" (avec ou sans espace)
+        final Pattern RE_UL = Pattern.compile("^(?:\s?-\\.|[-*])\\s?(.*)$");
         boolean inOl = false, inUl = false;
 
         // === Notes @(...) ===
@@ -177,8 +195,8 @@ public class PdfExporter {
             }
 
             // ==== Listes ====
-            Matcher mOl = RE_OL.matcher(raw);
-            Matcher mUl = RE_UL.matcher(raw);
+            Matcher mOl = RE_OL.matcher(trimmed);
+            Matcher mUl = RE_UL.matcher(trimmed);
 
             if (mOl.matches()) {
                 if (paragraphOpen) {
