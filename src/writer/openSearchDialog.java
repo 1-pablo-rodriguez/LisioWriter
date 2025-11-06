@@ -264,6 +264,7 @@ public class openSearchDialog extends JDialog {
 
     private void countOccurrences() {
         totalCount = 0;
+        resultModel.clear();
         if (searchText == null || searchText.isBlank()) return;
 
         String all = getAllText();
@@ -271,15 +272,26 @@ public class openSearchDialog extends JDialog {
         if (p == null) return;
 
         java.util.regex.Matcher m = p.matcher(all);
-        int index = 1;
+
+        // 1) collecte des positions
+        java.util.List<int[]> hits = new java.util.ArrayList<>();
         while (m.find()) {
-            totalCount++;
-            addResultToList(all, m.start(), m.end() - m.start(), index, totalCount);
-            index++;
+            hits.add(new int[] { m.start(), m.end() - m.start() });
+        }
+
+        // 2) total connu
+        totalCount = hits.size();
+        if (totalCount == 0) return;
+
+        // 3) remplir la liste d'affichage avec index 1-based et total fixe
+        for (int i = 0; i < hits.size(); i++) {
+            int[] h = hits.get(i);
+            int start = h[0];
+            int len = h[1];
+            int displayIndex = i + 1; // 1..N pour affichage (1/113, 2/113, ...)
+            addResultToList(all, start, len, displayIndex, totalCount);
         }
     }
-
-
 
     private String getAllText() {
         try {
