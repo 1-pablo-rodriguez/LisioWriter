@@ -305,8 +305,19 @@ public class HtmlBrowserDialog extends JDialog {
                             .replaceAll("(?m)^(?:\\s*)(-\\.|\\*|\\d+\\.)\\s+", "$1")
                             //    b) (Alternative) EXACTEMENT 1 espace après le marqueur:
                             // .replaceAll("(?m)^(?:\\s*)(-\\.|\\*|\\d+\\.)\\s+", "$1 ")
+                            
+                            
+                            // supprime toutes les parenthèse contenant des chemins.
+                            .replaceAll("(?is)\\([^)]*(?:[\\\\/]|(?:\\b(?:text|file|src|href|path|url)\\=))[^\"]*?\\)", "")
+
 
                             .trim();
+                        
+                        
+                        converted = converted
+                                // à nouveau : garantir qu'on n'a pas plus de 2 newlines de suite
+                                .replaceAll("\\n{2,}", "\n")
+                                .trim();
                     }
                 }
             } catch (Exception ex) {
@@ -323,8 +334,18 @@ public class HtmlBrowserDialog extends JDialog {
 	            }
 	            try {
 	                javax.swing.text.Document doc = editorPane.getDocument();
-	                int pos = doc.getLength();
+	                
+	                try {
+	                    // supprime tout le contenu existant
+	                    doc.remove(0, doc.getLength());
+	                }catch (javax.swing.text.BadLocationException ignore) {}
+	                
+	                // supprime aussi les highlights résiduels si présents
+	                try { editorPane.getHighlighter().removeAllHighlights(); } catch (Exception ignore) {}
 	
+	                // position d'insertion = début du document
+	                int pos = 0;
+	                
 	                // ✅ Récupérer le titre Wikipédia depuis <h1 id="firstHeading">
 	                String articleTitle = "Article Wikipédia";
 	                try {
