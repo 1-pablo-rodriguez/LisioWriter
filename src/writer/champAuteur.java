@@ -9,7 +9,6 @@ public class champAuteur {
 	
 	public champAuteur(EditorFrame frame) {
 		JTextComponent editorPane = frame.getEditor();
-//		outils.removeCarriageReturns(blindWriter.editorPane.getText());
 		int positionCurseur = editorPane.getCaretPosition();
 		String selectedText = editorPane.getSelectedText();
         

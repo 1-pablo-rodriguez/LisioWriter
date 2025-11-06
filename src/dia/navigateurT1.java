@@ -55,7 +55,6 @@ public class navigateurT1 extends JFrame{
     private final java.util.Set<Integer> expanded = new java.util.HashSet<>();
     private final java.util.List<Integer> parents  = new java.util.ArrayList<>();
     
-	//private final  writer.blindWriter.SRAnnouncerArea sr1px = new writer.blindWriter.SRAnnouncerArea();;
 	// si non-null, on n’affiche que les titres dont l’ancêtre racine == focusedRoot
 	private Integer focusedRoot = null;
 	// Montre uniquement la branche du nœud ciblé (ancêtres + lui + ses descendants)

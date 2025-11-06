@@ -140,7 +140,7 @@ public class HtmlBrowserDialog extends JDialog {
                 List<String[]> resultsList = new ArrayList<>();
                 try {
                     Document fullDoc = Jsoup.connect(url)
-                            .userAgent("blindWriter/accessible-browser")
+                            .userAgent("LisioWriter/accessible-browser")
                             .timeout(15000)
                             .followRedirects(true)
                             .get();

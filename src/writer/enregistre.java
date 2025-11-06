@@ -30,7 +30,7 @@ public class enregistre {
     	   commandes.nodeblindWriter.retourneFirstEnfant("date_modification").getAttributs().put("date", commandes.dateNow());
        };
        
-       // Convertion du node blindWriter en texte.
+       // Convertion du node LisioWriter en texte.
        text = commandes.nodeblindWriter.ecritureXML().toString();
        
        File fichier = new File(commandes.currentDirectory, commandes.nameFile + ".bwr");

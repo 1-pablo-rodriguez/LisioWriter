@@ -57,7 +57,7 @@ public final class SpellCheckLT {
     // ================= DICO UTILISATEUR =================
     private static final java.util.Set<String> USER_DICTIONARY = new java.util.HashSet<>();
     private static java.nio.file.Path userDictPath =
-        java.nio.file.Paths.get(System.getProperty("user.home"), ".blindWriter", "user-dictionary.txt");
+        java.nio.file.Paths.get(System.getProperty("user.home"), ".LisioWriter", "user-dictionary.txt");
 
     static { loadUserDictionaryFromDisk(); }
 

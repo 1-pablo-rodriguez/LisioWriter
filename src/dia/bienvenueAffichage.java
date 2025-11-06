@@ -1,7 +1,8 @@
-package writer;
+package dia;
 
 import javax.swing.text.JTextComponent;
 
+import writer.commandes;
 import writer.ui.EditorFrame;
 import writer.util.AppInfo;
 
@@ -36,7 +37,5 @@ public class bienvenueAffichage {
         
         java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(editorPane);
         dia.InfoDialog.show(owner, "Bienvenue", message.toString());
-
-        //blindWriter.announceCaretLine(false, true, message.toString());
     }
 }

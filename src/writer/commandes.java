@@ -22,7 +22,7 @@ public class commandes {
 	public static String getPathApp = pathApp ;
 	public static FileSystemView filesys = FileSystemView.getFileSystemView();
 	// public static File dossierDocuments = filesys.getDefaultDirectory();
-	public static String iconPath = commandes.getPathApp + "\\blindWriter.ico";
+	public static String iconPath = commandes.getPathApp + "\\LisioWriter.ico";
 	// dictionnaires
 	public static String dicFr = commandes.getPathApp + "\\dic\\fr_FR.dic";
 	public static String affFr = commandes.getPathApp + "\\dic\\fr_FR.aff";
@@ -73,7 +73,7 @@ public class commandes {
         init_meta();
     }
     
-    // Création du node blindWriter
+    // Création du node LisioWriter
     public static void initNodeBlindWriter() {
     	
         nodeblindWriter.setNameNode("blindWriter");

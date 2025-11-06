@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * Informations générales sur l'application blindWriter
+ * Informations générales sur l'application LisioWriter
  * (version, auteur, etc.)
  */
 public final class AppInfo {

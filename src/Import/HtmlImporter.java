@@ -13,7 +13,7 @@ import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 
 /**
-* Convertit un document HTML en markup "blindWriter".
+* Convertit un document HTML en markup "lisioWriter".
 * Règles simples :
 *  - h1 -> "#1. ", h2 -> "#2. " ...
 *  - p -> double saut de ligne (nouveau paragraphe)
@@ -262,7 +262,7 @@ public final class HtmlImporter {
 	
 	/**
 	 * Convertit directement une chaîne HTML (déjà téléchargée ou filtrée)
-	 * vers le format blindWriter.
+	 * vers le format LisioWriter.
 	 */
 	public static String importFromHtml(String html) throws IOException {
 	    if (html == null || html.isBlank()) return "";

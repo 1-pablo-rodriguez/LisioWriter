@@ -75,7 +75,7 @@ public class BoiteNewDocument  {
                         commandes.hash=0;
                         
                         commandes.nodeblindWriter.retourneFirstEnfant("contentText").getContenu().clear();
-                       	commandes.nodeblindWriter.getAttributs().put("filename","nouveaux fichier blindWriter");
+                       	commandes.nodeblindWriter.getAttributs().put("filename","nouveaux fichier LisioWriter");
                         commandes.nameFile = texte;
                         
                         commandes.defaultStyles();

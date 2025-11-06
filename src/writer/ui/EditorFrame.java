@@ -98,7 +98,7 @@ public class EditorFrame extends JFrame implements EditorApi {
 
     // === CONSTRUCTEUR ===
     public EditorFrame() {
-        super("blindWriter");
+        super("LisioWriter");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -364,7 +364,7 @@ public class EditorFrame extends JFrame implements EditorApi {
 
 	@Override
     public void updateWindowTitle() {
-        String base = "blindWriter";
+        String base = "LisioWriter";
         String name = (commandes.nameFile != null && !commandes.nameFile.isBlank())
                 ? commandes.nameFile
                 : "Nouveau";

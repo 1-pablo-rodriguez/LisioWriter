@@ -46,7 +46,7 @@ public class BoiteQuitter {
         final String title = "Quitter";
         final String baseMessage = modified
                 ? "Des modifications non enregistrées ont été détectées."
-                : "Voulez-vous quitter blindWriter ?";
+                : "Voulez-vous quitter LisioWriter ?";
         final String detail = modified
                 ? "\nChoisissez : Enregistrer, Quitter sans enregistrer, ou Annuler.\n"
                 : "\nDeux choix : Quitter ou Annuler.\n";
@@ -167,11 +167,6 @@ public class BoiteQuitter {
 
             quitBtn.setMnemonic(KeyEvent.VK_Q);
             cancelBtn.setMnemonic(KeyEvent.VK_A);
-
-            quitBtn.getAccessibleContext().setAccessibleName("Quitter l'application");
-            quitBtn.getAccessibleContext().setAccessibleDescription("Fermer blindWriter");
-            cancelBtn.getAccessibleContext().setAccessibleName("Annuler");
-            cancelBtn.getAccessibleContext().setAccessibleDescription("Revenir à l'éditeur");
 
             quitBtn.addActionListener(e -> fermeture());
             cancelBtn.addActionListener(e -> annuler());

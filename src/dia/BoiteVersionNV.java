@@ -5,7 +5,11 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-
+/**
+ * Boite de dialogue version
+ * @author pabr6
+ *
+ */
 @SuppressWarnings("serial")
 public final class BoiteVersionNV extends JDialog {
 
@@ -29,7 +33,7 @@ public final class BoiteVersionNV extends JDialog {
         setContentPane(root);
 
         // En-tête
-        JLabel title = new JLabel("blindWriter — Version");
+        JLabel title = new JLabel("LisioWriter — Version");
         title.setFont(title.getFont().deriveFont(Font.BOLD, 20f));
         root.add(title, BorderLayout.NORTH);
 

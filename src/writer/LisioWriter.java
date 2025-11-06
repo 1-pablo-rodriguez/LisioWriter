@@ -5,6 +5,7 @@ import java.io.File;
 import javax.swing.JMenu;
 import javax.swing.SwingUtilities;
 
+import dia.bienvenueAffichage;
 import writer.ui.EditorFrame;
 
 

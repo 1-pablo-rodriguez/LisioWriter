@@ -3,7 +3,11 @@ package dia;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import javax.swing.*;
-
+/**
+ * Cette fenêtre permet de mettre en attente pendant le vérification du document
+ * @author pabr6
+ *
+ */
 @SuppressWarnings("serial")
 public final class VerifDialog extends JDialog {
     private final JLabel label = new JLabel("Vérification en cours…", SwingConstants.LEADING);

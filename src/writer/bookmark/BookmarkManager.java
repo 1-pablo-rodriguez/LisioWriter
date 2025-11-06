@@ -341,7 +341,7 @@ public final class BookmarkManager {
 		    map.clear(); order.clear(); cursor = -1;
 		    if (bookmarksEl == null) return;
 
-		    javax.swing.text.Document doc = this.area.getDocument(); // ← au lieu de blindWriter.editorPane
+		    javax.swing.text.Document doc = this.area.getDocument();
 		    ArrayList<node> nodes = bookmarksEl.getEnfants();
 		    for (int i = 0; i < nodes.size(); i++) {
 		        node e = nodes.get(i);

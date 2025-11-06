@@ -46,7 +46,7 @@ Astuce : appuyez sur F1 pour des informations sur la fenêtre et son usage.
 @saut de page manuel
 
 #1. Que réalise ce logiciel ?
-Il est conseillé d’utiliser blindWriter avec un lecteur d’écran tel que NVDA. blindWriter est l’outil idéal pour les personnes non-voyantes souhaitant rédiger des mémoires, rapports de stage ou tout autre document. Grâce à son interface entièrement pilotable au clavier, vous créez des documents professionnels. Il permet d'ouvrir des fichiers Ms Word, LibreOffice Writer ou de simple texte brut.
+Il est conseillé d’utiliser LisioWriter avec un lecteur d’écran tel que NVDA. blindWriter est l’outil idéal pour les personnes non-voyantes souhaitant rédiger des mémoires, rapports de stage ou tout autre document. Grâce à son interface entièrement pilotable au clavier, vous créez des documents professionnels. Il permet d'ouvrir des fichiers Ms Word, LibreOffice Writer ou de simple texte brut.
 blindWriter offre les fonctions d’un traitement de texte classique, conçues spécifiquement pour la non-vision : styles de titres hiérarchisés, styles de paragraphe, listes, notes de bas de page (citations), bibliographie, export ODF (LibreOffice Writer) et PDF. Vous pouvez importer des fichiers LibreOffice Writer ou Microsoft Word puis les modifier dans blindWriter.
 Pour cela, le texte du document utilise des codes simples propres à blindWriter. Vous n’avez pas besoin de les connaître par cœur : ils s’insèrent par menu ou via des raccourcis clavier.
 Dans blindWriter, chaque ligne = un paragraphe. Il n’y a pas de notion de page pendant l’édition ; les pages sont générées à l’export.

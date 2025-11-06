@@ -23,7 +23,7 @@ public interface EditorApi {
     javax.swing.Action getUndoAction();
     javax.swing.Action getRedoAction();
     
-    // Façade "héritée" (pour ne plus toucher à blindWriter depuis les menus)
+    // Façade "héritée" (pour ne plus toucher à LisioWriter depuis les menus)
     void setModified(boolean modified);
     void setBookMarkMannager(BookmarkManager bookmark);
     void updateWindowTitle();

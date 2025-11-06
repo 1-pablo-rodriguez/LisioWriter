@@ -64,7 +64,7 @@ public final class MarkdownOOXMLExporter {
     private enum ListKind { NONE, ORDERED, UNORDERED }
 
     // ---------- API ----------
-    /** Exporte la chaîne « BlindWriter-Markdown » vers un .docx. */
+    /** Exporte la chaîne « LisioWriter-Markdown » vers un .docx. */
     public static void export(String src, File outFile) throws Exception {
         try (XWPFDocument doc = new XWPFDocument()) {
         	ensureWordBuiltinStyles(doc);

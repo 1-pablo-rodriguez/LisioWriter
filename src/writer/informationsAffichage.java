@@ -48,7 +48,7 @@ public class informationsAffichage {
                 message.append("\n• Votre fichier : ALT+B ↓");
 
             } else if (vue == Affiche.DOCUMENTATION) {
-            	message.append("F1-INFO. Documentation de blindWriter. ↓");
+            	message.append("F1-INFO. Documentation de LisioWriter. ↓");
             	message.append("\n Touch. F6 pour naviguer•↓");
             	message.append("\nDoc. & Aides");
                 message.append("\n• Documentation : ALT+A ↓");
