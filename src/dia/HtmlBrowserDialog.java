@@ -533,8 +533,8 @@ public class HtmlBrowserDialog extends JDialog {
 	        }
 
 	        // Insérer le marqueur dans la cellule, juste après l'image, puis supprimer <img>
-	        img.after("![Image : " + alt + "]");
-	        img.remove();
+	        makeImageAlone(img, "![Image : " + alt + "]");
+
 	    }
 	}
 
@@ -552,8 +552,8 @@ public class HtmlBrowserDialog extends JDialog {
 	        }
 	        if (desc.isEmpty()) desc = "Image";
 
-	        fig.after("![Image : " + sanitizeAlt(desc) + "]");
-	        fig.remove(); // supprime image + légende -> pas de doublon
+	        makeImageAlone(fig, "![Image : " + sanitizeAlt(desc) + "]");
+
 	    }
 
 	    // 2) Vignettes Wikipedia: <div class="thumb"> ... <div class="thumbcaption"> ...</div>
@@ -602,8 +602,8 @@ public class HtmlBrowserDialog extends JDialog {
 	        }
 	        if (alt.isEmpty()) alt = "Image";
 
-	        img.after("![Image : " + sanitizeAlt(alt) + "]");
-	        img.remove();
+	        makeImageAlone(img, "![Image : " + sanitizeAlt(alt) + "]");
+
 	    }
 	}
 	
@@ -632,6 +632,48 @@ public class HtmlBrowserDialog extends JDialog {
             return title;
         }
     }
+    
+    // place ce helper (par ex. juste après sanitizeAlt)
+    private static void makeImageAlone(org.jsoup.nodes.Element img, String marker) {
+        org.jsoup.nodes.Element parent = img.parent();
+        org.jsoup.parser.Tag pTag = org.jsoup.parser.Tag.valueOf("p");
+        org.jsoup.nodes.Element pMarker = new org.jsoup.nodes.Element(pTag, "").text(marker);
+
+        if (parent == null) {
+            // pas de parent connu -> remplacer directement
+            img.replaceWith(pMarker);
+            return;
+        }
+
+        // si l'image est dans un <p>, on splitte le <p> en before / marker / after
+        if ("p".equalsIgnoreCase(parent.tagName())) {
+            StringBuilder beforeHtml = new StringBuilder();
+            StringBuilder afterHtml = new StringBuilder();
+            boolean seen = false;
+            // parcourt les enfants du <p> pour séparer avant/après l'image
+            for (org.jsoup.nodes.Node n : new ArrayList<>(parent.childNodes())) {
+                if (n == img) { seen = true; continue; }
+                if (!seen) beforeHtml.append(n.outerHtml()); else afterHtml.append(n.outerHtml());
+            }
+            if (beforeHtml.length() > 0) {
+                org.jsoup.nodes.Element bp = new org.jsoup.nodes.Element(pTag, "");
+                bp.html(beforeHtml.toString());
+                parent.before(bp);
+            }
+            parent.before(pMarker);              // paragraphe contenant uniquement le marqueur d'image
+            if (afterHtml.length() > 0) {
+                org.jsoup.nodes.Element ap = new org.jsoup.nodes.Element(pTag, "");
+                ap.html(afterHtml.toString());
+                parent.before(ap);
+            }
+            parent.remove();
+        } else {
+            // parent non <p> : on insère un <p> juste avant l'image et on retire l'image
+            img.before(pMarker);
+            img.remove();
+        }
+    }
+
 
     
 }
