@@ -5,13 +5,16 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -22,7 +25,9 @@ import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
+import javax.swing.text.Element;
 
 @SuppressWarnings("serial")
 public final class InfoDialog extends JDialog {
@@ -72,7 +77,6 @@ public final class InfoDialog extends JDialog {
         caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE); // ← évite les « sauts » à la fin
         textArea.setCaret(caret);
 
-        // Après textArea.setText(...)
         textArea.setCaretPosition(0);
         textArea.setSelectionStart(0);
         textArea.setSelectionEnd(0);
@@ -156,6 +160,9 @@ public final class InfoDialog extends JDialog {
      // Maintenant on applique les préférences visuelles (police & contraste)
      applyVisualPrefs();
 
+     
+     addParagraphJumpBindings(textArea);
+     
      pack(); // calcule les tailles selon la police appliquée
 
      // Taille confortable par défaut (on peut ensuite réduire/agrandir avec Ctrl +/-)
@@ -170,9 +177,9 @@ public final class InfoDialog extends JDialog {
 
     public static void show(Window owner, String title, String message) {
     	StringBuilder msg = new StringBuilder();
-    	msg.append("F1-").append(message).append(" ↓");
-    	msg.append("\nFERMER INFO. ↓");
-        msg.append("\n• Échappe ou Entrée");
+    	char c = '\u283F';
+    	msg.append(c).append(message).append(" ↓");
+        msg.append("\nPour fermer : Échappe ou Entrée");
         InfoDialog d = new InfoDialog(owner, title, msg.toString());
         d.setVisible(true);
     }
@@ -252,4 +259,90 @@ public final class InfoDialog extends JDialog {
             }
         });
     }
+    
+    private void addParagraphJumpBindings(JTextArea ta) {
+        InputMap im = ta.getInputMap(JComponent.WHEN_FOCUSED);
+        ActionMap am = ta.getActionMap();
+
+        // Remplace le comportement par défaut des flèches
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "jumpNextParagraph");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),   "jumpPrevParagraph");
+
+        am.put("jumpNextParagraph", new AbstractAction() {
+            @SuppressWarnings("deprecation")
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                javax.swing.text.Document doc = ta.getDocument();
+                Element root = doc.getDefaultRootElement();
+
+                // clamp caret pos into a safe offset (doc.getLength() peut être 0)
+                int lastOffset = Math.max(0, doc.getLength() - 1);
+                int caretPos = Math.max(0, Math.min(ta.getCaretPosition(), lastOffset));
+                int curr = root.getElementIndex(caretPos);
+
+                int target = curr + 1;
+                // skip empty paragraphs
+                while (target < root.getElementCount()) {
+                    Element el = root.getElement(target);
+                    int start = el.getStartOffset();
+                    int end = Math.min(el.getEndOffset(), doc.getLength());
+                    try {
+                        String txt = doc.getText(start, Math.max(0, end - start)).trim();
+                        if (!txt.isEmpty()) break;
+                    } catch (BadLocationException ex) { break; }
+                    target++;
+                }
+                if (target >= root.getElementCount()) return; // rien à faire
+
+                Element targetEl = root.getElement(target);
+                int newPos = Math.max(0, Math.min(targetEl.getStartOffset(), doc.getLength()));
+                ta.setCaretPosition(newPos);
+                try { ta.getHighlighter().removeAllHighlights(); } catch (Exception ignore) {}
+                // scroll to make caret visible
+                try {
+                    Rectangle r = ta.modelToView(newPos);
+                    if (r != null) ta.scrollRectToVisible(r);
+                } catch (BadLocationException ignore) {}
+            }
+        });
+
+        am.put("jumpPrevParagraph", new AbstractAction() {
+            @SuppressWarnings("deprecation")
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                javax.swing.text.Document doc = ta.getDocument();
+                Element root = doc.getDefaultRootElement();
+
+                // clamp caret pos into a safe offset
+                int lastOffset = Math.max(0, doc.getLength() - 1);
+                int caretPos = Math.max(0, Math.min(ta.getCaretPosition(), lastOffset));
+                int curr = root.getElementIndex(caretPos);
+
+                int target = curr - 1;
+                // skip empty paragraphs (descend vers le précédent non vide)
+                while (target >= 0) {
+                    Element el = root.getElement(target);
+                    int start = el.getStartOffset();
+                    int end = Math.min(el.getEndOffset(), doc.getLength());
+                    try {
+                        String txt = doc.getText(start, Math.max(0, end - start)).trim();
+                        if (!txt.isEmpty()) break;
+                    } catch (BadLocationException ex) { break; }
+                    target--;
+                }
+                if (target < 0) return; // pas de précédent
+
+                Element targetEl = root.getElement(target);
+                int newPos = Math.max(0, Math.min(targetEl.getStartOffset(), doc.getLength()));
+                ta.setCaretPosition(newPos);
+                try { ta.getHighlighter().removeAllHighlights(); } catch (Exception ignore) {}
+                try {
+                    Rectangle r = ta.modelToView(newPos);
+                    if (r != null) ta.scrollRectToVisible(r);
+                } catch (BadLocationException ignore) {}
+            }
+        });
+    }
+
+    
+    
+    
 }
