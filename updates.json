@@ -1,8 +1,8 @@
 {
   "channel": "stable",
-  "version": "1.1.4",
-  "url": "https://github.com/1-pablo-rodriguez/LisioWriter/releases/download/v1.1.4/Installation_LisioWriter_1.1.4.0.exe",
-  "sha256": "6ffb07d1839ac1c7b0edc2a0872516971c73b21f1dc3f7e014a612f19644d237",
-  "size": 261433850,
-  "releaseNotes": "Version 1.1.4"
+  "version": "1.1.6",
+  "url": "https://github.com/1-pablo-rodriguez/LisioWriter/releases/download/v1.1.6/Installation_LisioWriter_1.1.6.0.exe",
+  "sha256": "4ee990520d2b8175d1ba7653d9272cc978e834030020f62e18b18a4e237a20f7",
+  "size": 261349355,
+  "releaseNotes": "Version 1.1.6"
 }
