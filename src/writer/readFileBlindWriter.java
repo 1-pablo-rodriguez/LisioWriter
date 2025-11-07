@@ -4,119 +4,164 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
+import javax.swing.undo.UndoManager;
 
 import writer.ui.EditorFrame;
 import xml.node;
 import xml.transformeXLMtoNode;
 
+/**
+ * Chargement d'un fichier .bwr dans l'éditeur.
+ * - insertion sur l'EDT
+ * - rechargement des bookmarks
+ * - vidage de l'UndoManager après chargement pour éviter des undo invalides
+ */
 public class readFileBlindWriter {
 
-	public boolean erreur = false;
-	
-	// Lecture d'un fichier BWR
-	public readFileBlindWriter(File selectedFile, EditorFrame parent) {
-	    try {
-	        // --- Lecture du fichier (texte brut XML)
-	        String content = Files.readString(selectedFile.toPath());
+    public boolean erreur = false;
 
-	        // --- Transformation XML → nœuds internes
-	        new transformeXLMtoNode(content, false, null);
-	        node newNode = transformeXLMtoNode.getNodeRoot().retourneFirstEnfant("blindWriter");
+    public readFileBlindWriter(File selectedFile, EditorFrame parent) {
+        try {
+            // --- Lecture du fichier (texte brut XML) ---
+            String content = Files.readString(selectedFile.toPath());
 
-	        if (newNode == null) {
-	            erreur = true;
-	            return;
-	        }
+            // --- Transformation XML → nœuds internes ---
+            new transformeXLMtoNode(content, false, null);
+            node newNode = transformeXLMtoNode.getNodeRoot().retourneFirstEnfant("blindWriter");
 
-	        commandes.nodeblindWriter = newNode;
+            if (newNode == null) {
+                erreur = true;
+                return;
+            }
 
-	        // Vérifications de structure
-	        if (commandes.nodeblindWriter.getAttributs().get("filename") == null
-	                || commandes.nodeblindWriter.retourneFirstEnfant("styles_paragraphes") == null
-	                || commandes.nodeblindWriter.retourneFirstEnfant("meta") == null
-	                || commandes.nodeblindWriter.retourneFirstEnfant("contentText") == null) {
-	            erreur = true;
-	            return;
-	        }
+            // --- Affectation globale ---
+            commandes.nodeblindWriter = newNode;
 
-	        // --- Affectation des sections internes ---
-	        commandes.nameFile = commandes.nodeblindWriter.getAttributs().get("filename");
-	        commandes.styles_paragraphe = commandes.nodeblindWriter.retourneFirstEnfant("styles_paragraphes");
-	        commandes.meta = commandes.nodeblindWriter.retourneFirstEnfant("meta");
-	        commandes.maj_meta();
-	        commandes.pageDefaut = commandes.nodeblindWriter.retourneFirstEnfant("pageDefaut");
+            // Vérifications de structure minimale
+            if (commandes.nodeblindWriter.getAttributs().get("filename") == null
+                    || commandes.nodeblindWriter.retourneFirstEnfant("styles_paragraphes") == null
+                    || commandes.nodeblindWriter.retourneFirstEnfant("meta") == null
+                    || commandes.nodeblindWriter.retourneFirstEnfant("contentText") == null) {
+                erreur = true;
+                return;
+            }
 
-	        // Page de titre (crée si absente)
-	        if (commandes.nodeblindWriter.retourneFirstEnfant("pageTitre") != null) {
-	            commandes.pageTitre = commandes.nodeblindWriter.retourneFirstEnfant("pageTitre");
-	        } else {
-	            commandes.pageTitre = new node();
-	            commandes.pageTitre.setNameNode("pageTitre");
-	            commandes.pageTitre.getAttributs().put("couverture", "false");
-	            commandes.nodeblindWriter
-	                    .retourneFirstEnfant("styles_pages")
-	                    .getEnfants()
-	                    .add(commandes.pageTitre);
-	        }
+            // --- Sections internes ---
+            commandes.nameFile = commandes.nodeblindWriter.getAttributs().get("filename");
+            commandes.styles_paragraphe = commandes.nodeblindWriter.retourneFirstEnfant("styles_paragraphes");
+            commandes.meta = commandes.nodeblindWriter.retourneFirstEnfant("meta");
+            commandes.maj_meta();
+            commandes.pageDefaut = commandes.nodeblindWriter.retourneFirstEnfant("pageDefaut");
 
-	        // --- Texte principal du document ---
-	        commandes.texteDocument = commandes.nodeblindWriter
-	                .retourneFirstEnfant("contentText")
-	                .getContenuAvecTousLesContenusDesEnfants();
+            // Page de titre (crée si absente)
+            if (commandes.nodeblindWriter.retourneFirstEnfant("pageTitre") != null) {
+                commandes.pageTitre = commandes.nodeblindWriter.retourneFirstEnfant("pageTitre");
+            } else {
+                commandes.pageTitre = new node();
+                commandes.pageTitre.setNameNode("pageTitre");
+                commandes.pageTitre.getAttributs().put("couverture", "false");
+                commandes.nodeblindWriter
+                        .retourneFirstEnfant("styles_pages")
+                        .getEnfants()
+                        .add(commandes.pageTitre);
+            }
 
-	        commandes.hash = commandes.texteDocument.hashCode();
+            // Texte principal
+            commandes.texteDocument = commandes.nodeblindWriter
+                    .retourneFirstEnfant("contentText")
+                    .getContenuAvecTousLesContenusDesEnfants();
 
-	        // --- Chargement asynchrone dans l’éditeur ---
-	        new Thread(() -> {
-	            final String newText = commandes.texteDocument;
-	            SwingUtilities.invokeLater(() -> {
-	                try {
-	                    var editorPane = parent.getEditor();
-	                    javax.swing.text.Document doc = editorPane.getDocument();
+            commandes.hash = commandes.texteDocument == null ? 0 : commandes.texteDocument.hashCode();
 
-	                    // Effacement rapide
-	                    editorPane.setText("");
+            // --- Chargement asynchrone dans l'éditeur (exécuté sur l'EDT) ---
+            final String newText = commandes.texteDocument == null ? "" : commandes.texteDocument;
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    JTextComponent editorComp = parent.getEditor();
+                    Document doc = editorComp.getDocument();
 
-	                    // Insertion directe dans le modèle (plus rapide que setText)
-	                    doc.insertString(0, newText, null);
-	                    editorPane.setCaretPosition(0);
+                    // Insertion du texte : si AbstractDocument, on utilise remove/insertString (sur EDT)
+                    if (doc instanceof AbstractDocument ad) {
+                        try {
+                            // vider le document proprement
+                            int len = Math.max(0, ad.getLength());
+                            if (len > 0) ad.remove(0, len);
 
-	                    // Rechargement des signets
-	                    parent.createNewBookmarkManager();
-	                    if (commandes.nodeblindWriter.retourneFirstEnfant("bookmarks") != null) {
-	                        commandes.bookmarks = commandes.nodeblindWriter.retourneFirstEnfant("bookmarks");
-	                        parent.getBookmarks()
-	                              .loadFromXml(commandes.nodeblindWriter.retourneFirstEnfant("bookmarks"));
-	                    }
+                            // insertion du texte (null attributes)
+                            if (!newText.isEmpty()) ad.insertString(0, newText, null);
+                        } catch (BadLocationException ble) {
+                            // si problème de position, fallback sur setText
+                            ble.printStackTrace();
+                            editorComp.setText(newText);
+                        }
+                    } else {
+                        // fallback : setText
+                        editorComp.setText(newText);
+                    }
 
-	                    // Document propre (pas de modification en attente)
-	                    parent.setModified(false);
+                    // positionner le caret au début
+                    try { editorComp.setCaretPosition(0); } catch (Exception ignore) {}
 
-	                } catch (Exception e) {
-	                    e.printStackTrace();
-	                }
-	            });
-	        }).start();
+                    // rechargement des signets si présents
+                    parent.createNewBookmarkManager();
+                    if (commandes.nodeblindWriter.retourneFirstEnfant("bookmarks") != null) {
+                        commandes.bookmarks = commandes.nodeblindWriter.retourneFirstEnfant("bookmarks");
+                        parent.getBookmarks()
+                              .loadFromXml(commandes.nodeblindWriter.retourneFirstEnfant("bookmarks"));
+                    }
 
-	    } catch (IOException ex) {
-	        erreur = true;
-	    }
-	}
+                    // Document propre : marquer non-modifié
+                    parent.setModified(false);
 
-	   
-	public boolean isErreur() {
-		return erreur;
-	}
+                    // Vider l'historique d'undo tout de suite pour éviter que l'ouverture soit annulable.
+                    try {
+                        UndoManager um = parent.getUndoManager();
+                        if (um != null) um.discardAllEdits();
+                    } catch (Throwable ignore) {}
 
-	public void setErreur(boolean erreur) {
-		this.erreur = erreur;
-	}
-	
-	
-	
-	
-	
-	
-	
+                    // Mettre à jour l'état des actions Undo/Redo (UI)
+                    try { parent.getUndoAction().setEnabled(false); } catch (Throwable ignore) {}
+                    try { parent.getRedoAction().setEnabled(false); } catch (Throwable ignore) {}
+
+                    // Appliquer la colorisation/surlignage si possible (TextHighlighter.apply attend un JTextPane)
+                    try {
+                        if (editorComp instanceof JTextPane tp) {
+                            writer.ui.editor.TextHighlighter.apply(tp);
+                            // si la colorisation a généré des edits, on vide l'historique à nouveau
+                            try {
+                                UndoManager um2 = parent.getUndoManager();
+                                if (um2 != null) um2.discardAllEdits();
+                            } catch (Throwable ignore) {}
+                        }
+                    } catch (Throwable t) {
+                        // ne bloque pas le chargement si le highlighter échoue
+                        t.printStackTrace();
+                    }
+
+                    // final : revalidate / repaint / focus
+                    editorComp.revalidate();
+                    editorComp.repaint();
+                    editorComp.requestFocusInWindow();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    erreur = true;
+                }
+            });
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            erreur = true;
+        }
+    }
+
+    // getters / setters
+    public boolean isErreur() { return erreur; }
+    public void setErreur(boolean erreur) { this.erreur = erreur; }
 }

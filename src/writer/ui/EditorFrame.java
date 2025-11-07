@@ -16,6 +16,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
 import java.net.URI;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,6 +44,7 @@ import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.StyledDocument;
+import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoManager;
 
 import writer.CaretStyler;
@@ -96,6 +98,8 @@ public class EditorFrame extends JFrame implements EditorApi {
   	// === ANNONCE LA POSITION DANS LE TEXTE DU CURSEUR ===
   	private final Action actAnnouncePosition = new writer.ui.editor.AnnouncePositionAction(this.editorPane);
 
+  	// champ de classe
+  	private volatile boolean inHighlighting = false;
 
 
     // === CONSTRUCTEUR ===
@@ -111,15 +115,9 @@ public class EditorFrame extends JFrame implements EditorApi {
         
         getContentPane().add(scrollPane, BorderLayout.CENTER);
 
-        // Attache le gestionnaire Undo/Redo
-        editorPane.getDocument().addUndoableEditListener(new UndoableEditListener() {
-            @Override
-            public void undoableEditHappened(UndoableEditEvent e) {
-                undoManager.addEdit(e.getEdit());
-                updateUndoRedoState();
-            }
-        });
-        
+        // Attache le gestionnaire Undo/Redo de la méthode defaultUndoableEditListener
+        editorPane.getDocument().addUndoableEditListener(defaultUndoableEditListener);
+
         // --- ICON APP ----
         setIconImage(IconLoader.load(Icons.APP).getImage());
 
@@ -304,6 +302,15 @@ public class EditorFrame extends JFrame implements EditorApi {
      	
     }
     
+
+    // Méthode undo et redo
+    private final UndoableEditListener defaultUndoableEditListener = new UndoableEditListener() {
+        @Override public void undoableEditHappened(UndoableEditEvent e) {
+            undoManager.addEdit(e.getEdit());
+            updateUndoRedoState();
+        }
+    };
+    
     // --- CONFIGURATION EDITORPANE ---
   	public void setupEditorPane() { 	    
   	    // --- Apparence & confort de saisie (on GARDE) ---
@@ -324,22 +331,20 @@ public class EditorFrame extends JFrame implements EditorApi {
   	    this.editorPane.setCaretPosition(0);
 
   	    // marquer le doc comme "modifié" à la moindre modification utilisateur
-	  	  this.editorPane.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-	  	    @Override public void insertUpdate(javax.swing.event.DocumentEvent e) {
-	  	        setModified(true);
-	  	        SwingUtilities.invokeLater(() -> TextHighlighter.apply(editorPane));
-	  	    }
-	  	    @Override public void removeUpdate(javax.swing.event.DocumentEvent e) {
-	  	        setModified(true);
-	  	        SwingUtilities.invokeLater(() -> TextHighlighter.apply(editorPane));
-	  	    }
-	  	    @Override public void changedUpdate(javax.swing.event.DocumentEvent e) {
-	  	        setModified(true);
-	  	    }
-	  	});
-
-
-
+  	    // colorisation des codes LisioWriter
+  	    this.editorPane.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+  	    	@Override public void insertUpdate(javax.swing.event.DocumentEvent e) {
+  	    		setModified(true);
+  	    		SwingUtilities.invokeLater(() -> applyHighlightsNoUndo());
+  	    		}
+  	    	@Override public void removeUpdate(javax.swing.event.DocumentEvent e) {
+  	    	setModified(true);
+  	    	SwingUtilities.invokeLater(() -> applyHighlightsNoUndo());
+  	    	}
+  	    @Override public void changedUpdate(javax.swing.event.DocumentEvent e) {
+  	    	setModified(true);
+  	    	}
+  	    });
 
   	   // --- AJOUTE LES CLASS QUI PERMETTENT LES LISTES PUCES OU NULEROTES ---
   	    this.editorPane.getAccessibleContext().setAccessibleName("Zone de texte.");
@@ -858,9 +863,22 @@ public class EditorFrame extends JFrame implements EditorApi {
         return (s == null) ? null : s.replace("\t", "[tab] ");
     }
 
-
-   
-    
+    /** Appliquer TextHighlighter mais sans ajouter d'undo (les modifications ne seront pas undoables). */
+	private void applyHighlightsNoUndo() {
+        javax.swing.text.Document doc = editorPane.getDocument();
+        if (doc instanceof AbstractDocument ad) {
+            ad.removeUndoableEditListener(defaultUndoableEditListener);
+            try {
+                // Appel synchrone sur EDT (TextHighlighter fait normalement des setCharacterAttributes...)
+                TextHighlighter.apply(editorPane);
+            } finally {
+                ad.addUndoableEditListener(defaultUndoableEditListener);
+            }
+        } else {
+            // fallback
+            TextHighlighter.apply(editorPane);
+        }
+    }
 
  	
 }
