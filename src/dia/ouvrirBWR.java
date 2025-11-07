@@ -27,7 +27,9 @@ import writer.readFileBlindWriter;
 import writer.ui.EditorFrame;
 
 
-/** Boîte "Ouvrir" accessible (clavier/lecteur d’écran). */
+/** 
+ * Boîte "Ouvrir" accessible (clavier/lecteur d’écran). 
+ * */
 @SuppressWarnings("serial")
 public final class ouvrirBWR extends JDialog {
     private static final long serialVersionUID = 1L;

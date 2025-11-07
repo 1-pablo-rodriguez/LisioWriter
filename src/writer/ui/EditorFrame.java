@@ -6,9 +6,6 @@ import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -16,7 +13,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
 import java.net.URI;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,18 +29,12 @@ import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
-import javax.swing.TransferHandler;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
-import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
-import javax.swing.text.Document;
-import javax.swing.text.DocumentFilter;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.StyledDocument;
-import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoManager;
 
 import writer.CaretStyler;
@@ -57,6 +47,7 @@ import writer.model.Affiche;
 import writer.spell.SpellCheckLT;
 import writer.ui.editor.TextHighlighter;
 import writer.ui.editor.WrapEditorKit;
+import writer.ui.editor.enableCopyPasteVisibleTabs;
 import writer.util.IconLoader;
 
 @SuppressWarnings("serial")
@@ -97,9 +88,6 @@ public class EditorFrame extends JFrame implements EditorApi {
   	
   	// === ANNONCE LA POSITION DANS LE TEXTE DU CURSEUR ===
   	private final Action actAnnouncePosition = new writer.ui.editor.AnnouncePositionAction(this.editorPane);
-
-  	// champ de classe
-  	private volatile boolean inHighlighting = false;
 
 
     // === CONSTRUCTEUR ===
@@ -249,7 +237,7 @@ public class EditorFrame extends JFrame implements EditorApi {
             new writer.ui.editor.SmartBackspaceAction(editorPane, defaultBackspace));
         
         // Fitre automatique pour que toute tabulation soit ue comme [Tab] dans l'éditeur.
-        enableVisibleTabs(this.editorPane);
+        enableCopyPasteVisibleTabs.enableVisibleTabs(this.editorPane);
 
         // --- BARRE DE MENUS ---
         setJMenuBar(writer.ui.menu.MenuBarFactory.create(this));
@@ -781,88 +769,6 @@ public class EditorFrame extends JFrame implements EditorApi {
         this.editorPane.scrollRectToVisible(padded);
     }
  
-    
-    public static void enableVisibleTabs(JTextComponent editor) {
-        // 1) Le TAB ne doit pas déplacer le focus
-        editor.setFocusTraversalKeysEnabled(false);
-
-        // 2) Quand l'utilisateur TAPE TAB -> insérer "[tab]"
-        InputMap im = editor.getInputMap(JComponent.WHEN_FOCUSED);
-        ActionMap am = editor.getActionMap();
-
-        im.put(KeyStroke.getKeyStroke("TAB"), "bw-insert-tab-tag");
-        im.put(KeyStroke.getKeyStroke("shift TAB"), "bw-insert-tab-tag");
-        am.put("bw-insert-tab-tag", new AbstractAction() {
-            @Override public void actionPerformed(ActionEvent e) {
-                editor.replaceSelection("[tab]");
-            }
-        });
-
-        // 3) Intercepter COLLER (Ctrl+V, Shift+Insert)
-        im.put(KeyStroke.getKeyStroke("ctrl V"), "bw-paste-visible-tabs");
-        im.put(KeyStroke.getKeyStroke("shift INSERT"), "bw-paste-visible-tabs");
-        am.put("bw-paste-visible-tabs", new AbstractAction() {
-            @Override public void actionPerformed(ActionEvent e) {
-                try {
-                    Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
-                    if (cb.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
-                        String s = (String) cb.getData(DataFlavor.stringFlavor);
-                        s = mapTabs(s);             // \t -> [tab]
-                        editor.replaceSelection(s);
-                        return;
-                    }
-                } catch (Exception ignore) {}
-                // Fallback : comportement standard
-                editor.paste();
-            }
-        });
-
-        // 4) TransferHandler : couvre menu contextuel / DnD / coller système
-        final TransferHandler baseTH = editor.getTransferHandler(); // garde l'existant
-        editor.setTransferHandler(new TransferHandler() {
-            @Override
-            public boolean canImport(JComponent comp, DataFlavor[] flavors) {
-                // on accepte comme le handler existant
-                return baseTH == null || baseTH.canImport(comp, flavors);
-            }
-            @Override
-            public boolean importData(JComponent comp, Transferable t) {
-                try {
-                    if (t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                        String s = (String) t.getTransferData(DataFlavor.stringFlavor);
-                        s = mapTabs(s);
-                        // insère à la position du caret
-                        editor.replaceSelection(s);
-                        return true;
-                    }
-                } catch (Exception ignore) {}
-                return baseTH != null && baseTH.importData(comp, t);
-            }
-        });
-
-        // 5) DocumentFilter : couvre insertions programmées, replace, etc.
-        Document doc = editor.getDocument();
-        if (doc instanceof AbstractDocument ad) {
-            ad.setDocumentFilter(new DocumentFilter() {
-                @Override
-                public void insertString(FilterBypass fb, int offs, String str, AttributeSet a)
-                        throws BadLocationException {
-                    super.insertString(fb, offs, mapTabs(str), a);
-                }
-                @Override
-                public void replace(FilterBypass fb, int offs, int len, String str, AttributeSet a)
-                        throws BadLocationException {
-                    super.replace(fb, offs, len, mapTabs(str), a);
-                }
-            });
-        }  
-    }
-
-    // Utilitaire centralisé
-    private static String mapTabs(String s) {
-        return (s == null) ? null : s.replace("\t", "[tab] ");
-    }
-
     /** Appliquer TextHighlighter mais sans ajouter d'undo (les modifications ne seront pas undoables). */
 	private void applyHighlightsNoUndo() {
         javax.swing.text.Document doc = editorPane.getDocument();
