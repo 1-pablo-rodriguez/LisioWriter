@@ -54,7 +54,7 @@ import writer.util.IconLoader;
 public class EditorFrame extends JFrame implements EditorApi {
 
     // === CHAMPS PRINCIPAUX ===
-    private final JTextPane editorPane = new JTextPane(); // Migration vers private JTextPane editor;
+    private final NormalizingTextPane editorPane = new NormalizingTextPane(); // Migration vers private JTextPane editor;
     private final UndoManager undoManager = new UndoManager();
     private final Action undoAction;
     private final Action redoAction;

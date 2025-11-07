@@ -3,6 +3,7 @@ package dia;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
@@ -27,7 +28,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
@@ -66,6 +69,9 @@ public class navigateurT1 extends JFrame{
 
     private EditorFrame parent;
     private JTextComponent editor;
+	 // pattern précompilé (mettre en champ static si tu l'utilises souvent)
+    private static final java.util.regex.Pattern EOL_NORMALIZE =
+            java.util.regex.Pattern.compile("\\r\\r?\\n|\\r");
     
 	@SuppressWarnings("serial")
 	public navigateurT1(EditorFrame parent) {
@@ -243,9 +249,11 @@ public class navigateurT1 extends JFrame{
 
                     SwingUtilities.invokeLater(() -> {
                         if (deplacerBlocVersHaut(keepGlobal)) {
-                        	 //Titre déplacé vers le haut."
+                        	StringBuilder msg = new StringBuilder("Titre déplacé vers le haut.");
+                        	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
                         } else {
-                        	//"Impossible de déplacer ce titre."
+                        	StringBuilder msg = new StringBuilder("Impossible de déplacer ce titre.");
+                        	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
                         }
                     });
                 }
@@ -258,9 +266,11 @@ public class navigateurT1 extends JFrame{
 
                     SwingUtilities.invokeLater(() -> {
                         if (deplacerBlocVersBas(keepGlobal)) {
-                        	//"Titre déplacé vers le bas."
+                        	StringBuilder msg = new StringBuilder("Titre déplacé vers le bas.");
+                        	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
                         } else {
-                        	//"Impossible de déplacer ce titre vers le bas."
+                        	StringBuilder msg = new StringBuilder("Impossible de déplacer ce titre vers le bas.");
+                        	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
                         }
                     });
                 }
@@ -644,43 +654,105 @@ public class navigateurT1 extends JFrame{
 	 */
 	@SuppressWarnings("serial")
 	public static boolean demanderConfirmationChangementNiveau(
-	        boolean increase, boolean applyToBlock, int from, int to, String titre) {
+        boolean increase, boolean applyToBlock, int from, int to, String titre) {
 
 	    final String titreDlg = "Confirmation de modification de niveau";
 	    final String verbe    = increase ? "augmenter" : "réduire";
 	    final String cible    = applyToBlock ? "le titre et ses sous-parties" : "le titre";
 	    final String libTitre = (titre == null) ? "" : titre.trim();
-
+	
 	    final String message  = String.format(
 	        "Voulez-vous vraiment %s le niveau de %s de %d à %d ?%s",
 	        verbe, cible, from, to, libTitre.isEmpty() ? "" : ("\n\nTitre : " + libTitre)
 	    );
-
-	    final JLabel msg = new JLabel(message);
-	    msg.setFocusable(true);
-
-	    final Object[] options = { "Oui", "Non" };
-
-	    final JOptionPane pane = new JOptionPane(
-	        msg,
-	        JOptionPane.QUESTION_MESSAGE,
-	        JOptionPane.DEFAULT_OPTION,   // pas YES_NO ici
-	        null,
-	        options,
-	        null                          // pas de valeur par défaut
-	    );
-
-	    final JDialog dlg = pane.createDialog((Component) null, titreDlg);
-	    dlg.setModal(true);
-
-	    // ESC => "Non"
+	
+	    // Police large pour malvoyants
+	    final Font bigFont = new Font(Font.SANS_SERIF, Font.PLAIN, 22);
+	
+	    // Dialog parentless (null) — tu peux remplacer par une fenêtre propriétaire si souhaité
+	    final JDialog dlg = new JDialog((java.awt.Frame) null, titreDlg, true);
+	    dlg.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+	    dlg.setLayout(new java.awt.BorderLayout(12, 12));
+	
+	    // Panel central : zone de message (JTextArea pour le wrapping)
+	    JTextArea txt = new JTextArea(message);
+	    txt.setLineWrap(true);
+	    txt.setWrapStyleWord(true);
+	    txt.setEditable(false);
+	    txt.setFocusable(true); // pour que NVDA le lise au focus
+	    txt.setFont(bigFont);
+	    txt.setOpaque(false);
+	    txt.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8));
+	    txt.getAccessibleContext().setAccessibleName("Message de confirmation");
+	    txt.getAccessibleContext().setAccessibleDescription(message);
+	
+	    JScrollPane center = new JScrollPane(txt,
+	            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+	            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+	    center.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+	    center.getViewport().setOpaque(false);
+	    center.setPreferredSize(new java.awt.Dimension(800, 140));
+	    dlg.add(center, java.awt.BorderLayout.CENTER);
+	
+	    // Panel de boutons : gros boutons, contraste élevé
+	    JPanel btnPane = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 20, 12));
+	    btnPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(6, 6, 12, 6));
+	
+	    JButton yesBtn = new JButton("Oui");
+	    JButton noBtn  = new JButton("Non");
+	
+	    // Style grands boutons
+	    Dimension bigBtn = new Dimension(160, 60);
+	    yesBtn.setPreferredSize(bigBtn);
+	    noBtn.setPreferredSize(bigBtn);
+	
+	    yesBtn.setFont(bigFont);
+	    noBtn.setFont(bigFont);
+	
+	    // Contraste élevé (optionnel mais utile pour malvoyants)
+	    yesBtn.setBackground(new java.awt.Color(0x004D00)); // sombre vert
+	    yesBtn.setForeground(java.awt.Color.WHITE);
+	    noBtn.setBackground(new java.awt.Color(0x4D0000));  // sombre rouge
+	    noBtn.setForeground(java.awt.Color.WHITE);
+	    // some LAFs ignore button background; setting opaque helps in some cases
+	    yesBtn.setOpaque(true);
+	    noBtn.setOpaque(true);
+	
+	    // Accessibilité
+	    yesBtn.getAccessibleContext().setAccessibleName("Bouton Oui");
+	    yesBtn.getAccessibleContext().setAccessibleDescription("Confirme la modification de niveau");
+	    noBtn.getAccessibleContext().setAccessibleName("Bouton Non");
+	    noBtn.getAccessibleContext().setAccessibleDescription("Annule la modification de niveau");
+	
+	    // Mnemonics (Alt+O / Alt+N)
+	    yesBtn.setMnemonic(KeyEvent.VK_O);
+	    noBtn.setMnemonic(KeyEvent.VK_N);
+	
+	    btnPane.add(yesBtn);
+	    btnPane.add(noBtn);
+	    dlg.add(btnPane, java.awt.BorderLayout.SOUTH);
+	
+	    // Résultat partagé
+	    final boolean[] result = new boolean[1];
+	
+	    // Actions boutons
+	    yesBtn.addActionListener(a -> {
+	        result[0] = true;
+	        dlg.dispose();
+	    });
+	    noBtn.addActionListener(a -> {
+	        result[0] = false;
+	        dlg.dispose();
+	    });
+	
+	    // ESC => équivalent "Non"
 	    dlg.getRootPane().registerKeyboardAction(
-	        e -> pane.setValue("Non"),
+	        e -> { result[0] = false; dlg.dispose(); },
 	        KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 	        JComponent.WHEN_IN_FOCUSED_WINDOW
 	    );
-
-	    // >>> Binding : Entrée clique le bouton qui a le focus
+	
+	    // Entrée => clique le bouton qui a le focus ; si aucun, focus sur Oui par défaut
 	    InputMap im = dlg.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 	    ActionMap am = dlg.getRootPane().getActionMap();
 	    im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "pressFocusedButton");
@@ -690,26 +762,35 @@ public class navigateurT1 extends JFrame{
 	                    .getCurrentKeyboardFocusManager().getFocusOwner();
 	            if (fo instanceof JButton) {
 	                ((JButton) fo).doClick();
+	            } else {
+	                // si focus ailleurs, exécuter Oui seulement si l'utilisateur a explicitement choisi (par ex. pas par accident)
+	                // Ici on choisit de ne pas activer par défaut pour éviter erreurs — on laisse le focus sur le message
 	            }
 	        }
 	    });
-	    // <<<
-
-	    // À l’ouverture : pas de bouton par défaut, focus sur le message (lecture NVDA)
+	
+	    // À l'ouverture : focus sur le message (NVDA le lira) ; si l'utilisateur veut répondre, il peut Tab / utiliser Alt+O / Alt+N
 	    dlg.addWindowListener(new java.awt.event.WindowAdapter() {
 	        @Override public void windowOpened(java.awt.event.WindowEvent e) {
-	            dlg.getRootPane().setDefaultButton(null); // Entrée n’active aucun "default"
-	            msg.requestFocusInWindow();
+	            // Mettre le focus sur le texte pour que le lecteur d'écran commence la lecture
+	            SwingUtilities.invokeLater(() -> {
+	                txt.requestFocusInWindow();
+	                // détacher tout "default button" pour éviter Entrée non désirée
+	                dlg.getRootPane().setDefaultButton(null);
+	            });
 	        }
 	    });
-
-	    dlg.setVisible(true);
-	    Object val = pane.getValue();
-	    dlg.dispose();
-
-	    return "Oui".equals(val); // true=Oui, false=Non ou fermeture
-	}
 	
+	    // Taille, position et affichage
+	    dlg.pack();
+	    dlg.setSize(Math.max(880, dlg.getWidth()), Math.max(240, dlg.getHeight()));
+	    dlg.setResizable(false);
+	    dlg.setLocationRelativeTo(null); // centré sur l'écran
+	    dlg.setVisible(true);
+	
+	    return result[0];
+	}
+
     // Retourne le niveau du titre
 	private int niveauDuTitre(String titre) {
 	    if (titre == null) return 0;
@@ -1152,13 +1233,13 @@ public class navigateurT1 extends JFrame{
 
 		    int idx = selectedGlobalIndex;
 		    if (idx < 0 || idx >= titresOrdre.size()) {
-//		        announceAndRefocus("Aucun titre sélectionné.", 1500);
+		    	System.out.println("Aucun titre sélectionné.");
 		        return;
 		    }
 
 		    int lvl = titresNiveaux.get(idx);
 		    if (lvl == 0) {
-//		        announceAndRefocus("Élément non reconnu comme titre.", 2000);
+		    	System.out.println("Élément non reconnu comme titre.");
 		        return;
 		    }
 		    if (lvl >= 5) {
@@ -1167,10 +1248,10 @@ public class navigateurT1 extends JFrame{
 		        return;
 		    }	    
 		    
-		    String titreBrut = titresOrdre.get(idx); // ex: "#2. Mon titre"
+		    String titreBrut = titresOrdre.get(idx);
 		    int newLevel = lvl + 1;
 		    if (!demanderConfirmationChangementNiveau(true,true, lvl, newLevel, titreBrut)) {
-//		        announceAndRefocus("Augmentation du niveau annulée.", 2000);
+		    	System.out.println("Augmentation du niveau annulée.");
 		        return;
 		    }
 		    
@@ -1192,7 +1273,8 @@ public class navigateurT1 extends JFrame{
 		        if (k > maxInBloc) maxInBloc = k;
 		    }
 		    if (maxInBloc >= 5) {
-		    	//"Impossible d'augmenter : un sous-titre est déjà au niveau cinq."
+		    	StringBuilder msg = new StringBuilder("Impossible d'augmenter : un sous-titre est déjà au niveau cinq.");
+		    	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
 		        return;
 		    }
 
@@ -1214,13 +1296,50 @@ public class navigateurT1 extends JFrame{
 		    ml.appendTail(sbBloc);
 		    String blocShifted = sbBloc.toString();
 
-		    // Construire le nouveau document
-		    String nouveau = contenu.substring(0, start) + blocShifted + contenu.substring(end);
-		    editor.setText(nouveau);
+		    // -- Remplacer la portion [start,end) directement dans le Document pour éviter
+			// -- la recréation complète du texte et la possible normalisation des EOL.
+		    // -- Remplacer la portion [start,end) directement dans le Document de manière sûre
+		    javax.swing.text.Document doc = editor.getDocument();
+		    String nouveau;
+		    try {
+		        int oldCaret = editor.getCaretPosition();
 
-		    // Recalculs + resto expansions + rebuild
-		    allTitle(nouveau);
-		    restoreExpandedFromKeys(expSnapshot);
+		        int docLen = doc.getLength();
+		        // clamp start dans [0, docLen]
+		        int safeStart = Math.max(0, Math.min(start, docLen));
+		        // longueur souhaitée à supprimer
+		        int desiredRemove = end - start;
+		        // clamp longueur de suppression pour qu'elle ne dépasse pas la fin du doc
+		        int safeRemove = Math.max(0, Math.min(desiredRemove, docLen - safeStart));
+
+		        if (doc instanceof javax.swing.text.AbstractDocument) {
+		            // replace est atomique et plus sûr que remove/insert séparés
+		            javax.swing.text.AbstractDocument aDoc = (javax.swing.text.AbstractDocument) doc;
+		            aDoc.replace(safeStart, safeRemove, blocShifted, null);
+		        } else {
+		            // fallback si Document n'est pas AbstractDocument
+		            if (safeRemove > 0) doc.remove(safeStart, safeRemove);
+		            if (blocShifted.length() > 0) doc.insertString(safeStart, blocShifted, null);
+		        }
+
+		        // récupérer le texte actuel
+		        nouveau = doc.getText(0, doc.getLength());
+
+		        // restore caret à une position valide
+		        int newCaret = Math.max(0, Math.min(oldCaret, doc.getLength()));
+		        editor.setCaretPosition(newCaret);
+
+		    } catch (javax.swing.text.BadLocationException ex) {
+		        // dernier recours : modifier via setText (plus lourd mais sûr)
+		        ex.printStackTrace();
+		        nouveau = contenu.substring(0, start) + blocShifted + contenu.substring(end);
+		        editor.setText(nouveau);
+		    }
+
+			// Recalculs + resto expansions + rebuild
+			allTitle(nouveau);
+			restoreExpandedFromKeys(expSnapshot);
+
 
 		    // Retrouver l’index du titre modifié (sa ligne a changé de #n. en #(n+1).)
 		    // prendre la première ligne du blocShifted (la nouvelle ligne de titre)
@@ -1238,7 +1357,7 @@ public class navigateurT1 extends JFrame{
 
 		    @SuppressWarnings("unused")
 			final int announceLevel = Math.min(5, lvl + 1);
-		 // Re-focaliser la vue sur la branche du titre modifié
+		    // Re-focaliser la vue sur la branche du titre modifié
 		    openAncestors(newIdx);
 		    collapseSiblingsOf(newIdx);
 		    focusedRoot = topAncestorOf(newIdx);
@@ -1255,39 +1374,44 @@ public class navigateurT1 extends JFrame{
 		private void decreaseLevelOfSelectedBlock() {
 		    // Assure que selectedGlobalIndex correspond bien à la sélection
 		    updateSelectionContextAndSpeak();
-
+		
 		    int idx = selectedGlobalIndex;
 		    if (idx < 0 || idx >= titresOrdre.size()) {
-		    	//"Aucun titre sélectionné."
+		        System.out.println("Aucun titre sélectionné.");
 		        return;
 		    }
-
+		
 		    int lvl = titresNiveaux.get(idx);
 		    if (lvl == 0) {
-		    	//"Élément non reconnu comme titre."
+		    	 System.out.println("Élément non reconnu comme titre.");
 		        return;
 		    }
 		    if (lvl <= 1) {
-		    	//"Ce titre est déjà au niveau minimum un."
+		    	StringBuilder msg = new StringBuilder("Ce titre est déjà au niveau minimum.");
+		    	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
 		        return;
 		    }
-		    
+		
 		    String titreBrut = titresOrdre.get(idx);
 		    int newLevel = lvl - 1;
 		    if (!demanderConfirmationChangementNiveau(false, /*applyToBlock*/true, lvl, newLevel, titreBrut)) {
-		        //"Réduction du niveau annulée."
+		        System.out.println("Réduction du niveau annulée.");
 		        return;
 		    }
-
-
+		
 		    // Bornes du bloc (titre + descendants)
+
+
+		    // usage simple (ex. juste après editor.getText())
 		    String contenu = editor.getText();
+		    contenu = EOL_NORMALIZE.matcher(contenu).replaceAll("\n");
+
 		    int start = titresOffsets.get(idx);
 		    int idxBreak = indiceSuivantMemeOuInferieur(idx, lvl);
 		    int end = (idxBreak >= 0) ? titresOffsets.get(idxBreak) : contenu.length();
-
+		
 		    String bloc = contenu.substring(start, end);
-
+		
 		    // Vérifier si l’un des titres du bloc est déjà niveau 1 → on refuse
 		    Matcher m = Pattern.compile("(?m)^\\s*#([1-5])\\..*$").matcher(bloc);
 		    int minInBloc = Integer.MAX_VALUE;
@@ -1296,14 +1420,15 @@ public class navigateurT1 extends JFrame{
 		        if (k < minInBloc) minInBloc = k;
 		    }
 		    if (minInBloc <= 1) {
-		    	//"Impossible de réduire : un sous-titre est déjà au niveau un."
+		    	StringBuilder msg = new StringBuilder("Impossible de réduire : un sous-titre est déjà au niveau un.");
+		    	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
 		        return;
 		    }
-
+		
 		    // Snapshot expansions pour les restaurer ensuite
 		    java.util.Set<String> expSnapshot = snapshotExpandedKeys();
 		    boolean wasExpanded = expanded.contains(idx);
-
+		
 		    // Construire une version du bloc avec tous les niveaux -1 (sans passer sous 1)
 		    Pattern pLine = Pattern.compile("(?m)^(\\s*(?:\\u283F\\s*)?)#([1-5])(\\.)(.*)$");
 		    Matcher ml = pLine.matcher(bloc);
@@ -1316,42 +1441,75 @@ public class navigateurT1 extends JFrame{
 		    }
 		    ml.appendTail(sbBloc);
 		    String blocShifted = sbBloc.toString();
+		
+		    // --- Remplacer la portion [start,end) directement dans le Document
+		    // -- Remplacer la portion [start,end) directement dans le Document de manière sûre
+		    javax.swing.text.Document doc = editor.getDocument();
+		    String nouveau;
+		    try {
+		        int oldCaret = editor.getCaretPosition();
 
-		    // Construire le nouveau document
-		    String nouveau = contenu.substring(0, start) + blocShifted + contenu.substring(end);
-		    editor.setText(nouveau);
+		        int docLen = doc.getLength();
+		        // clamp start dans [0, docLen]
+		        int safeStart = Math.max(0, Math.min(start, docLen));
+		        // longueur souhaitée à supprimer
+		        int desiredRemove = end - start;
+		        // clamp longueur de suppression pour qu'elle ne dépasse pas la fin du doc
+		        int safeRemove = Math.max(0, Math.min(desiredRemove, docLen - safeStart));
 
+		        if (doc instanceof javax.swing.text.AbstractDocument) {
+		            // replace est atomique et plus sûr que remove/insert séparés
+		            javax.swing.text.AbstractDocument aDoc = (javax.swing.text.AbstractDocument) doc;
+		            aDoc.replace(safeStart, safeRemove, blocShifted, null);
+		        } else {
+		            // fallback si Document n'est pas AbstractDocument
+		            if (safeRemove > 0) doc.remove(safeStart, safeRemove);
+		            if (blocShifted.length() > 0) doc.insertString(safeStart, blocShifted, null);
+		        }
+
+		        // récupérer le texte actuel
+		        nouveau = doc.getText(0, doc.getLength());
+
+		        // restore caret à une position valide
+		        int newCaret = Math.max(0, Math.min(oldCaret, doc.getLength()));
+		        editor.setCaretPosition(newCaret);
+
+		    } catch (javax.swing.text.BadLocationException ex) {
+		        // dernier recours : modifier via setText (plus lourd mais sûr)
+		        ex.printStackTrace();
+		        nouveau = contenu.substring(0, start) + blocShifted + contenu.substring(end);
+		        editor.setText(nouveau);
+		    }
+		
 		    // Recalcul structures + restauration expansions + rebuild de la vue
 		    allTitle(nouveau);
 		    restoreExpandedFromKeys(expSnapshot);
 		    rebuildVisibleModel();
-
+		
 		    // Retrouver l’index du titre modifié (sa ligne passe de #n. à #(n-1).)
 		    String oldLine = titresOrdre.get(Math.min(idx, titresOrdre.size() - 1)); // sécurité
 		    // Reconstituer la nouvelle ligne attendue depuis le niveau connu
 		    String newTitleLine = oldLine.replaceFirst("^\\s*#([1-5])\\.", "#" + (lvl - 1) + ".");
-
+		
 		    int newIdx = findIndexByExactLine(newTitleLine);
 		    if (newIdx < 0) newIdx = idx; // fallback
-
+		
 		    // Si le titre racine était développé, on le rouvre
 		    if (wasExpanded && newIdx >= 0) {
 		        expanded.add(newIdx);
 		        rebuildVisibleModel();
 		    }
-
+		
 		    @SuppressWarnings("unused")
-			final int announceLevel = Math.max(1, lvl - 1);
+		    final int announceLevel = Math.max(1, lvl - 1);
 		    // Re-focaliser la vue sur la branche du titre modifié
 		    openAncestors(newIdx);
 		    collapseSiblingsOf(newIdx);
 		    focusedRoot = topAncestorOf(newIdx);
 		    focusedBranch = newIdx;
-
+		
 		    rebuildVisibleModel();
 		    refocusOn(newIdx, "Affichage recentré sur la branche courante.", 1800);
-
-
 		}
 
 		
