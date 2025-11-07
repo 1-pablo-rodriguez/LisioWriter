@@ -58,6 +58,9 @@ public class navigateurT1 extends JFrame{
 	private Integer focusedRoot = null;
 	// Montre uniquement la branche du nœud ciblé (ancêtres + lui + ses descendants)
 	private Integer focusedBranch = null;
+	
+	// garde la ligne EXACTE telle qu'extraite du document (inclut ⠿ si présent)
+	private java.util.List<String> titresRawLines = new java.util.ArrayList<>();
 
     int selectedIndex = 0;
 
@@ -128,32 +131,32 @@ public class navigateurT1 extends JFrame{
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 
 		new javax.swing.SwingWorker<Void, Void>() {
+		    String normText; // accessible par done()
+
 		    @Override protected Void doInBackground() {
 		        String raw = editor.getText();
 		        if (needsNormalization(raw)) {
-		            String norm = normalize(raw);
-		            if (!norm.equals(raw)) {
-		                SwingUtilities.invokeLater(() -> {
-		                    editor.setText(norm);
-		                    editor.setCaretPosition(0);
-		                });
-		            }
+		            normText = normalize(raw);
+		        } else {
+		            normText = raw;
 		        }
-		        allTitle(editor.getText());
+		        // IMPORTANT : n'écris PAS editor.setText(normText) ici.
+		        // On analyse seulement la copie 'normText' pour construire la liste.
+		        allTitle(normText);
 		        return null;
 		    }
 
 		    @Override protected void done() {
 		        rebuildVisibleModel();
 		        setCursor(java.awt.Cursor.getDefaultCursor());
-
-		        // Sélectionner le premier élément une fois la liste prête
+		        // la normalisation à l'utilisateur
 		        if (!listModel.isEmpty()) {
 		            list.setSelectedIndex(0);
 		            updateSelectionContextAndSpeak();
 		        }
 		    }
 		}.execute();
+
 
 		// Sélectionner le premier élément de la liste après avoir ajouté les titres
         if (!listModel.isEmpty()) {
@@ -297,45 +300,46 @@ public class navigateurT1 extends JFrame{
 	// Découpage de la structure par les titres du documents
 	/** Analyse le texte et extrait tous les titres (#1. à #5.) avec leurs positions et hiérarchie. */
 	private void allTitle(String text) {
-		
-		System.out.println("Longueur texte brute : " + editor.getText().length());
-		System.out.println("Premier caractère (codepoint) : " + (int)editor.getText().charAt(0));
-		
 	    allTitles = new StringBuilder();
 	    structure = new LinkedHashMap<>();
 	    titresOrdre.clear();
+	    titresRawLines.clear();
 	    titresOffsets.clear();
 	    titresNiveaux.clear();
 	    parents.clear();
 	
 	    if (text == null || text.isEmpty()) return;
 	
-	    // --- Recherche des lignes de titre (#1. à #5.) ---
-	    Pattern pattern = Pattern.compile("(?m)^\\s*#[1-5]\\..*$");
+	    // Pattern qui accepte un préfixe braille optionnel (⠿ U+283F)
+	    Pattern pattern = Pattern.compile("(?m)^(?:\\s*\\u283F\\s*)?\\s*#[1-5]\\..*$");
 	    Matcher matcher = pattern.matcher(text);
 	
 	    while (matcher.find()) {
-	        String line = matcher.group();
+	        String rawLine = matcher.group();                    // la ligne telle qu'elle est dans le doc (avec ⠿ si présent)
+	        // position locale du '#'
+	        int localHash = rawLine.indexOf('#');
+	        if (localHash < 0) continue;
 	
-	        // ✅ Position exacte du début du titre (le caractère '#')
-	        int caretPos = matcher.start();
+	        int caretPos = matcher.start() + localHash;         // offset du '#' dans le document
 	
-	        titresOrdre.add(line.trim());
-	        titresNiveaux.add(niveauDuTitre(line));
+	        // cleaned = sans préfixe braille (pour toutes les comparaisons)
+	        String cleaned = rawLine.replaceFirst("^\\s*(?:\\u283F\\s*)?", "").trim();
+	
+	        titresRawLines.add(rawLine);
+	        titresOrdre.add(cleaned);          // version "utilisable" (sans ⠿)
 	        titresOffsets.add(caretPos);
-	
-	        allTitles.append(line.trim()).append(System.lineSeparator());
-	        structure.putIfAbsent(keyOf(line), "");
+	        titresNiveaux.add(niveauDuTitre(cleaned)); // utilise cleaned
+	        allTitles.append(cleaned).append(System.lineSeparator());
+	        structure.putIfAbsent(keyOf(cleaned), "");
 	    }
 	
+	    // --- construire structure (compte des H2.. etc) en utilisant titresOrdre (clean)
 	    int count = 0;
 	    String courantH1 = null;
-	
 	    for (String k : titresOrdre) {
-	        if (k.matches("^\\s*#1\\..*")) {
+	        if (k.matches("^#1\\..*")) {
 	            if (courantH1 != null) {
-	                structure.put(
-	                    keyOf(courantH1),
+	                structure.put(keyOf(courantH1),
 	                    (count > 0)
 	                        ? ". Dans cette partie, il y a " + count + " titres de niveau inférieurs."
 	                        : ". Dans cette partie, il n'y a pas de titre de niveau inférieur."
@@ -347,29 +351,24 @@ public class navigateurT1 extends JFrame{
 	            count++;
 	        }
 	    }
-	
 	    if (courantH1 != null) {
-	        structure.put(
-	            keyOf(courantH1),
+	        structure.put(keyOf(courantH1),
 	            (count > 0)
 	                ? ". Dans cette partie, il y a " + count + " titres de niveau inférieurs."
 	                : ". Dans cette partie, il n'y a pas de titre de niveau inférieur."
 	        );
 	    }
 	
-	    // --- Calcul de la hiérarchie des titres (parents/enfants) ---
+	    // Calcul hiérarchie (parents) — titresNiveaux contient déjà les niveaux propres (clean)
 	    java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();
 	    for (int i = 0; i < titresOrdre.size(); i++) {
 	        int lvl = titresNiveaux.get(i);
-	        while (!stack.isEmpty() && titresNiveaux.get(stack.peek()) >= lvl) {
-	            stack.pop();
-	        }
+	        while (!stack.isEmpty() && titresNiveaux.get(stack.peek()) >= lvl) stack.pop();
 	        int par = stack.isEmpty() ? -1 : stack.peek();
 	        parents.add(par);
 	        stack.push(i);
 	    }
 	
-	    // --- Tous les titres sont repliés au démarrage ---
 	    expanded.clear();
 	}
 
@@ -407,14 +406,23 @@ public class navigateurT1 extends JFrame{
 	
 	// Fermeture du navigateur
 	private void fermeture() {
-		list.removeAll();
-	  	structure.clear();
-		dispose();
-		SwingUtilities.invokeLater(() -> {
-            parent.requestFocus();
-            parent.getEditor().requestFocusInWindow();
-        });
+	    if (listModel != null) listModel.clear();
+	    viewToGlobal.clear();
+	    titresOrdre.clear();
+	    titresRawLines.clear();
+	    titresOffsets.clear();
+	    titresNiveaux.clear();
+	    parents.clear();
+	    expanded.clear();
+	    structure.clear();
+	    dispose();
+	    SwingUtilities.invokeLater(() -> {
+	        parent.requestFocus();
+	        parent.getEditor().requestFocusInWindow();
+	    });
 	}
+
+
 
 	
    	// Méthode pour sélectionner un élément dans une JList en fonction de son texte
@@ -701,19 +709,14 @@ public class navigateurT1 extends JFrame{
 
 	    return "Oui".equals(val); // true=Oui, false=Non ou fermeture
 	}
-
-
- 
-
-
-  
 	
     // Retourne le niveau du titre
-    private int niveauDuTitre(String titre) {
-        if (titre == null) return 0;
-        Matcher m = Pattern.compile("^\\s*#([1-5])\\.", Pattern.DOTALL).matcher(titre);
-        return m.find() ? Integer.parseInt(m.group(1)) : 0;
-    }
+	private int niveauDuTitre(String titre) {
+	    if (titre == null) return 0;
+	    Matcher m = Pattern.compile("^#([1-5])\\.").matcher(titre.trim());
+	    return m.find() ? Integer.parseInt(m.group(1)) : 0;
+	}
+
 	    
 	  
 	  	  
@@ -892,9 +895,11 @@ public class navigateurT1 extends JFrame{
 	  
 		// utilitaire : clé normalisée = sans espaces en début de ligne
 		private static String keyOf(String s) {
-		    return (s == null) ? "" : s.replaceFirst("^\\s+", "");
+		    if (s == null) return "";
+		    // enlève préfixe braille facultatif et espaces initiaux
+		    return s.replaceFirst("^\\s*(?:\\u283F\\s*)?", "").replaceFirst("^\\s+", "");
 		}
-		
+
 		// visible si H1 ou si tous ses ancêtres sont dans expanded
 		private boolean isVisible(int i) {
 		    int p = parents.get(i);
@@ -1134,9 +1139,6 @@ public class navigateurT1 extends JFrame{
 		            copySelectedBlockToClipboard();
 		        }
 		    });
-
-		    
-		    
    
 		}
 
@@ -1160,7 +1162,8 @@ public class navigateurT1 extends JFrame{
 		        return;
 		    }
 		    if (lvl >= 5) {
-//		        announceAndRefocus("Ce titre est déjà au niveau maximum cinq.", 2000);
+		    	StringBuilder msg = new StringBuilder("Ce titre est déjà au niveau maximum cinq.");
+		    	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
 		        return;
 		    }	    
 		    
@@ -1180,7 +1183,8 @@ public class navigateurT1 extends JFrame{
 		    String bloc = contenu.substring(start, end);
 
 		    // Vérifier si on peut encore augmenter (aucun titre niveau 5 dans le bloc)
-		    Pattern p = Pattern.compile("(?m)^\\s*#([1-5])\\..*$");
+		    // accepte un préfixe ⠿ optionnel avant le '#'
+		    Pattern p = Pattern.compile("(?m)^(?:\\s*\\u283F\\s*)?\\s*#([1-5])\\..*$");
 		    Matcher m = p.matcher(bloc);
 		    int maxInBloc = 0;
 		    while (m.find()) {
@@ -1197,7 +1201,8 @@ public class navigateurT1 extends JFrame{
 		    boolean wasExpanded = expanded.contains(idx);
 
 		    // Construire une version du bloc avec tous les niveaux +1
-		    Pattern pLine = Pattern.compile("(?m)^(\\s*)#([1-5])(\\.)(.*)$");
+		    // préserve également le préfixe (espaces + éventuel ⠿)
+		    Pattern pLine = Pattern.compile("(?m)^(\\s*(?:\\u283F\\s*)?)#([1-5])(\\.)(.*)$");
 		    Matcher ml = pLine.matcher(bloc);
 		    StringBuffer sbBloc = new StringBuffer();
 		    while (ml.find()) {
@@ -1218,17 +1223,12 @@ public class navigateurT1 extends JFrame{
 		    restoreExpandedFromKeys(expSnapshot);
 
 		    // Retrouver l’index du titre modifié (sa ligne a changé de #n. en #(n+1).)
-		    String oldLine = titresOrdre.get(Math.min(idx, titresOrdre.size()-1)); // sécurité si taille changée
-		    // Recalcule oldLine à partir du bloc modifié : plus robuste
-		    // On refait la ligne attendue à partir de l’ancienne (avant changement) :
-		    String originalLineBefore = oldLine; // (capturée avant allTitle si tu préfères)
-		    // Si tu préfères la version simple, prends la première ligne de blocShifted :
-		    // mais ici on fabrique la "nouvelle" ligne depuis l’ancienne valeur connue 'lvl'
-		    String newTitleLine = originalLineBefore.replaceFirst("^\\s*#([1-5])\\.", "#" + (lvl + 1) + ".");
-
+		    // prendre la première ligne du blocShifted (la nouvelle ligne de titre)
+		    String firstLineShifted = blocShifted.split("\\R", 2)[0];
+		    String cleanedFirst = firstLineShifted.replaceFirst("^\\s*(?:\\u283F\\s*)?", "").trim();
+		    int newIdx = findIndexByExactLine(cleanedFirst);
 		    rebuildVisibleModel();
 
-		    int newIdx = findIndexByExactLine(newTitleLine);
 		    if (newIdx < 0) newIdx = idx; // fallback
 
 		    if (wasExpanded && newIdx >= 0) {
@@ -1305,7 +1305,7 @@ public class navigateurT1 extends JFrame{
 		    boolean wasExpanded = expanded.contains(idx);
 
 		    // Construire une version du bloc avec tous les niveaux -1 (sans passer sous 1)
-		    Pattern pLine = Pattern.compile("(?m)^(\\s*)#([1-5])(\\.)(.*)$");
+		    Pattern pLine = Pattern.compile("(?m)^(\\s*(?:\\u283F\\s*)?)#([1-5])(\\.)(.*)$");
 		    Matcher ml = pLine.matcher(bloc);
 		    StringBuffer sbBloc = new StringBuffer();
 		    while (ml.find()) {
@@ -1361,7 +1361,8 @@ public class navigateurT1 extends JFrame{
 		    updateSelectionContextAndSpeak();
 
 		    int idx = selectedGlobalIndex;
-
+		    if (idx < 0 || idx >= titresOrdre.size()) return;
+		    
 		    int lvl = titresNiveaux.get(idx);
 		    if (lvl <= 0) {
 //		        announceAndRefocus("Ce titre est déjà au niveau minimum un.", 2100);
@@ -1385,19 +1386,27 @@ public class navigateurT1 extends JFrame{
 
 		    // Offsets de la LIGNE de titre
 		    int start = titresOffsets.get(idx);
-		    String oldLine = titresOrdre.get(idx); // la ligne telle que trouvée par allTitle()
-		    int lineLen = oldLine.length();
+		    String rawOldLine = titresRawLines.get(idx); // ligne telle qu'elle est DANS le document (avec ⠿ si présent)
+		    int lineLen = rawOldLine.length();
 
-		    // Nouvelle ligne : #n. → #(n+1).
-		    String newLine = oldLine.replaceFirst("^\\s*#([1-5])\\.", "#" + (lvl + 1) + ".");
+		    // extraire le préfixe (espaces + éventuel ⠿ + espaces) pour le préserver
+		    Matcher pre = Pattern.compile("^(\\s*(?:\\u283F\\s*)?)#([1-5])\\.(.*)$", Pattern.DOTALL).matcher(rawOldLine);
+		    if (!pre.find()) return; // garde-fou
+		    String prefix = pre.group(1);
+		    String tail = pre.group(3);
 
-		    // Snapshot des expansions pour restauration
-		    java.util.Set<String> expSnapshot = snapshotExpandedKeys();
+		    // construire la nouvelle ligne en conservant le préfixe exact
+		    String newLine = prefix + "#" + (lvl + 1) + "." + tail;
 
-		    // Remplacement dans le document (uniquement la ligne de titre)
+		    // Remplacement dans le document (uniquement la ligne)
 		    String nouveau = contenu.substring(0, start) + newLine + contenu.substring(start + lineLen);
 		    editor.setText(nouveau);
 
+
+		    
+		    // Snapshot des expansions pour restauration
+		    java.util.Set<String> expSnapshot = snapshotExpandedKeys();
+		    
 		    // Recalcul & restauration UI
 		    allTitle(nouveau);
 		    restoreExpandedFromKeys(expSnapshot);
@@ -1427,74 +1436,54 @@ public class navigateurT1 extends JFrame{
 		// Séquence respectée : allTitle(...) → restoreExpandedFromKeys(...) → rebuildVisibleModel() → reselectByGlobalIndexLater(...)
 		private void decreaseLevelOfSelectedTitleOnly() {
 		    updateSelectionContextAndSpeak();
-
+		
 		    int idx = selectedGlobalIndex;
+		    if (idx < 0 || idx >= titresOrdre.size()) return; // garde-fou
 		    int lvl = titresNiveaux.get(idx);
-
-		    if (lvl <= 1) {
-//		    	 announceAndRefocus("Ce titre est déjà au niveau minimum un.", 2000);
+		
+		    if (lvl <= 1) return;
+		
+		    String titreBrut = titresOrdre.get(idx);
+		    int requestedNewLevel = lvl - 1;
+		    if (!demanderConfirmationChangementNiveau(false, false, lvl, requestedNewLevel, titreBrut)) {
 		        return;
 		    }
-		    
-		    String titreBrut = titresOrdre.get(idx);
-		    int newLevel = lvl - 1;
-		    if (!demanderConfirmationChangementNiveau(false, false, lvl, newLevel, titreBrut)) {
-//		    	announceAndRefocus("Réduction du niveau annulée.", 2000);
-		    	return;
-		    }
-
+		
 		    String contenu = editor.getText();
 		    int start = titresOffsets.get(idx);
-		    String oldLine = titresOrdre.get(idx);
-		    int lineLen = oldLine.length();
-
-		    // Conserver l’éventuel espace en tête, ne changer que "#n."
-		    Matcher mm = Pattern.compile("^(\\s*)#([1-5])\\.(.*)$").matcher(oldLine);
-		    if (!mm.find()) {
-		    	//"Impossible de réduire ce titre."
-		        return;
-		    }
+		    String rawOldLine = titresRawLines.get(idx); // ligne dans le doc (avec ⠿ si présent)
+		    int lineLen = rawOldLine.length();
+		
+		    Matcher mm = Pattern.compile("^(\\s*(?:\\u283F\\s*)?)#([1-5])\\.(.*)$", Pattern.DOTALL).matcher(rawOldLine);
+		    if (!mm.find()) return;
 		    String leading = mm.group(1);
-		    String tail    = mm.group(3);
-		    newLevel   = Math.max(1, lvl - 1);
-		    String newLine = leading + "#" + newLevel + "." + tail;
-
-		    // Sauvegarder l'état d'expansion et si ce titre était ouvert
+		    String tail = mm.group(3);
+		    int targetLevel = Math.max(1, lvl - 1);
+		    String newLine = leading + "#" + targetLevel + "." + tail;
+		
 		    java.util.Set<String> expSnapshot = snapshotExpandedKeys();
 		    boolean wasExpanded = expanded.contains(idx);
-
-		    // Remplacer uniquement la ligne de titre dans le document
+		
 		    String nouveau = contenu.substring(0, start) + newLine + contenu.substring(start + lineLen);
 		    editor.setText(nouveau);
-
-		    // Recalcul + restauration + rebuild
+		
 		    allTitle(nouveau);
 		    restoreExpandedFromKeys(expSnapshot);
 		    rebuildVisibleModel();
-
-		    // Retrouver le nouvel index de ce titre
+		
 		    int newIdx = findIndexByExactLine(newLine);
-		    if (newIdx < 0) newIdx = idx; // fallback
-
-		    // S’il était développé, on le rouvre
+		    if (newIdx < 0) newIdx = idx;
+		
 		    if (wasExpanded && newIdx >= 0) {
 		        expanded.add(newIdx);
 		        rebuildVisibleModel();
 		    }
-
-			@SuppressWarnings("unused")
-			final int announceLevel = newLevel;
-		    
-		    // Re-focaliser la vue sur la branche du titre modifié
-		    openAncestors(newIdx);
-		    collapseSiblingsOf(newIdx);
+		
 		    focusedRoot = topAncestorOf(newIdx);
 		    focusedBranch = newIdx;
-
+		
 		    rebuildVisibleModel();
 		    refocusOn(newIdx, "Affichage recentré sur la branche courante.", 1800);
-
-
 		}
 
 		// Annonce si le titre est réduit ou développé, lit le titre et indique des stats sur tout son bloc (sous-titres compris).
@@ -1613,11 +1602,13 @@ public class navigateurT1 extends JFrame{
 		// Trouve l'index de la ligne
 		private int findIndexByExactLine(String line) {
 		    if (line == null) return -1;
+		    String target = keyOf(line).trim();
 		    for (int i = 0; i < titresOrdre.size(); i++) {
-		        if (line.equals(titresOrdre.get(i))) return i;
+		        if (target.equals(keyOf(titresOrdre.get(i)).trim())) return i;
 		    }
 		    return -1;
 		}
+
 		
 		// champs de la classe
 		@SuppressWarnings("serial")
@@ -1693,7 +1684,6 @@ public class navigateurT1 extends JFrame{
 		    rebuildVisibleModel();
 		    reselectByGlobalIndexLater(gi, () -> {
 		        if (announce != null && !announce.isEmpty()) {
-//		            announceAndRefocus(announce, ms);
 		        }
 		    });
 		}
@@ -1743,6 +1733,7 @@ public class navigateurT1 extends JFrame{
 		    updateSelectionContextAndSpeak();
 
 		    int idx = selectedGlobalIndex;
+		    if (idx < 0 || idx >= titresOrdre.size()) return;
 		    java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(list);
 
 		    if (idx < 0 || idx >= titresOrdre.size()) {

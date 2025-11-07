@@ -3,7 +3,8 @@ package writer.ui.text;
 import javax.swing.text.*;
 
 /*
- * Class permettant de placer le cursseur dans le document.
+ * Class permettant de connaitre la position du curseur dans le texte
+ * et de placer le cursseur dans le document.
  */
 public final class Lines {
 

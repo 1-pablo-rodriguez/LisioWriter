@@ -786,5 +786,71 @@ public class EditorFrame extends JFrame implements EditorApi {
         }
     }
 
+	/**
+	 * Préfixe chaque paragraphe visible par le caractère braille (⠿ = '\u283F'),
+	 * sans créer d'undo et en restant sûr vis-à-vis de l'EDT.
+	 */
+	public void ensureLeadingBrailleMarkOnAllParagraphs() {
+	    final char mark = '\u283F';
+	
+	    // Force exécution sur EDT
+	    SwingUtilities.invokeLater(() -> {
+	        try {
+	            javax.swing.text.Document doc = editorPane.getDocument();
+	            if (doc == null) return;
+	
+	            // Lire texte courant
+	            String current = doc.getText(0, doc.getLength());
+	
+	            // Transformer (préserve l'indentation)
+	            String transformed = writer.ui.editor.BraillePrefixer
+	                    .prefixParagraphsWithBrailleMarkPreserveIndent(current, mark);
+	
+	            if (transformed.equals(current)) return; // rien à faire
+	
+	            // sauvegarder position caret relative (optionnel)
+	            int oldCaret = Math.max(0, editorPane.getCaretPosition());
+	
+	            // Retirer temporairement le listener qui ajoute des edits à l'UndoManager
+	            if (doc instanceof javax.swing.text.AbstractDocument ad) {
+	                try {
+	                    ad.removeUndoableEditListener(defaultUndoableEditListener);
+	                } catch (Exception ignore) {}
+	            }
+	
+	            try {
+	                // Remplacer tout le contenu proprement (sur EDT)
+	                // (on évite writeLock() car non visible depuis ici)
+	                if (doc.getLength() > 0) doc.remove(0, doc.getLength());
+	                doc.insertString(0, transformed, null);
+	            } finally {
+	                // remettre le listener
+	                if (doc instanceof javax.swing.text.AbstractDocument ad) {
+	                    try { ad.addUndoableEditListener(defaultUndoableEditListener); } catch (Exception ignore) {}
+	                }
+	            }
+	
+	            // repositionner caret : essaie de placer proche de l'ancienne position
+	            int newPos = Math.max(0, Math.min(oldCaret, doc.getLength()));
+	            editorPane.setCaretPosition(newPos);
+	
+	            // vider l'historique d'undo (on veut que cette opération ne soit pas undoable)
+	            try { if (this.undoManager != null) this.undoManager.discardAllEdits(); } catch (Throwable ignore) {}
+	
+	            // mettre à jour l'UI des actions undo/redo
+	            updateUndoRedoState();
+	
+	            // réappliquer la colorisation (si tu veux) — fait après le préfixage
+	            SwingUtilities.invokeLater(() -> {
+	                try { applyHighlightsNoUndo(); } catch (Throwable ignore) {}
+	            });
+	
+	        } catch (javax.swing.text.BadLocationException ex) {
+	            ex.printStackTrace();
+	        }
+	    });
+	}
+
+
  	
 }

@@ -56,18 +56,16 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
 
         
         char p = '\u00B6';
+        char c = '\u283F';
         
         double pct = (totalWords == 0) ? 0.0 : (100.0 * wordsBefore / totalWords);
 
         StringBuilder msg = new StringBuilder(128);
         msg.append(String.format("Lecture réalisé : %.1f%% (%d / %d mots).",
                 Math.rint(pct * 10.0) / 10.0, wordsBefore, totalWords) + " ↓\n");
-        msg.append(formatHeadingLine("Titre au-dessus : ", above)).append(" ↓\n");
-        msg.append(formatHeadingLine("Titre suivant : ", below)).append(" ↓\n");
-        msg.append("Curseur dans le ").append(p).append(" : ").append(caretPara);
-
-        // ligne pourcentage
-        
+        msg.append(c).append(formatHeadingLine("Titre au-dessus : ", above)).append(" ↓\n");
+        msg.append(c).append(formatHeadingLine("Titre suivant : ", below)).append(" ↓\n");
+        msg.append(c).append("Curseur dans le ").append(p).append(" : ").append(caretPara);
 
         java.awt.Window owner = SwingUtilities.getWindowAncestor(editor);
         dia.InfoDialog.show(owner, "Position dans le texte", msg.toString());

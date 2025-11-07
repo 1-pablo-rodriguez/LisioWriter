@@ -13,6 +13,7 @@ public class bienvenueAffichage {
         StringBuilder message = new StringBuilder(128);
 
         JTextComponent editorPane = frame.getEditor();
+        char c = '\u283F';
         try {
 
                 String fileName = (commandes.nameFile != null && !commandes.nameFile.isBlank())
@@ -21,21 +22,18 @@ public class bienvenueAffichage {
                                   ? commandes.currentDirectory.getName() : "Dossier inconnu";
 
                 boolean editable = editorPane != null && editorPane.isEditable();
-                boolean liveSpell = commandes.verificationOrthoGr; // ta variable existante
 
                 message.append("BIENVENUE sur LisioWriter ↓");
-                message.append("\nVersion : ").append(AppInfo.getAppVersion()).append(" ↓");
-                message.append("\nFichier ouvert : ").append(fileName).append(" ↓");
-                message.append("\nDossier de travail : ").append(folder).append(" ↓");
-                message.append(editable ? "\nMode éditable. ↓" : "Mode en lecture seule. ↓");
-                message.append(liveSpell ? "\nVérif. frappe activée."
-                                         : "\nVérif. frappe désactivée.");
+                message.append("\n").append(c).append("Version : ").append(AppInfo.getAppVersion()).append(" ↓");
+                message.append("\n").append(c).append("Fichier ouvert : ").append(fileName).append(" ↓");
+                message.append("\n").append(c).append("Dossier de travail : ").append(folder).append(" ↓");
+                message.append(editable ? "\n" + c +"Mode éditable." : "\n"+c+"Mode en lecture seule.");
         } catch (Exception ignore) {
             // on évite toute exception dans ce chemin d’annonce
-            message = new StringBuilder("Informations indisponibles pour le moment.");
+            message = new StringBuilder(c+"Informations indisponibles pour le moment.");
         }
         
         java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(editorPane);
-        dia.InfoDialog.show(owner, "Bienvenue", message.toString());
+        dia.InfoDialog.show(owner, c+"Bienvenue", message.toString());
     }
 }

@@ -360,14 +360,61 @@ public class HtmlBrowserDialog extends JDialog {
 	                        articleTitle = sel.title;
 	                }
 	
-	                // ✅ Formater le contenu final (titre + texte importé)
-	                String formatted = "#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
-	                
-	                System.out.println("✅ Article inséré : " + articleTitle);
-	                	               	                
-	                doc.insertString(pos, formatted, null);
+	                // caractère braille utilisé comme préfixe
+	                final char BRAILLE_MARK = '\u283F';
+
+	                // titre + contenu importé
+	                String formatted = "⠿#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
+
+	                // --- Préfixer les paragraphes par ⠿ mais laisser la première ligne (le titre) intacte ---
+	                String transformed;
+	                try {
+	                    int firstNewline = formatted.indexOf('\n');
+	                    if (firstNewline >= 0 && formatted.startsWith("#1.")) {
+	                        String titleLine = formatted.substring(0, firstNewline + 1); // inclut '\n'
+	                        String rest = formatted.substring(firstNewline + 1);
+	                        // appelle ta nouvelle classe utilitaire
+	                        rest = writer.ui.editor.BraillePrefixer.prefixParagraphsWithBrailleMark(rest, BRAILLE_MARK);
+	                        transformed = titleLine + rest;
+	                    } else {
+	                        // pas de titre détecté : préfixer tout
+	                        transformed = writer.ui.editor.BraillePrefixer.prefixParagraphsWithBrailleMark(formatted, BRAILLE_MARK);
+	                    }
+	                } catch (Throwable t) {
+	                    t.printStackTrace();
+	                    transformed = formatted; // fallback
+	                }
+
+	                // --- Insérer dans le document (tu es déjà sur l'EDT dans done()) ---
+	                try {
+	                    // supprime tout (tu le fais déjà plus haut, on réutilise pos=0)
+	                    doc.insertString(pos, transformed, null);
+	                } catch (javax.swing.text.BadLocationException ble) {
+	                    ble.printStackTrace();
+	                }
+
+	                // --- Appliquer la colorisation si tu veux (optionnel) ---
+	                try {
+	                    if (editorPane instanceof javax.swing.JTextPane) {
+	                        writer.ui.editor.TextHighlighter.apply((javax.swing.JTextPane) editorPane);
+	                    }
+	                } catch (Throwable ignore) { /* ne pas bloquer l'insertion */ }
+
+	                // --- Vider l'historique undo pour éviter undo invalide (fortement conseillé) ---
+	                try {
+	                    java.awt.Window w = javax.swing.SwingUtilities.getWindowAncestor(editorPane);
+	                    if (w instanceof writer.ui.EditorFrame) {
+	                        writer.ui.EditorFrame ef = (writer.ui.EditorFrame) w;
+	                        ef.getUndoManager().discardAllEdits();
+	                        // mettre à jour l'état des actions Undo/Redo dans l'UI
+	                        try { ef.getUndoAction().setEnabled(false); } catch (Throwable ignore) {}
+	                        try { ef.getRedoAction().setEnabled(false); } catch (Throwable ignore) {}
+	                    }
+	                } catch (Throwable ignore) {}
+
 	                
 	                editorPane.setCaretPosition(pos);
+	                
 	                
 	                // ✅ Fermer la fenêtre et redonner le focus à l’éditeur
 	                dispose();

@@ -107,7 +107,7 @@ public class readFileBlindWriter {
 
                     // positionner le caret au début
                     try { editorComp.setCaretPosition(0); } catch (Exception ignore) {}
-
+   
                     // rechargement des signets si présents
                     parent.createNewBookmarkManager();
                     if (commandes.nodeblindWriter.retourneFirstEnfant("bookmarks") != null) {
@@ -129,6 +129,12 @@ public class readFileBlindWriter {
                     try { parent.getUndoAction().setEnabled(false); } catch (Throwable ignore) {}
                     try { parent.getRedoAction().setEnabled(false); } catch (Throwable ignore) {}
 
+                    
+                    // -> insère le aractère braille début de paragraphe 
+                    if (parent instanceof EditorFrame) {
+                        ((EditorFrame) parent).ensureLeadingBrailleMarkOnAllParagraphs();
+                    }
+                    
                     // Appliquer la colorisation/surlignage si possible (TextHighlighter.apply attend un JTextPane)
                     try {
                         if (editorComp instanceof JTextPane tp) {
