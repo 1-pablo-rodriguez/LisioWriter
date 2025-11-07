@@ -24,7 +24,6 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 import javax.swing.MenuSelectionManager;
@@ -45,6 +44,8 @@ import writer.bookmark.BookmarkManager;
 import writer.editor.AutoListContinuationFilter;
 import writer.model.Affiche;
 import writer.spell.SpellCheckLT;
+import writer.ui.editor.CompositeDocumentFilter;
+import writer.ui.editor.EnterBrailleInsertAction;
 import writer.ui.editor.TextHighlighter;
 import writer.ui.editor.WrapEditorKit;
 import writer.ui.editor.enableCopyPasteVisibleTabs;
@@ -265,6 +266,41 @@ public class EditorFrame extends JFrame implements EditorApi {
     	// --- Setup de la frame ---
     	setupEditorPane();
     	
+    	editorPane.setNavigationFilter(
+    		    new writer.ui.editor.NoGapAcrossBrailleNavigationFilter(
+    		        editorPane,
+    		        editorPane.getNavigationFilter()   // délégué (peut être null, c'est ok)
+    		    )
+    		);
+    	
+    	// --- empêche le caret à être en position zéro et entre \n
+    	javax.swing.text.NavigationFilter current = editorPane.getNavigationFilter();
+    	editorPane.setNavigationFilter(new writer.ui.editor.NoGapAcrossBrailleNavigationFilter(editorPane, current));
+
+    	// --- Remapper Home pour aller au début logique (1 au lieu de 0)
+    	editorPane.getInputMap().put(
+    		    javax.swing.KeyStroke.getKeyStroke("HOME"),
+    		    "bw-home-safe");
+    		editorPane.getActionMap().put("bw-home-safe", new javax.swing.AbstractAction() {
+    		    @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+    		        int len = editorPane.getDocument().getLength();
+    		        int pos = (len == 0) ? 0 : 1;
+    		        editorPane.setCaretPosition(pos);
+    		    }
+    		});
+    		
+    	// Listener sur la position du caret
+    	editorPane.addCaretListener(ev ->
+    	    javax.swing.SwingUtilities.invokeLater(() -> {
+    	        try {
+    	            if (editorPane.getDocument().getLength() > 0 && editorPane.getCaretPosition() == 0) {
+    	                editorPane.setCaretPosition(1);
+    	            }
+    	        } catch (Exception ignore) {}
+    	    })
+    	);
+
+    	
     	// --- Ajoute les raccourcis clavier ---
     	new writer.ui.editor.KeyboardShortcutManager(this, this.editorPane).installShortcuts();
 
@@ -287,7 +323,20 @@ public class EditorFrame extends JFrame implements EditorApi {
      	    }
      	});
 
-     	
+     	// récupérer action par défaut comme fallback (optionnel)
+  	    EnterBrailleInsertAction brailleEnter = EnterBrailleInsertAction.createWithDefaultFallback(editorPane, false);
+  	    editorPane.getActionMap().put(javax.swing.text.DefaultEditorKit.insertBreakAction, brailleEnter);
+ 	    
+
+  	    // Remappe BACK_SPACE vers notre action intelligente
+        this.editorPane.getInputMap().put(KeyStroke.getKeyStroke("BACK_SPACE"), "bw-smart-backspace");
+        this.editorPane.getActionMap().put("bw-smart-backspace",
+            new writer.ui.editor.SmartBackspaceAction(editorPane, defaultBackspace));
+        
+        // Remappe Delete vers notre action intelligente
+        this.editorPane.getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "bw-smart-delete");
+        this.editorPane.getActionMap().put("bw-smart-delete",
+            new writer.ui.editor.SmartDeleteAction(editorPane, defaultBackspace));
     }
     
 
@@ -334,7 +383,17 @@ public class EditorFrame extends JFrame implements EditorApi {
   	    	}
   	    });
 
-  	   // --- AJOUTE LES CLASS QUI PERMETTENT LES LISTES PUCES OU NULEROTES ---
+  	    // --- AJOUTE LES CLASS QUI PERMETTENT LES LISTES PUCES OU NULEROTES ---
+  	    // --- empêche insèrer quelque chose en position zéro
+  	    javax.swing.text.Document doc = editorPane.getDocument();
+	  	if (doc instanceof javax.swing.text.AbstractDocument ad) {
+	  	    javax.swing.text.DocumentFilter existing = ad.getDocumentFilter(); // AutoListContinuationFilter déjà posé
+	  	    writer.ui.editor.NoInsertAtZeroFilter guard = new writer.ui.editor.NoInsertAtZeroFilter();
+	  	  ad.setDocumentFilter(existing == null ? guard
+                  : new CompositeDocumentFilter(existing, guard));
+	  	}
+  	    
+  	   
   	    this.editorPane.getAccessibleContext().setAccessibleName("Zone de texte.");
   	    ((AbstractDocument) editorPane.getDocument()).setDocumentFilter(new AutoListContinuationFilter(this.editorPane));
   	
@@ -850,7 +909,5 @@ public class EditorFrame extends JFrame implements EditorApi {
 	        }
 	    });
 	}
-
-
- 	
+	
 }

@@ -143,7 +143,7 @@ public class commandes {
     	bookmarks.getAttributs().put("version", "1");
     	
     	contentText = new node();
-    	contentText.setNameNode("contentText");   	
+    	contentText.setNameNode("contentText"); 
     	
     	nodeblindWriter.addEnfant( commandes.meta);
     	nodeblindWriter.addEnfant( commandes.styles_paragraphe);

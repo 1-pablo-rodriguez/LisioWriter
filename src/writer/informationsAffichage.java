@@ -1,78 +1,78 @@
 package writer;
 
-import javax.swing.text.JTextComponent;
-
 import writer.model.Affiche;
 import writer.ui.EditorFrame;
+import writer.ui.NormalizingTextPane;
 
 public class informationsAffichage {
-	EditorFrame parent;
+    EditorFrame parent;
+
     public informationsAffichage(EditorFrame parent) {
-    	this.parent = parent;
-        StringBuilder message = new StringBuilder(128);
+        this.parent = parent;
+        StringBuilder message = new StringBuilder(256);
+        char c = '\u283F';
 
         try {
             Affiche vue = parent.getAffichage();
 
             if (vue == Affiche.TEXTE) {
-            	JTextComponent editor = parent.getEditor();
-            	
-            	javax.swing.text.Document doc = editor.getDocument();
-                javax.swing.text.Element root = doc.getDefaultRootElement();
+                NormalizingTextPane editor = (NormalizingTextPane) parent.getEditor();
+                // on demande au NormalizingTextPane d'assurer l'état normalisé
+                editor.normalizeDocumentContent();
+
+                javax.swing.text.Document doc = editor.getDocument();
+                javax.swing.text.Element root = (doc != null) ? doc.getDefaultRootElement() : null;
                 TextStats all = computeStats(doc, root);
-          	
+
                 String fileName = (commandes.nameFile != null && !commandes.nameFile.isBlank())
                                   ? commandes.nameFile + ".bwr" : "Sans nom.bwr";
                 String folder   = (commandes.currentDirectory != null)
                                   ? commandes.currentDirectory.getName() : "Dossier inconnu";
 
                 boolean editable = editor != null && editor.isEditable();
-                boolean liveSpell = commandes.verificationOrthoGr; // ta variable existante
 
-                message.append("INFO. & STAT. ↓");
-                message.append("\n• Fichier : ").append(fileName).append(" ↓");
-                message.append("\n•Dossier : ").append(folder).append(" ↓");
-                message.append(editable ? "\n• Mode éditable. ↓" : "\n• Mode en lecture seule. ↓");
-                message.append(liveSpell ? "\n• Vérif. frappe activée. ↓"
-                                         : "\n• Vérif. frappe désactivée. ↓");
-                message.append("\nSTAT. document : ↓");
-                message.append("\n• Mots : ").append(all.words).append(" ↓");
-                message.append("\n• Phrases : ").append(all.sentences).append(" ↓");
-                message.append("\n• Paragraphes : ").append(all.paragraphs).append(" ↓");
-                message.append("\n• Lignes : ").append(all.lines).append(" ↓");
-                message.append("\n• Caract. (avec espaces) : ").append(all.charsAll).append(" ↓");
-                message.append("\n• Caract. (sans espaces) : ").append(all.charsNoSpaces).append(" ↓");
-                message.append("\nDOC. & AIDES");
-                message.append("\n• Documentation : ALT+A ↓");
-                message.append("\n• Manuel b.book : ALT+C ↓"); 
-                message.append("\n• Votre fichier : ALT+B ↓");
+                message.append(c).append("INFO. & STAT. ↓");
+                message.append("\n").append(c).append("Fichier : ").append(fileName).append(" ↓");
+                message.append("\n").append(c).append("Dossier : ").append(folder).append(" ↓");
+                message.append(editable ? "\n"+c+"Mode éditable. ↓" : "\n"+c+"Mode en lecture seule. ↓");
+                message.append("\nSTATISTIQUES ↓");
+                message.append("\n").append(c).append("Mots : ").append(all.words).append(" ↓");
+                message.append("\n").append(c).append("Phrases : ").append(all.sentences).append(" ↓");
+                // suppression de l'ancienne ligne "Paragraphes" (métrique précédente)
+                // renommer "Lignes" en "Paragraphes" : on expose ici le nombre de lignes physiques
+                message.append("\n").append(c).append("Paragraphes : ").append(all.lines).append(" ↓");
+                message.append("\n").append(c).append("Caract. (avec espaces) : ").append(all.charsAll).append(" ↓");
+                message.append("\n").append(c).append("Caract. (sans espaces) : ").append(all.charsNoSpaces).append(" ↓");
+                message.append("\n").append(c).append("DOC. & AIDES");
+                message.append("\n").append(c).append(" Documentation : ALT+A ↓");
+                message.append("\n").append(c).append(" Manuel b.book : ALT+C ↓");
+                message.append("\n").append(c).append(" Votre fichier : ALT+B ↓");
 
             } else if (vue == Affiche.DOCUMENTATION) {
-            	message.append("F1-INFO. Documentation de LisioWriter. ↓");
-            	message.append("\n Touch. F6 pour naviguer•↓");
-            	message.append("\nDoc. & Aides");
-                message.append("\n• Documentation : ALT+A ↓");
-                message.append("\n• Manuel b.book : ALT+C ↓"); 
-                message.append("\n• Votre fichier : ALT+B ↓");
+                message.append(c).append("Documentation de LisioWriter. ↓");
+                message.append("\n").append(c).append(" Touch. F6 pour naviguer•↓");
+                message.append("\n").append(c).append("Doc. & Aides");
+                message.append("\n").append(c).append(" Documentation : ALT+A ↓");
+                message.append("\n").append(c).append(" Manuel b.book : ALT+C ↓");
+                message.append("\n").append(c).append(" Votre fichier : ALT+B ↓");
             } else if (vue == Affiche.MANUEL) {
-            	message.append("F1-Info. Manuel du b.book. ↓");
-            	message.append("\nDoc. & Aides");
-                message.append("\n• Documentation : ALT+A ↓");
-                message.append("\n• Manuel b.book : ALT+C ↓"); 
-                message.append("\n• Votre fichier : ALT+B ↓");
+                message.append(c).append("Manuel du b.book. ↓");
+                message.append("\n").append(c).append("Doc. & Aides");
+                message.append("\n").append(c).append("Documentation : ALT+A ↓");
+                message.append("\n").append(c).append("Manuel b.book : ALT+C ↓");
+                message.append("\n").append(c).append("Votre fichier : ALT+B ↓");
             }
 
         } catch (Exception ignore) {
             // on évite toute exception dans ce chemin d’annonce
             message = new StringBuilder("Informations indisponibles pour le moment.");
         }
-        
+
         java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(parent);
         dia.InfoDialog.show(owner, "Information", message.toString());
-
     }
-    
- // --- Utilitaires statistiques ---
+
+    // --- Utilitaires statistiques ---
     private static final java.util.Locale LOCALE_FR = java.util.Locale.FRENCH;
 
     private static final class TextStats {
@@ -80,48 +80,71 @@ public class informationsAffichage {
         final int charsNoSpaces;    // caractères (sans espaces)
         final int words;            // nb de mots (itérateur de mots)
         final int sentences;        // nb de phrases
-        final int lines;            // nb de lignes (éléments du Document)
-        final int paragraphs;       // nb de paragraphes "blocs" (séparés par ≥1 ligne vide)
+        final int lines;            // nb de lignes physiques (split sur \n)
 
         TextStats(int cAll, int cNoSp, int w, int s, int l, int p) {
             this.charsAll = cAll; this.charsNoSpaces = cNoSp;
-            this.words = w; this.sentences = s; this.lines = l; this.paragraphs = p;
+            this.words = w; this.sentences = s; this.lines = l;
         }
     }
 
+    /**
+     * computeStats :
+     * - normalise quelques caractères invisibles,
+     * - supprime uniquement le préfixe braille au début de chaque ligne,
+     * - calcule statistiques (mots, phrases, lignes physiques, etc.).
+     *
+     * Note : on expose ici 'lines' comme nombre de lignes physiques. L'ancienne métrique
+     * "paragraphes" (sémantique) est toujours calculée mais n'est plus affichée.
+     */
     private static TextStats computeStats(javax.swing.text.Document doc, javax.swing.text.Element root) throws javax.swing.text.BadLocationException {
-        final String text = doc.getText(0, doc.getLength());
-        final int charsAll = text.length();
-        final int charsNoSpaces = text.replaceAll("\\s+", "").length();
+        final String raw = (doc == null) ? "" : doc.getText(0, doc.getLength());
+        if (raw == null || raw.isEmpty()) {
+            return new TextStats(0, 0, 0, 0, 0, 0);
+        }
 
-        // Compte des mots : BreakIterator FR + filtre lettres/chiffres
+        // 1) Normaliser EOL vers '\n' et retirer BOM/ZWSP/Marks invisibles
+        String norm = raw.replace("\r\n", "\n").replace("\r", "\n")
+                         .replace("\uFEFF", "")  // BOM
+                         .replace("\u200B", "")  // ZWSP
+                         .replace("\u200E", "")  // LRM
+                         .replace("\u200F", ""); // RLM
+
+        // 2) Supprimer le préfixe braille uniquement en début de ligne (ex: "   ⠿ ")
+        String cleaned = norm.replaceAll("(?m)^\\s*\\u283F\\s*", "");
+
+        // 3) Caractères
+        int charsAll = cleaned.length();
+        int charsNoSpaces = cleaned.replaceAll("\\s+", "").length();
+
+        // 4) Mots (BreakIterator FR + filtrage alpha/num)
         int words = 0;
         java.text.BreakIterator wb = java.text.BreakIterator.getWordInstance(LOCALE_FR);
-        wb.setText(text);
+        wb.setText(cleaned);
         int s = wb.first();
         for (int e = wb.next(); e != java.text.BreakIterator.DONE; s = e, e = wb.next()) {
-            if (hasAlphaNum(text, s, e)) words++;
+            if (hasAlphaNum(cleaned, s, e)) words++;
         }
 
-        // Compte des phrases : BreakIterator FR
+        // 5) Phrases (BreakIterator FR)
         int sentences = 0;
         java.text.BreakIterator sb = java.text.BreakIterator.getSentenceInstance(LOCALE_FR);
-        sb.setText(text);
+        sb.setText(cleaned);
         s = sb.first();
         for (int e = sb.next(); e != java.text.BreakIterator.DONE; s = e, e = sb.next()) {
-            // ignore “phrases” vides (ex : multiple sauts)
-            if (hasAlphaNum(text, s, e)) sentences++;
+            if (hasAlphaNum(cleaned, s, e)) sentences++;
         }
 
-        // Lignes = éléments racine (PlainDocument) / ou repli via split
-        int lines = (root != null) ? root.getElementCount() : text.split("\\R", -1).length;
+        // 6) Lignes physiques : split sur \n (toutes, y compris lignes vides)
+        String[] linesArr = cleaned.split("\\R", -1);
+        int lines = linesArr.length;
 
-        // Paragraphes "blocs" = segments séparés par ≥1 ligne vide
+        // 7) Calcul "paragraphes" sémantiques (blocs séparés par >=1 ligne vide)
         int paragraphs = 0;
-        for (String block : text.split("\\R{2,}")) { // 1+ ligne vide => séparateur de paragraphe
+        for (String block : cleaned.split("\\R{2,}")) {
             if (!block.isBlank()) paragraphs++;
         }
-        if (paragraphs == 0 && !text.isBlank()) paragraphs = 1;
+        if (paragraphs == 0 && !cleaned.isBlank()) paragraphs = 1;
 
         return new TextStats(charsAll, charsNoSpaces, words, sentences, lines, paragraphs);
     }
@@ -132,7 +155,4 @@ public class informationsAffichage {
         }
         return false;
     }
-
-    
-
 }

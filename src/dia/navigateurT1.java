@@ -33,7 +33,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import javax.swing.text.JTextComponent;
 
 import writer.ui.EditorFrame;
 
@@ -68,15 +67,13 @@ public class navigateurT1 extends JFrame{
     int selectedIndex = 0;
 
     private EditorFrame parent;
-    private JTextComponent editor;
-	 // pattern précompilé (mettre en champ static si tu l'utilises souvent)
-    private static final java.util.regex.Pattern EOL_NORMALIZE =
-            java.util.regex.Pattern.compile("\\r\\r?\\n|\\r");
-    
+    private writer.ui.NormalizingTextPane editor;
+
 	@SuppressWarnings("serial")
 	public navigateurT1(EditorFrame parent) {
 		this.parent = parent;
-		this.editor = parent.getEditor();
+		this.editor = (writer.ui.NormalizingTextPane) parent.getEditor();
+		this.editor.installEOLDocumentFilter();
 		
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -137,21 +134,12 @@ public class navigateurT1 extends JFrame{
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
 
 		new javax.swing.SwingWorker<Void, Void>() {
-		    String normText; // accessible par done()
-
 		    @Override protected Void doInBackground() {
-		        String raw = editor.getText();
-		        if (needsNormalization(raw)) {
-		            normText = normalize(raw);
-		        } else {
-		            normText = raw;
-		        }
-		        // IMPORTANT : n'écris PAS editor.setText(normText) ici.
-		        // On analyse seulement la copie 'normText' pour construire la liste.
+		        // On suppose que editor.getText() renvoie déjà une version normalisée
+		        String normText = editor.getText();
 		        allTitle(normText);
 		        return null;
 		    }
-
 		    @Override protected void done() {
 		        rebuildVisibleModel();
 		        setCursor(java.awt.Cursor.getDefaultCursor());
@@ -1398,20 +1386,19 @@ public class navigateurT1 extends JFrame{
 		        System.out.println("Réduction du niveau annulée.");
 		        return;
 		    }
-		
-		    // Bornes du bloc (titre + descendants)
 
+		    // s'assurer que le Document est normalisé (optionnel, cheap)
+		    editor.normalizeDocumentContent();
 
-		    // usage simple (ex. juste après editor.getText())
+		    // on peut maintenant récupérer le texte normalisé
 		    String contenu = editor.getText();
-		    contenu = EOL_NORMALIZE.matcher(contenu).replaceAll("\n");
 
-		    int start = titresOffsets.get(idx);
+		    int start = Math.max(0, Math.min(titresOffsets.get(idx), contenu.length()));
 		    int idxBreak = indiceSuivantMemeOuInferieur(idx, lvl);
-		    int end = (idxBreak >= 0) ? titresOffsets.get(idxBreak) : contenu.length();
-		
+		    int end = (idxBreak >= 0) ? Math.min(titresOffsets.get(idxBreak), contenu.length()) : contenu.length();
+
 		    String bloc = contenu.substring(start, end);
-		
+
 		    // Vérifier si l’un des titres du bloc est déjà niveau 1 → on refuse
 		    Matcher m = Pattern.compile("(?m)^\\s*#([1-5])\\..*$").matcher(bloc);
 		    int minInBloc = Integer.MAX_VALUE;
@@ -1934,24 +1921,6 @@ public class navigateurT1 extends JFrame{
 		        ex.printStackTrace();
 		        dia.InfoDialog.show(owner, "Copie", "Échec de la copie dans le presse-papiers.");
 		    }
-		}
-
-		private static String normalize(String s) {
-		    if (s == null) return "";
-		    return s
-		        .replace("\r\n", "\n")
-		        .replace("\r", "\n")
-		        .replace("\uFEFF", "")  // BOM
-		        .replace("\u200B", "")  // ZWSP
-		        .replace("\u200E", "")  // LRM
-		        .replace("\u200F", "")  // RLM
-		        .replaceFirst("^\\s+", "");
-		}
-		
-		private static boolean needsNormalization(String s) {
-		    return s.contains("\r") || s.contains("\uFEFF")
-		        || s.contains("\u200B") || s.contains("\u200E")
-		        || s.contains("\u200F");
 		}
 
 }
