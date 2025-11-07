@@ -1,100 +1,91 @@
 package styles;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
-
 import writer.ui.EditorApi;
 import writer.ui.text.Lines;
 
-/**
- * Style : Titre 2
- * 
- * Cette classe applique la balise "#2. " au début de la ligne courante,
- * en corrigeant les niveaux ou symboles précédents si nécessaire.
- */
 public class titre2 {
+    private static final char BRAILLE = '\u283F';
+
+    // ^\s*⠿\s* → capture et normalise le préfixe braille
+    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u283F\\s*");
+    // tokens à convertir en #2.
+    private static final Pattern HN_3_9 = Pattern.compile("^#([3-9])\\.\\s*");
+    private static final Pattern H1     = Pattern.compile("^#1\\.\\s*");
+    private static final Pattern HP     = Pattern.compile("^#P\\.\\s*");
+    private static final Pattern HS     = Pattern.compile("^#S\\.\\s*");
+    private static final Pattern BULLET = Pattern.compile("^-\\.\\s*");
+    private static final Pattern H2_ANY = Pattern.compile("^#2\\.\\s*"); // normalisation #2.
+    private static final Pattern NOT_H  = Pattern.compile("^(?!#).+");   // ne commence pas par '#'
 
     private final EditorApi ctx;
 
-    public titre2(EditorApi ctx) {
-        this.ctx = ctx;
-    }
+    public titre2(EditorApi ctx) { this.ctx = ctx; }
 
     public void appliquer() {
         try {
-            JTextComponent editor = ctx.getEditor();
+            var editor = ctx.getEditor();
+            int caretPosition = editor.getCaretPosition();
 
-            // Obtenez la position du curseur
- 			int caretPosition = editor.getCaretPosition();
- 			
- 			// Trouvez la ligne actuelle
- 			int line = Lines.getLineOfOffset(editor, caretPosition);
- 			
- 			// Obtenez les offsets de début et de fin de la ligne
- 			int lineStart = Lines.getLineStartOffset(editor, line); 
- 			int lineEnd =  Lines.getLineEndOffset(editor, line);
+            int line = Lines.getLineOfOffset(editor, caretPosition);
+            int lineStart = Lines.getLineStartOffset(editor, line);
+            int lineEnd   = Lines.getLineEndOffset(editor, line);
 
-            // Extraire le texte de la ligne
-            String lineText = editor.getText(lineStart, lineEnd - lineStart);
+            String raw = editor.getText(lineStart, lineEnd - lineStart);
+            // Nettoyage de fin de ligne pour travailler proprement
+            String lineText = raw.replaceFirst("\\R$", "");
 
-            // --- Cas 1 : déjà un titre supérieur (#3. à #9.)
-            if (lineText.trim().matches("^#[3-9]\\..*")) {
-                String newText = lineText.replaceFirst("^#[3-9]\\.", "#2. ");
-                Lines.replaceRange(editor, newText, lineStart, lineEnd);
-                editor.setCaretPosition(caretPosition);
-                sound();
-                return;
+            // --- Normalise le préfixe braille en tête (⠿ en colonne 0, sans espace)
+            String after; // contenu après le ⠿
+            Matcher mLead = LEADING_BRAILLE.matcher(lineText);
+            if (mLead.find()) {
+                after = lineText.substring(mLead.end());
+            } else {
+                after = lineText; // pas de ⠿ → on l’ajoutera à la reconstruction
             }
 
-            // --- Cas 2 : paragraphe (#P.)
-            if (lineText.trim().matches("^#P\\..*")) {
-                String newText = lineText.replaceFirst("^#P\\.\\s*", "#2. ");
-                Lines.replaceRange(editor, newText, lineStart, lineEnd);
-                editor.setCaretPosition(caretPosition);
-                sound();
-                return;
+            // --- Transformations pour forcer #2.
+            String newAfter;
+            if (after.strip().isEmpty()) {
+                // Ligne contenant seulement ⠿ (et espaces) → ⠿#2. 
+                newAfter = "#2. ";
+            } else if (HN_3_9.matcher(after).find()) {
+                newAfter = HN_3_9.matcher(after).replaceFirst("#2. ");
+            } else if (H1.matcher(after).find()) {
+                newAfter = H1.matcher(after).replaceFirst("#2. ");
+            } else if (HP.matcher(after).find()) {
+                newAfter = HP.matcher(after).replaceFirst("#2. ");
+            } else if (HS.matcher(after).find()) {
+                newAfter = HS.matcher(after).replaceFirst("#2. ");
+            } else if (BULLET.matcher(after).find()) {
+                newAfter = BULLET.matcher(after).replaceFirst("#2. ");
+            } else if (H2_ANY.matcher(after).find()) {
+                // normaliser "#2." → "#2. "
+                newAfter = H2_ANY.matcher(after).replaceFirst("#2. ");
+            } else if (NOT_H.matcher(after).find()) {
+                // pas de balise → on préfixe
+                newAfter = "#2. " + after.stripLeading();
+            } else {
+                // déjà propre
+                newAfter = after;
             }
 
-            // --- Cas 3 : sous-partie (#S.)
-            if (lineText.trim().matches("^#S\\..*")) {
-                String newText = lineText.replaceFirst("^#S\\.\\s*", "#2. ");
-                Lines.replaceRange(editor, newText, lineStart, lineEnd);
-                editor.setCaretPosition(caretPosition);
-                sound();
-                return;
-            }
+            // --- Recompose la ligne avec ⠿ en tout début
+            String newLine = BRAILLE + newAfter;
 
-            // --- Cas 4 : liste (-.)
-            if (lineText.trim().matches("^-\\..*")) {
-                String newText = lineText.replaceFirst("^-\\.\\s*", "#2. ");
-                Lines.replaceRange(editor, newText, lineStart, lineEnd);
-                editor.setCaretPosition(caretPosition);
-                sound();
-                return;
-            }
+            // Restaure la fin de ligne d’origine
+            String trailingNL = raw.endsWith("\r\n") ? "\r\n" : (raw.endsWith("\n") ? "\n" : "");
+            String finalLine = newLine + trailingNL;
 
-            // --- Cas 5 : déjà un titre 2
-            if (lineText.trim().matches("^#2\\..*")) {
-                sound();
-                return;
-            }
+            // Applique la modif
+            Lines.replaceRange(editor, finalLine, lineStart, lineEnd);
 
-            // --- Cas 6 : c’était un titre 1
-            if (lineText.trim().matches("^#1\\..*")) {
-                String newText = lineText.replaceFirst("^#1\\.\\s*", "#2. ");
-                Lines.replaceRange(editor, newText, lineStart, lineEnd);
-                editor.setCaretPosition(caretPosition);
-                sound();
-                return;
-            }
+            // Conserve la position du caret
+            editor.setCaretPosition(Math.min(editor.getDocument().getLength(), caretPosition));
 
-            // --- Cas 7 : ligne sans balise
-            if (lineText.trim().matches("^[^#].*")) {
-            	Lines.insert(editor, "#2. ", lineStart);
-                editor.setCaretPosition(caretPosition);
-                sound();
-                return;
-            }
+            sound();
 
         } catch (BadLocationException ex) {
             ex.printStackTrace();
@@ -102,8 +93,6 @@ public class titre2 {
     }
 
     private void sound() {
-        // 🔊 Utilise ton interface pour annoncer (à adapter quand announceCaretLine sera déplacé)
         ctx.showInfo("Titre 2", "Paragraphe en Titre 2");
-        // ou plus tard : ctx.announceCaretLine(false, true, "Paragraphe en Titre 2");
     }
 }
