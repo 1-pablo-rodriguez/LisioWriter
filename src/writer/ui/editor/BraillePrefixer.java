@@ -104,18 +104,16 @@ public final class BraillePrefixer {
      */
     public static String addBrailleAtParagraphStarts(String text) {
         // normalise les fins de ligne pour itérer proprement
-        String norm = text.replace("\r\n", "\n").replace('\r', '\n');
+        String norm = text.replace("^\s?\n+", "").replace("\n\n", "\n").replace("\r+", "\n").replace('\r', '\n');
         String[] lines = norm.split("\n", -1); // -1 pour conserver les vides de fin
         StringBuilder out = new StringBuilder(norm.length() + lines.length * 2);
 
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
-            if (line.isBlank()) {           	
-            	out.append(BRAILLE).append(line);
-            } else if (LEADING_BRAILLE.matcher(line).find()) {
+            if (LEADING_BRAILLE.matcher(line).find()) {
                 out.append(line); // déjà préfixé : ne pas dupliquer
             } else {
-                out.append(BRAILLE).append(' ').append(line);
+                out.append(BRAILLE).append(line);
             }
             if (i < lines.length - 1) out.append('\n');
         }

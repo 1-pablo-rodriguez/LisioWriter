@@ -12,6 +12,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 
+import writer.ui.editor.BraillePrefixer;
+
 /**
 * Convertit un document HTML en markup "lisioWriter".
 * Règles simples :
@@ -36,7 +38,8 @@ public final class HtmlImporter {
      Element body = doc.body();
      StringBuilder out = new StringBuilder();
      traverseChildren(body, out, 0, null);
-     return tidyOutput(out.toString());
+     String text = BraillePrefixer.addBrailleAtParagraphStarts(out.toString());
+     return tidyOutput(text);
  }
 
  

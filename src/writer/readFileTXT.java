@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import javax.swing.SwingUtilities;
 
 import writer.ui.EditorFrame;
+import writer.ui.editor.BraillePrefixer;
 
 public final class readFileTXT {
 
@@ -60,7 +61,7 @@ public final class readFileTXT {
             }
 
             // Afficher dans l’éditeur
-            parent.getEditor().setText(texte != null ? texte : "");
+            parent.getEditor().setText(texte != null ? BraillePrefixer.addBrailleAtParagraphStarts(texte) : BraillePrefixer.addBrailleAtParagraphStarts(""));
             
             // initialisation des bookmarks
             parent.createNewBookmarkManager();

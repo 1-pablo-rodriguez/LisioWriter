@@ -360,7 +360,8 @@ public final class ouvrirHTML extends JDialog {
         	try {
         		System.out.println("Lecture du fichier .html");
         		String converted = HtmlImporter.importFileToBlindWriter(sel, sel.getParentFile().toURI().toString());
-        		parent.getEditor().getDocument().insertString(parent.getEditor().getDocument().getLength(), converted, null);
+        		//parent.getEditor().getDocument().insertString(parent.getEditor().getDocument().getLength(), converted, null);
+        		parent.getEditor().setText(converted);
         		// replacer le caret au tout début :
         		parent.getEditor().setCaretPosition(0);
         	} catch (Exception ex) {

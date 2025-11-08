@@ -20,6 +20,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import Import.odt.style.*;
+import writer.ui.editor.BraillePrefixer;
 
 
 /**
@@ -66,7 +67,9 @@ public class OdtReader {
         }
 
         zipFile.close();
-        return result.toString();
+        
+        String text = BraillePrefixer.addBrailleAtParagraphStarts(result.toString());
+        return text;
     }
 
     private static Document parseXmlFromZip(ZipFile zipFile, String entryName) throws Exception {

@@ -277,13 +277,6 @@ public final class ouvrirTxt extends JDialog {
             }
         });
 
-//        SwingUtilities.invokeLater(() -> {
-//            fileList.requestFocusInWindow();
-//            File dir = commandes.currentDirectory;
-//            String msg = (dir != null ? "Ouvrir — Dossier " + dir.getName() : "Ouvrir — Racine système")
-//                    + ". " + status.getText();
-//            announceHere(msg,true,true);
-//        });
 
         setVisible(true);
     }
