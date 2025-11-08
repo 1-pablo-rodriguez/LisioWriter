@@ -19,7 +19,7 @@ Tout se pilote au clavier, fonctionne avec NVDA ou JAWS, et la mise en forme est
 
 - Transferts fluides : import/export Word, Writer/ODT, HTML, texte brut → pas d’impasse technique dans les échanges avec l’école, l’université ou l’entreprise.
 
-- Montée en autonomie : l’élève/l’étudiant sait où est un titre, une liste, une note… et apprend plus vite les bonnes pratiques.
+- Montée en autonomie : l’élève/l’étudiant sait où est un titre, une liste, une note, le début d'un paragraphe… et apprend plus vite les bonnes pratiques.
 
 - Mises à jour silencieuses : après la première installation, les suivantes se font sans fenêtre ni action. Fermez LisioWriter, patientez ~2 minutes, puis relancez-le pour bénéficier de la nouvelle version.
 
@@ -41,6 +41,10 @@ Tout se pilote au clavier, fonctionne avec NVDA ou JAWS, et la mise en forme est
 ## 🎯 Pourquoi ? 
 
 - L’ambition de LisioWriter est de favoriser l’**autonomie numérique** et l’**inclusion**, tout en restant proche des **standards bureautiques** connus (Word, Writer, Markdown) afin de faciliter l’apprentissage et l’intégration dans les **environnements éducatifs et professionnels**.
+
+## 📚 Documentation
+
+👉 [Consulter la documentation en ligne](docs/index.html)
 
 ## Capture d’écran — Import d’un fichier Word
 

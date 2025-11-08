@@ -1,0 +1,252 @@
+
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Documentation de LisioWriter : installation, prise en main, raccourcis clavier, formatage, import/export, accessibilité." />
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#0F62FE">
+  <title>Documentation · LisioWriter</title>
+  <style>
+    :root{
+      --bg: #ffffff;
+      --fg: #1a1a1a;
+      --muted:#5f6b7a;
+      --link:#0f62fe;
+      --card:#f5f7fa;
+      --border:#e4e7eb;
+      --radius: 16px;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#0b0f14;
+        --fg:#e5e7eb;
+        --muted:#97a3b6;
+        --link:#7aa2ff;
+        --card:#0f1621;
+        --border:#1f2a37;
+      }
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font: 17px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+      background:var(--bg);
+      color:var(--fg);
+    }
+    a{color:var(--link); text-decoration-thickness: .12em;}
+    a:focus-visible, button:focus-visible, input:focus-visible{
+      outline: 3px solid var(--link);
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+    .skip-link{
+      position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden;
+    }
+    .skip-link:focus{
+      position: fixed; left: 1rem; top: 1rem; width: auto; height:auto; padding:.5rem .75rem;
+      background: var(--card); border:2px solid var(--border); border-radius:10px; z-index:1000;
+    }
+
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: saturate(120%) blur(6px);
+      background: color-mix(in oklab, var(--bg), transparent 15%);
+      border-bottom:1px solid var(--border);
+    }
+    .container{max-width: 980px; margin: 0 auto; padding: 20px;}
+    .brand{display:flex; align-items:center; gap:.75rem; font-weight:700; font-size:1.25rem}
+    .brand .dot{width:12px;height:12px;border-radius:50%; background:var(--link); display:inline-block}
+    nav{
+      display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+    }
+    nav ul{display:flex; gap: 1rem; list-style:none; padding:0; margin:0;}
+    nav a{padding:.25rem .35rem; border-radius:8px;}
+    main{padding-block: 10px 48px;}
+    .hero{
+      margin-top: 10px;
+      padding: 28px;
+      background: var(--card);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .hero h1{margin-top:0; letter-spacing:.2px}
+    .quick{
+      display:grid; gap:16px;
+      grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+      margin-top: 10px;
+    }
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .card h3{margin-top:0}
+    .muted{color:var(--muted)}
+    input[type="search"]{
+      width:100%; padding:.75rem .9rem; border-radius:12px;
+      border:1px solid var(--border); background:var(--bg); color:var(--fg);
+    }
+    footer{
+      border-top:1px solid var(--border);
+      padding: 24px 0; color: var(--muted);
+    }
+    .list{margin:0; padding:0; list-style:none}
+    .list li{padding:.5rem .25rem; border-bottom:1px dashed var(--border)}
+    .list li:last-child{border-bottom:none;}
+    .kbd{
+      font: .95em/1.1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      padding:.1rem .35rem; border:1px solid var(--border); border-radius:6px; background: var(--bg);
+    }
+    .badge{display:inline-block; font-size:.85rem; padding:.15rem .5rem; border:1px solid var(--border); border-radius:999px;}
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#contenu">Aller au contenu</a>
+
+  <header role="banner">
+    <div class="container">
+      <nav aria-label="Navigation principale">
+        <div class="brand" aria-label="LisioWriter">
+          <span class="dot" aria-hidden="true"></span>
+          <span>Documentation LisioWriter</span>
+        </div>
+        <ul>
+          <li><a href="#demarrage">Démarrage</a></li>
+          <li><a href="#formatage">Formatage</a></li>
+          <li><a href="#accessibilite">Accessibilité</a></li>
+          <li><a href="#ressources">Ressources</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenu" class="container" role="main">
+    <section class="hero" aria-labelledby="h1">
+      <h1 id="h1">Bienvenue 👋</h1>
+      <p>Cette documentation couvre l’installation, la prise en main, les <strong>raccourcis clavier</strong>, la <strong>syntaxe de formatage</strong> et les fonctions d’<strong>import/export</strong> de LisioWriter.</p>
+      <p class="muted">Version de la documentation : <span class="badge">1.x</span> · Dernière mise à jour : <span id="last-updated"></span></p>
+
+      <label for="search" class="muted">Recherche rapide (filtre les liens ci‑dessous)</label>
+      <input type="search" id="search" placeholder="Rechercher un sujet (ex. raccourcis, ODT, braille, DOCX, PDF…)"
+             aria-describedby="search-help" aria-controls="links-list">
+      <div id="search-help" class="muted" style="margin-top:.25rem;">Tape pour filtrer. Utilise <span class="kbd">Tab</span> pour naviguer dans la liste.</div>
+    </section>
+
+    <section aria-labelledby="demarrage">
+      <h2 id="demarrage">Guides de démarrage</h2>
+      <div class="quick" id="links-list" role="list">
+        <article class="card" role="listitem">
+          <h3><a href="guide.html">Guide de démarrage</a></h3>
+          <p class="muted">Installation, première ouverture, configuration conseillée.</p>
+        </article>
+        <article class="card" role="listitem">
+          <h3><a href="installation.html">Installation (détail)</a></h3>
+          <p class="muted">Prérequis, paquets, exécution, mise à jour.</p>
+        </article>
+        <article class="card" role="listitem">
+          <h3><a href="raccourcis.html">Raccourcis clavier</a></h3>
+          <p class="muted">Navigation par paragraphes, sélection, actions, édition.</p>
+        </article>
+        <article class="card" role="listitem">
+          <h3><a href="faq.html">FAQ</a></h3>
+          <p class="muted">Questions fréquentes et dépannage.</p>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="formatage">
+      <h2 id="formatage">Syntaxe & Formatage</h2>
+      <div class="quick">
+        <article class="card">
+          <h3><a href="formatage.html">Référence de la syntaxe</a></h3>
+          <ul class="list">
+            <li>Titres (<code>#1.</code> à <code>#9.</code>)</li>
+            <li>Paragraphes (<code>&amp;&amp;</code>) et emphase</li>
+            <li>Listes, tableaux, liens, images</li>
+            <li>Caractère braille <code>⠿</code> et préfixes</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3><a href="import-export.html">Import & Export</a></h3>
+          <ul class="list">
+            <li>DOCX → LisioWriter</li>
+            <li>ODT/PDF → depuis LisioWriter</li>
+            <li>HTML Tables ↔ Syntaxe @t</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="accessibilite">
+      <h2 id="accessibilite">Accessibilité</h2>
+      <div class="quick">
+        <article class="card">
+          <h3><a href="accessibilite.html">Lecteurs d’écran & braille</a></h3>
+          <p class="muted">NVDA/JAWS, focus management, annonces, navigation.</p>
+        </article>
+        <article class="card">
+          <h3><a href="personnalisation.html">Personnalisation</a></h3>
+          <p class="muted">Taille des polices, thèmes, options de contraste.</p>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="ressources">
+      <h2 id="ressources">Ressources</h2>
+      <div class="quick">
+        <article class="card">
+          <h3><a href="changelog.html">Journal des versions</a></h3>
+          <p class="muted">Nouveautés, corrections, changements majeurs.</p>
+        </article>
+        <article class="card">
+          <h3><a href="contribuer.html">Contribuer</a></h3>
+          <p class="muted">Signalement de bugs, suggestions, pull requests.</p>
+        </article>
+        <article class="card">
+          <h3><a href="../README.html">README converti</a></h3>
+          <p class="muted">Version HTML du README (si publiée).</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer role="contentinfo">
+    <div class="container">
+      <p>© <span id="year"></span> Projet LisioWriter — Documentation publiée via GitHub Pages.</p>
+      <p class="muted">Astuce : appuie sur <span class="kbd">/</span> pour placer le curseur dans la recherche.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Metadonnées simples
+    const d = new Date();
+    document.getElementById('year').textContent = d.getFullYear();
+    document.getElementById('last-updated').textContent = d.toLocaleDateString(undefined, { year:'numeric', month:'long', day:'2-digit' });
+
+    // Focus recherche avec "/" (comme GitHub)
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === '/' && document.activeElement.tagName !== 'INPUT'){
+        e.preventDefault();
+        document.getElementById('search').focus();
+      }
+    });
+
+    // Filtre les cartes
+    const search = document.getElementById('search');
+    const list = document.getElementById('links-list').parentElement.parentElement; // section "Guides de démarrage"
+    function filterCards(q){
+      const cards = document.querySelectorAll('.card');
+      const needle = q.trim().toLowerCase();
+      cards.forEach(c => {
+        const text = c.innerText.toLowerCase();
+        c.style.display = (!needle || text.includes(needle)) ? '' : 'none';
+      });
+    }
+    search.addEventListener('input', (e)=> filterCards(e.target.value));
+  </script>
+</body>
+</html>
