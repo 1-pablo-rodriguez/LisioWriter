@@ -35,7 +35,7 @@ public class NormalizingTextPane extends javax.swing.JTextPane {
     public void replaceSelection(String content) {
         // Normalise le texte inséré via replaceSelection (coller, etc.)
         //super.replaceSelection(norm(content));
-    	 super.replaceSelection(content);
+   	 super.replaceSelection(content);
     }
 
     /**
