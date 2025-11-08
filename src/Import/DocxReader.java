@@ -11,15 +11,13 @@ import org.apache.poi.xwpf.usermodel.BodyElementType;
 import org.apache.poi.xwpf.usermodel.IBodyElement;
 import org.apache.poi.xwpf.usermodel.IRunElement;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFHyperlinkRun;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.w3c.dom.Node;
 
 import writer.ui.editor.BraillePrefixer;
-import writer.ui.editor.enableCopyPasteVisibleTabs;
-
-import org.apache.poi.xwpf.usermodel.XWPFHyperlinkRun;
 
 
 
