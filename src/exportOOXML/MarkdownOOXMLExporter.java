@@ -25,6 +25,8 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTLvl;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STNumberFormat;
 
 import writer.ui.editor.TableSyntax;
+import writer.ui.text.BrailleCleaner;
+
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 
@@ -78,6 +80,7 @@ public final class MarkdownOOXMLExporter {
             ListKind listState = ListKind.NONE;
             IntBox footBox = new IntBox(1);
 
+            src = BrailleCleaner.clean(src);
             String[] lines = src.replace("\r\n", "\n").replace('\r', '\n').split("\n", -1);
 
             for (int i = 0; i < lines.length; i++) {

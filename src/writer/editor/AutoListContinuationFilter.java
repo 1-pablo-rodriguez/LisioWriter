@@ -5,7 +5,6 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.Element;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.Utilities;
 
 /**
@@ -15,10 +14,10 @@ import javax.swing.text.Utilities;
  */
 public final class AutoListContinuationFilter extends DocumentFilter {
 
-	private final JTextComponent area;
+	private final writer.ui.NormalizingTextPane area;
     private boolean renumbering = false; // garde-fou contre les réentrées
 
-    public AutoListContinuationFilter(JTextComponent area) {
+    public AutoListContinuationFilter(writer.ui.NormalizingTextPane area) {
         this.area = area;
     }
 

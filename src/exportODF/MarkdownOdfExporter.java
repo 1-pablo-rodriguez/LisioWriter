@@ -16,10 +16,12 @@ import org.odftoolkit.odfdom.dom.style.OdfStyleFamily;
 import org.odftoolkit.odfdom.incubator.doc.style.OdfStyle;
 import org.odftoolkit.odfdom.pkg.OdfFileDom;
 
+import writer.ui.text.BrailleCleaner;
+
 public final class MarkdownOdfExporter {
 
     private MarkdownOdfExporter() {}
-
+      
     // --- Regex des blocs (début de paragraphe) ---
     private static final Pattern H_P  = Pattern.compile("^#P\\.(.*)$");
     private static final Pattern H_S  = Pattern.compile("^#S\\.(.*)$");
@@ -96,6 +98,8 @@ public final class MarkdownOdfExporter {
         // Compteur pour notes
         int footnoteCounter = 1;
 
+        src = BrailleCleaner.clean(src);
+        
         String[] lines = src.replace("\r\n", "\n").replace('\r', '\n').split("\n", -1);
 
         for (int i = 0; i < lines.length; i++) {

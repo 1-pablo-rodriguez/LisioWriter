@@ -19,7 +19,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 
 @SuppressWarnings("serial")
 public class openSearchDialog extends JDialog {
@@ -31,7 +30,7 @@ public class openSearchDialog extends JDialog {
 
     // --- UI ---
     private JTextField field;
-    private JTextComponent editor;
+    private writer.ui.NormalizingTextPane editor;
     private JLabel lblCount;
 
     // --- Liste de résultats ---
@@ -44,7 +43,7 @@ public class openSearchDialog extends JDialog {
     // --- Lecteure sur la barre braille ---
     private JTextArea brailleArea;   
     
-    public openSearchDialog(JTextComponent editor) {
+    public openSearchDialog(writer.ui.NormalizingTextPane editor) {
         super(SwingUtilities.getWindowAncestor(editor), "Recherche");
         this.editor = editor;
 
@@ -303,7 +302,7 @@ public class openSearchDialog extends JDialog {
     }
 
     @SuppressWarnings("deprecation")
-	private void scrollToVisible(JTextComponent area, int start, int end) {
+	private void scrollToVisible(writer.ui.NormalizingTextPane area, int start, int end) {
         try {
             java.awt.Rectangle rStart = area.modelToView(start);
             java.awt.Rectangle rEnd   = area.modelToView(Math.max(start, end-1));

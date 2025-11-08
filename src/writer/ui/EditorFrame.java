@@ -335,7 +335,9 @@ public class EditorFrame extends JFrame implements EditorApi {
         // Remappe Delete vers notre action intelligente
         this.editorPane.getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "bw-smart-delete");
         this.editorPane.getActionMap().put("bw-smart-delete",
-            new writer.ui.editor.SmartDeleteAction(editorPane, defaultBackspace));
+            new writer.ui.editor.SmartDeleteAction(editorPane, defaultBackspace));      
+    
+    
     }
     
 
@@ -411,7 +413,7 @@ public class EditorFrame extends JFrame implements EditorApi {
     public JFrame getWindow() { return this; }
 
     @Override
-    public javax.swing.text.JTextComponent getEditor() { return this.editorPane; }
+    public writer.ui.NormalizingTextPane getEditor() { return this.editorPane; }
 
     @Override
 	public JScrollPane getScrollPane() { return this.scrollPane; }
@@ -748,7 +750,7 @@ public class EditorFrame extends JFrame implements EditorApi {
     
 	/** Force une marge horizontale minimale autour du caret dans le viewport. */
  	private void ensureCaretHorizontalMargins(int leftMarginPx, int rightMarginPx) {
- 	    if (this.editorPane == null || this.scrollPane == null) return;
+ 		if (this.editorPane == null || this.scrollPane == null) return;
  	    try {
  	        int pos = Math.max(0, Math.min(this.editorPane.getCaretPosition(), this.editorPane.getDocument().getLength()));
  	        java.awt.geom.Rectangle2D r2 = this.editorPane.modelToView2D(pos);
@@ -771,8 +773,8 @@ public class EditorFrame extends JFrame implements EditorApi {
  	}
  	
  	/** Fait défiler pour que le mot sous le caret soit visible avec une marge. */
-    private void ensureWordVisibleWithMargin(int hMarginPx, int vMarginPx) {
-        if (this.editorPane == null || this.scrollPane == null) return;
+    private void ensureWordVisibleWithMargin(int hMarginPx, int vMarginPx) {   	
+    	if (this.editorPane == null || this.scrollPane == null) return;
 
         try {
             int pos = editorPane.getCaretPosition();
@@ -843,6 +845,37 @@ public class EditorFrame extends JFrame implements EditorApi {
             TextHighlighter.apply(editorPane);
         }
     }
+	
+	/** Exécute une édition du document SANS créer d’entrée d’historique (UndoManager). */
+	public void runWithoutUndo(Runnable edit) {
+	    final javax.swing.text.Document doc = editorPane.getDocument();
+
+	    // Toujours faire l’édition sur l’EDT
+	    Runnable task = () -> {
+	        if (doc instanceof javax.swing.text.AbstractDocument ad) {
+	            // Débranche l'UndoManager le temps de l'édition
+	            ad.removeUndoableEditListener(defaultUndoableEditListener);
+	            try {
+	                edit.run();   // ← tes remove/insert/replace ici
+	            } finally {
+	                ad.addUndoableEditListener(defaultUndoableEditListener);
+	                updateUndoRedoState();
+	            }
+	        } else {
+	            // Document exotique
+	            edit.run();
+	            updateUndoRedoState();
+	        }
+	    };
+
+	    if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+	        task.run();
+	    } else {
+	        // pas d'Internet ici : invokeLater suffit (synchro non requise)
+	        javax.swing.SwingUtilities.invokeLater(task);
+	    }
+	}
+
 
 	/**
 	 * Préfixe chaque paragraphe visible par le caractère braille (⠿ = '\u283F'),
@@ -908,5 +941,7 @@ public class EditorFrame extends JFrame implements EditorApi {
 	        }
 	    });
 	}
+
+
 	
 }

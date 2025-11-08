@@ -23,12 +23,12 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
-import javax.swing.text.JTextComponent;
 
 import act.select_CANCEL;
 import act.select_OK;
 import writer.commandes;
 import writer.ui.EditorFrame;
+import writer.ui.NormalizingTextPane;
 
 @SuppressWarnings("serial")
 public final class BoiteRenameFile extends JDialog {
@@ -209,7 +209,7 @@ public final class BoiteRenameFile extends JDialog {
         java.awt.Color bgLight = new java.awt.Color(0xFFFFFF);
         java.awt.Color fgDark  = new java.awt.Color(0x111111);
 
-        if (c instanceof JTextComponent tc) {
+        if (c instanceof writer.ui.NormalizingTextPane tc) {
             tc.setBackground(bgLight);
             tc.setForeground(fgDark);
             tc.setCaretColor(fgDark);
@@ -241,7 +241,7 @@ public final class BoiteRenameFile extends JDialog {
 
     // Caret épais et clignotant de façon stable
     private void installThickCaret(java.awt.Component c) {
-        if (c instanceof JTextComponent tc) {
+        if (c instanceof writer.ui.NormalizingTextPane tc) {
             tc.setCaret(new ThickCaret());        // classe interne ci-dessous
             tc.getCaret().setBlinkRate(500);      // 2 Hz
         }
@@ -257,7 +257,7 @@ public final class BoiteRenameFile extends JDialog {
         public void paint(java.awt.Graphics g) {
             if (!isVisible()) return;
             try {
-                JTextComponent comp = getComponent();
+            	writer.ui.NormalizingTextPane comp = (NormalizingTextPane) getComponent();
                 @SuppressWarnings("deprecation")
 				var r = comp.modelToView(getDot());
                 if (r == null) return;

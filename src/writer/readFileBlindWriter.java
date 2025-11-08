@@ -9,7 +9,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoManager;
 
 import writer.ui.EditorFrame;
@@ -83,7 +82,7 @@ public class readFileBlindWriter {
             final String newText = commandes.texteDocument == null ? "" : commandes.texteDocument;
             SwingUtilities.invokeLater(() -> {
                 try {
-                    JTextComponent editorComp = parent.getEditor();
+                	writer.ui.NormalizingTextPane editorComp = parent.getEditor();
                     Document doc = editorComp.getDocument();
 
                     // Insertion du texte : si AbstractDocument, on utilise remove/insertString (sur EDT)

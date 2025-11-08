@@ -2,7 +2,6 @@ package formatage;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.Utilities;
 
 import writer.ui.EditorApi;
@@ -15,9 +14,9 @@ public class SoulignerGras {
     }
     
     public void appliquer() {
-    	JTextComponent editor = ctx.getEditor();
+    	writer.ui.NormalizingTextPane editor = ctx.getEditor();
     	
-        final JTextComponent area = editor;
+        final writer.ui.NormalizingTextPane area = editor;
         if (area == null) return;
 
         try {

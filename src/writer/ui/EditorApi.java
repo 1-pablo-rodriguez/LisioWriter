@@ -11,7 +11,7 @@ import writer.bookmark.BookmarkManager;
 
 public interface EditorApi {
     JFrame getWindow();           // parent pour dialogs
-    javax.swing.text.JTextComponent getEditor();        // l’éditeur
+    writer.ui.NormalizingTextPane getEditor();        // l’éditeur
     JScrollPane getScrollPane();	// Le scroll de l'éditeur
     writer.spell.SpellCheckLT getSpell();  //Correcteur
     Boolean isModifier();
@@ -45,6 +45,6 @@ public interface EditorApi {
     Action actGotoNextHeading();
     
     Action actGotoPrevHeading();
-    
+
     
 }

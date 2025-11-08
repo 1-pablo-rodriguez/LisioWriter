@@ -3,13 +3,15 @@ package writer;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
-import javax.swing.text.JTextComponent;
+
+import writer.ui.NormalizingTextPane;
 
 /**
  * Utilitaire pour installer un caret coloré et plus épais.
- * Fonctionne sur JTextArea / JTextPane (JTextComponent).
+ * Fonctionne sur JTextArea / JTextPane (writer.ui.NormalizingTextPane).
  */
 public final class CaretStyler {
 
@@ -23,7 +25,7 @@ public final class CaretStyler {
      * @param widthPx    épaisseur en pixels (ex: 2)
      * @param blinkMs    clignotement en ms (ex: 500). 0 = pas de clignotement.
      */
-    public static void install(JTextComponent comp, Color color, int widthPx, int blinkMs) {
+    public static void install(writer.ui.NormalizingTextPane comp, Color color, int widthPx, int blinkMs) {
         if (comp == null) return;
         comp.setCaretColor(color);
 
@@ -46,7 +48,7 @@ public final class CaretStyler {
             public void paint(Graphics g) {
                 if (!isVisible()) return;
                 try {
-                    JTextComponent c = getComponent();
+                	writer.ui.NormalizingTextPane c = (NormalizingTextPane) getComponent();
 
                     // Essaye d'abord Java 9+ (modelToView2D)
                     Rectangle r;

@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.Utilities;
 
 /**
@@ -18,9 +17,9 @@ import javax.swing.text.Utilities;
 public final class InsertUnorderedBulletAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
-    private final JTextComponent editor;
+    private final writer.ui.NormalizingTextPane editor;
 
-    public InsertUnorderedBulletAction(JTextComponent editor) {
+    public InsertUnorderedBulletAction(writer.ui.NormalizingTextPane editor) {
         super("Liste non numérotée");
         this.editor = editor;
     }

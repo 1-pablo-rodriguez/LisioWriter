@@ -1,9 +1,8 @@
 package writer.ui.editor;
 
+import javax.swing.text.Document;
 import javax.swing.text.NavigationFilter;
 import javax.swing.text.Position.Bias;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.Document;
 
 /**
  * NavigationFilter qui:
@@ -16,9 +15,9 @@ public final class NoGapAcrossBrailleNavigationFilter extends NavigationFilter {
     private static final char BRAILLE_CH = '\u283F';
 
     private final NavigationFilter delegate;
-    private final JTextComponent editor;
+    private final writer.ui.NormalizingTextPane editor;
 
-    public NoGapAcrossBrailleNavigationFilter(JTextComponent editor, NavigationFilter delegate) {
+    public NoGapAcrossBrailleNavigationFilter(writer.ui.NormalizingTextPane editor, NavigationFilter delegate) {
         this.editor = editor;
         this.delegate = delegate;
     }
@@ -77,7 +76,7 @@ public final class NoGapAcrossBrailleNavigationFilter extends NavigationFilter {
         return dot;
     }
 
-    private static int safeCaretPosition(JTextComponent c, int len) {
+    private static int safeCaretPosition(writer.ui.NormalizingTextPane c, int len) {
         int p = c.getCaretPosition();
         if (p < 0) return 0;
         if (p > len) return len;

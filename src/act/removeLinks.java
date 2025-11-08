@@ -1,42 +1,73 @@
 package act;
 
 import java.awt.event.ActionEvent;
+import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
+import javax.swing.SwingUtilities;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 
+import writer.ui.EditorFrame;
+
 @SuppressWarnings("serial")
-public class removeLinks extends AbstractAction{
-	private final JTextComponent editorPane;
+public class removeLinks extends AbstractAction {
+    private final JTextComponent editorPane;
+    private final EditorFrame frame;
 
-	// Constructeur
-	public removeLinks(JTextComponent editorPane) {
-	    super("removeLinks");
-	    this.editorPane = editorPane;
-	}
+    // @[texte : URL]
+    private static final Pattern LINK = Pattern.compile("@\\[[^\\]:]+\\s*:\\s*https?://[^\\]]+\\]");
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		try {
-	        javax.swing.text.Document doc = editorPane.getDocument();
-	        String text = doc.getText(0, doc.getLength());
+    // Constructeur
+    public removeLinks(writer.ui.NormalizingTextPane editorPane, EditorFrame frame) {
+        super("removeLinks");
+        this.editorPane = editorPane;
+        this.frame = frame;
+    }
 
-	        // Expression régulière pour les liens LisioWriter : @[texte : URL]
-	        String cleaned = text.replaceAll("@\\[[^\\]:]+\\s*:\\s*https?://[^\\]]+\\]", "");
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        try {
+            final Document doc = editorPane.getDocument();
+            final int len = doc.getLength();
+            if (len == 0) return; // rien à faire, rien dans l’historique
 
-	        // Remplace le contenu de l’éditeur
-	        doc.remove(0, doc.getLength());
-	        doc.insertString(0, cleaned, null);
+            final String text = doc.getText(0, len);
+            final String cleaned = LINK.matcher(text).replaceAll("");
 
-	        editorPane.setCaretPosition(0);
-	        editorPane.requestFocusInWindow();
+            if (cleaned.equals(text)) return; // pas de changement -> pas d’édition
 
-	        System.out.println("✅ Tous les liens ont été supprimés du texte.");
+            // (optionnel) nettoyer les highlights pour éviter des offsets périmés
+            try { editorPane.getHighlighter().removeAllHighlights(); } catch (Exception ignore) {}
 
-	    } catch (Exception ex) {
-	        ex.printStackTrace();
-	    }
-		
-	}
+            // --- ÉDITION SANS HISTORIQUE ---
+            frame.runWithoutUndo(() -> {
+                try {
+                    if (doc instanceof AbstractDocument ad) {
+                        ad.replace(0, len, cleaned, null); // une seule édition atomique
+                    } else {
+                        doc.remove(0, len);
+                        doc.insertString(0, cleaned, null);
+                    }
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
 
+            // Replacer le caret après relayout, de façon safe
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    int L = editorPane.getDocument().getLength();
+                    editorPane.setCaretPosition(L == 0 ? 0 : 1);
+                    editorPane.requestFocusInWindow();
+                } catch (Exception ignore) {}
+            });
+
+            System.out.println("✅ Tous les liens ont été supprimés du texte (sans historique).");
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 }

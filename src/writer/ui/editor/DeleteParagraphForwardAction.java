@@ -2,16 +2,16 @@ package writer.ui.editor;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+
 import javax.swing.AbstractAction;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
-import javax.swing.text.JTextComponent;
 
 @SuppressWarnings("serial")
 public final class DeleteParagraphForwardAction extends AbstractAction {
-    private final JTextComponent comp;
+    private final writer.ui.NormalizingTextPane comp;
 
-    public DeleteParagraphForwardAction(JTextComponent comp) {
+    public DeleteParagraphForwardAction(writer.ui.NormalizingTextPane comp) {
         super("bw-delete-paragraph-forward");
         this.comp = comp;
     }

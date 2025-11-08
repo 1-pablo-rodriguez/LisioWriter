@@ -8,7 +8,7 @@ import javax.swing.*;
 import javax.swing.text.*;
 
 /**
- * Navigation par paragraphes pour JTextComponent :
+ * Navigation par paragraphes pour writer.ui.NormalizingTextPane :
  *  - ↓ : début du paragraphe suivant
  *  - ↑ : début du paragraphe précédent
  *  - Shift+↓ / Shift+↑ : idem en étendant la sélection
@@ -19,7 +19,7 @@ public final class ParagraphNavigator {
 
     /** Installe les raccourcis ↑/↓ (et Shift+↑/↓) sur l'éditeur. */
     @SuppressWarnings("serial")
-	public static void install(JTextComponent editor) {
+	public static void install(writer.ui.NormalizingTextPane editor) {
         InputMap im = editor.getInputMap(JComponent.WHEN_FOCUSED);
         ActionMap am = editor.getActionMap();
 
@@ -53,7 +53,7 @@ public final class ParagraphNavigator {
     }
 
     /** Déplace (ou étend) la sélection au début du paragraphe suivant. */
-    public static void goToNextParagraphStart(JTextComponent ed, boolean extendSelection) {
+    public static void goToNextParagraphStart(writer.ui.NormalizingTextPane ed, boolean extendSelection) {
         Document doc = ed.getDocument();
         Element root = doc.getDefaultRootElement();
         int idx = currentParagraphIndex(ed);
@@ -62,7 +62,7 @@ public final class ParagraphNavigator {
     }
 
     /** Déplace (ou étend) la sélection au début du paragraphe précédent. */
-    public static void goToPrevParagraphStart(JTextComponent ed, boolean extendSelection) {
+    public static void goToPrevParagraphStart(writer.ui.NormalizingTextPane ed, boolean extendSelection) {
         int idx = currentParagraphIndex(ed);
         int target = Math.max(idx - 1, 0);
         gotoParagraphStart(ed, target, extendSelection);
@@ -70,14 +70,14 @@ public final class ParagraphNavigator {
 
     // ====== internes ======
 
-    private static int currentParagraphIndex(JTextComponent ed) {
+    private static int currentParagraphIndex(writer.ui.NormalizingTextPane ed) {
         Document doc = ed.getDocument();
         Element root = doc.getDefaultRootElement();
         int pos = Math.max(0, Math.min(ed.getCaretPosition(), doc.getLength()));
         return root.getElementIndex(pos);
     }
 
-    private static void gotoParagraphStart(JTextComponent ed, int targetParaIndex, boolean extendSelection) {
+    private static void gotoParagraphStart(writer.ui.NormalizingTextPane ed, int targetParaIndex, boolean extendSelection) {
         try {
             Document doc = ed.getDocument();
             Element root = doc.getDefaultRootElement();

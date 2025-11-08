@@ -20,7 +20,6 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
-import javax.swing.text.JTextComponent;
 
 /**
  * Utilitaire : gère le comportement "[tab]" visible, collage transformant les tabulations,
@@ -37,7 +36,7 @@ public final class enableCopyPasteVisibleTabs {
     private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u283F\\s*");
 
     @SuppressWarnings("serial")
-    public static void enableVisibleTabs(final JTextComponent editor) {
+    public static void enableVisibleTabs(final writer.ui.NormalizingTextPane editor) {
         if (editor == null) return;
 
         // 1) Le TAB ne doit pas déplacer le focus
@@ -98,8 +97,8 @@ public final class enableCopyPasteVisibleTabs {
                     if (t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                         String s = (String) t.getTransferData(DataFlavor.stringFlavor);
                         s = mapPaste(s);
-                        if (comp instanceof JTextComponent) {
-                            ((JTextComponent) comp).replaceSelection(s);
+                        if (comp instanceof writer.ui.NormalizingTextPane) {
+                            ((writer.ui.NormalizingTextPane) comp).replaceSelection(s);
                             return true;
                         }
                     }
@@ -120,8 +119,8 @@ public final class enableCopyPasteVisibleTabs {
                         if (res instanceof Transferable) return (Transferable) res;
                     } catch (Throwable ignored) {}
                 }
-                if (c instanceof JTextComponent) {
-                    String sel = ((JTextComponent) c).getSelectedText();
+                if (c instanceof writer.ui.NormalizingTextPane) {
+                    String sel = ((writer.ui.NormalizingTextPane) c).getSelectedText();
                     if (sel != null) return new StringSelection(sel);
                 }
                 return null;

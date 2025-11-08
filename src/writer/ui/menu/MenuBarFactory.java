@@ -243,8 +243,11 @@ public final class MenuBarFactory {
    	
    		// Active/ désactive l'édition
 	 	JMenuItem removeLink = createMenuItem("Supprime les liens", KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK, e -> {
-	        System.out.println("Supprime les liens");
-	        new act.removeLinks(ctx.getEditor()).actionPerformed(null);
+            var win = ctx.getWindow();
+            if (win instanceof EditorFrame frame) {
+            	   new act.removeLinks(ctx.getEditor(), frame).actionPerformed(null);
+            	   System.out.println("Supprime les liens");
+            }
 	    });
 
     	// Vérification de tout le document

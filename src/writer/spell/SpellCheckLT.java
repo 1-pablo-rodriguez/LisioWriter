@@ -24,7 +24,6 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Document;
 import javax.swing.text.Highlighter;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.LayeredHighlighter;
 
 import org.languagetool.JLanguageTool;
@@ -40,7 +39,7 @@ import writer.commandes;
  * Version : sans marqueurs "°°" — uniquement des highlights & navigation par match.
  */
 public final class SpellCheckLT {
-    private final JTextComponent area;
+    private final writer.ui.NormalizingTextPane area;
     private final Timer debounce = new Timer(300, e -> checkNow());
     private final Highlighter highlighter;
     private final LayeredHighlighter.LayerPainter painter = new RedSquigglePainter();
@@ -101,7 +100,7 @@ public final class SpellCheckLT {
 
     // ========== CONSTRUCTEUR & ATTACH ==========
     @SuppressWarnings("serial")
-	private SpellCheckLT(JTextComponent area) {
+	private SpellCheckLT(writer.ui.NormalizingTextPane area) {
         this.area = area;
         this.highlighter = area.getHighlighter();
         debounce.setRepeats(false);
@@ -181,7 +180,7 @@ public final class SpellCheckLT {
         checkNow();
     }
 
-    public static SpellCheckLT attach(JTextComponent area) {
+    public static SpellCheckLT attach(writer.ui.NormalizingTextPane area) {
         if (!(area.getHighlighter() instanceof LayeredHighlighter)) {
             area.setHighlighter(new DefaultHighlighter());
         }

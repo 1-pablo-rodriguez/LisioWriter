@@ -8,7 +8,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
 import javax.swing.text.Element;
-import javax.swing.text.JTextComponent;
 
 import writer.ui.NormalizingTextPane;
 
@@ -29,7 +28,7 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
     private static final Pattern WORD_PATTERN =
             Pattern.compile("\\p{L}+(?:['’\\-]\\p{L}+)*", Pattern.UNICODE_CHARACTER_CLASS);
 
-    public AnnouncePositionAction(JTextComponent editor) {
+    public AnnouncePositionAction(writer.ui.NormalizingTextPane editor) {
         super("Position dans le texte");
         this.editor = (NormalizingTextPane) editor;
     }

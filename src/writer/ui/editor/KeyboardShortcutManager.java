@@ -12,7 +12,6 @@ import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
-import javax.swing.text.JTextComponent;
 
 import act.Gras;
 import act.Italique;
@@ -46,9 +45,9 @@ import writer.ui.EditorFrame;
 public class KeyboardShortcutManager {
 
     private final EditorFrame frame;
-    private final JTextComponent editorPane;
+    private final writer.ui.NormalizingTextPane editorPane;
 
-    public KeyboardShortcutManager(EditorFrame frame, JTextComponent editorPane) {
+    public KeyboardShortcutManager(EditorFrame frame, writer.ui.NormalizingTextPane editorPane) {
         this.frame = frame;
         this.editorPane = editorPane;
     }

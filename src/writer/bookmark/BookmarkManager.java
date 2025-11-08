@@ -13,7 +13,6 @@ import java.util.UUID;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 
 import xml.node;
@@ -34,12 +33,12 @@ public final class BookmarkManager {
      } 
  }
 
- private final JTextComponent area;
+ private final writer.ui.NormalizingTextPane area;
  private final LinkedHashMap<String, Bookmark> map = new LinkedHashMap<>();
  private final ArrayList<String> order = new ArrayList<>(); // ordre d’ajout pour Next/Prev
  private int cursor = -1;
 
- public BookmarkManager(JTextComponent area) { this.area = area; }
+ public BookmarkManager(writer.ui.NormalizingTextPane area) { this.area = area; }
 
  // Ajoute un marque-page au caret (ou label custom)
  public Bookmark addHere(String label) {

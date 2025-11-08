@@ -4,17 +4,16 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
 
 import writer.ui.text.Lines;
 
 public class VersBas extends AbstractAction{
 
 	private static final long serialVersionUID = 1L;
-	private final JTextComponent editorPane;
+	private final writer.ui.NormalizingTextPane editorPane;
 
 	// Constructeur
-	public VersBas(JTextComponent editorPane) {
+	public VersBas(writer.ui.NormalizingTextPane editorPane) {
 	    super("VersBas");
 	    this.editorPane = editorPane;
 	}

@@ -1,12 +1,12 @@
 package writer.ui.editor;
 
 import java.awt.event.ActionEvent;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.Document;
 
 /**
  * Action Entrée "braille" :
@@ -22,16 +22,16 @@ public class EnterBrailleInsertAction extends AbstractAction {
     private static final char   BRAILLE_CH = '\u283F';
     private static final String BRAILLE    = String.valueOf(BRAILLE_CH);
 
-    private final JTextComponent editor;
+    private final writer.ui.NormalizingTextPane editor;
     private final Action fallback;
     private final String insert; // "\n⠿" ou "\n⠿ "
 
     /**
-     * @param editor composant cible (JTextComponent)
+     * @param editor composant cible (writer.ui.NormalizingTextPane)
      * @param fallback action de repli si insertion échoue (peut être null)
      * @param withTrailingSpace true pour insérer "\n⠿ " au lieu de "\n⠿"
      */
-    public EnterBrailleInsertAction(JTextComponent editor, Action fallback, boolean withTrailingSpace) {
+    public EnterBrailleInsertAction(writer.ui.NormalizingTextPane editor, Action fallback, boolean withTrailingSpace) {
         this.editor = editor;
         this.fallback = fallback;
         this.insert = withTrailingSpace ? "\n" + BRAILLE + " " : "\n" + BRAILLE;
@@ -39,7 +39,7 @@ public class EnterBrailleInsertAction extends AbstractAction {
     }
 
     /** Constructeur pratique sans espace et sans fallback */
-    public EnterBrailleInsertAction(JTextComponent editor) {
+    public EnterBrailleInsertAction(writer.ui.NormalizingTextPane editor) {
         this(editor, null, false);
     }
 
@@ -143,7 +143,7 @@ public class EnterBrailleInsertAction extends AbstractAction {
     }
 
     /** Factory : récupère l'action "insertBreak" par défaut pour servir de fallback. */
-    public static EnterBrailleInsertAction createWithDefaultFallback(JTextComponent editor, boolean withTrailingSpace) {
+    public static EnterBrailleInsertAction createWithDefaultFallback(writer.ui.NormalizingTextPane editor, boolean withTrailingSpace) {
         Action defaultInsert = editor.getActionMap().get(DefaultEditorKit.insertBreakAction);
         return new EnterBrailleInsertAction(editor, defaultInsert, withTrailingSpace);
     }

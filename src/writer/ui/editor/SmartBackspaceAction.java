@@ -4,10 +4,10 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.swing.AbstractAction;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 
 /**
  * Action Backspace intelligente :
@@ -23,7 +23,7 @@ import javax.swing.text.JTextComponent;
 @SuppressWarnings("serial")
 public class SmartBackspaceAction extends AbstractAction {
 
-    private final JTextComponent editorPane;
+    private final writer.ui.NormalizingTextPane editorPane;
     private final javax.swing.Action fallback;
 
     // Pattern pour détecter une séquence "\r\n⠿[ ]" ou "\n⠿[ ]" juste avant le caret
@@ -39,7 +39,7 @@ public class SmartBackspaceAction extends AbstractAction {
     private static final Pattern SPECIAL_TITLE_NO_SPACE   = Pattern.compile("^#([PS])\\.");
     private static final Pattern AT_TOKEN = Pattern.compile("^@\\S*"); // token @... (jusqu'au premier espace)
 
-    public SmartBackspaceAction(JTextComponent editorPane, javax.swing.Action fallback) {
+    public SmartBackspaceAction(writer.ui.NormalizingTextPane editorPane, javax.swing.Action fallback) {
         super("bw-smart-backspace");
         this.editorPane = editorPane;
         this.fallback = fallback;

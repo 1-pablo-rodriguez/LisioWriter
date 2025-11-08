@@ -1,14 +1,12 @@
 package writer;
 
-import javax.swing.text.JTextComponent;
-
 import writer.ui.EditorFrame;
 import writer.ui.text.Lines;
 
 public class champAuteur {
 	
 	public champAuteur(EditorFrame frame) {
-		JTextComponent editorPane = frame.getEditor();
+		writer.ui.NormalizingTextPane editorPane = frame.getEditor();
 		int positionCurseur = editorPane.getCaretPosition();
 		String selectedText = editorPane.getSelectedText();
         

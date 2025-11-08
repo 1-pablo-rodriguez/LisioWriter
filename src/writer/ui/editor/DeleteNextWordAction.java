@@ -2,16 +2,16 @@ package writer.ui.editor;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+
 import javax.swing.AbstractAction;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.Utilities;
 
 @SuppressWarnings("serial")
 public final class DeleteNextWordAction extends AbstractAction {
-    private final JTextComponent comp;
+    private final writer.ui.NormalizingTextPane comp;
 
-    public DeleteNextWordAction(JTextComponent comp) {
+    public DeleteNextWordAction(writer.ui.NormalizingTextPane comp) {
         super("bw-delete-next-word");
         this.comp = comp;
     }

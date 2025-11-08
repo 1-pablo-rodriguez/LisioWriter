@@ -16,7 +16,6 @@ import javax.swing.KeyStroke;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 
 public final class WordSelectOnShiftRight {
 
@@ -33,7 +32,7 @@ public final class WordSelectOnShiftRight {
      *  À chaque fois, copie la sélection complète dans le presse-papiers.
      */
     @SuppressWarnings("serial")
-	public static void install(final JTextComponent comp) {
+	public static void install(final writer.ui.NormalizingTextPane comp) {
         if (comp == null) return;
 
         InputMap im = comp.getInputMap(JComponent.WHEN_FOCUSED);
@@ -70,7 +69,7 @@ public final class WordSelectOnShiftRight {
      *  Sinon → normalise la sélection aux bornes de paragraphes et ajoute le paragraphe suivant.
      *  Annonce un extrait du paragraphe ajouté et copie la sélection complète.
      */
-    private static void extendSelectionOneParagraphDown(JTextComponent comp) {
+    private static void extendSelectionOneParagraphDown(writer.ui.NormalizingTextPane comp) {
         try {
             Document doc = comp.getDocument();
             int len = doc.getLength();
@@ -132,7 +131,7 @@ public final class WordSelectOnShiftRight {
 
     // ---------------------- Shift+→ : mots vers la droite ----------------------
 
-    private static void extendSelectionOneWordRight(JTextComponent comp) {
+    private static void extendSelectionOneWordRight(writer.ui.NormalizingTextPane comp) {
         try {
             Document doc = comp.getDocument();
             int len = doc.getLength();
@@ -196,7 +195,7 @@ public final class WordSelectOnShiftRight {
 
     // ---------------------- Shift+← : retirer un mot à droite ----------------------
 
-    private static void shrinkSelectionOneWordFromRight(JTextComponent comp) {
+    private static void shrinkSelectionOneWordFromRight(writer.ui.NormalizingTextPane comp) {
         try {
             Document doc = comp.getDocument();
             int len = doc.getLength();
@@ -340,7 +339,7 @@ public final class WordSelectOnShiftRight {
 
     // ---------------------- Presse-papiers ----------------------
 
-    private static void copySelectionToClipboard(JTextComponent comp) {
+    private static void copySelectionToClipboard(writer.ui.NormalizingTextPane comp) {
         String sel = comp.getSelectedText();
         if (sel == null) sel = "";
         copySelectionToClipboard(sel, 0);

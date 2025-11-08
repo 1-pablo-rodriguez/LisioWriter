@@ -2,12 +2,12 @@ package writer.ui.editor;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.swing.AbstractAction;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Action Delete intelligente (touche Suppr).
@@ -21,7 +21,7 @@ public class SmartDeleteAction extends AbstractAction {
 
     private static final char BRAILLE_CH = '\u283F';
 
-    private final JTextComponent editorPane;
+    private final writer.ui.NormalizingTextPane editorPane;
     private final javax.swing.Action fallback;
 
     // Pattern pour détecter un préfixe braille sur la ligne
@@ -34,7 +34,7 @@ public class SmartDeleteAction extends AbstractAction {
     private static final Pattern SPECIAL_TITLE_NO_SPACE   = Pattern.compile("^#([PS])\\.");
     private static final Pattern AT_TOKEN = Pattern.compile("^@\\S*"); // token @... (jusqu'au 1er espace)
 
-    public SmartDeleteAction(JTextComponent editorPane, javax.swing.Action fallback) {
+    public SmartDeleteAction(writer.ui.NormalizingTextPane editorPane, javax.swing.Action fallback) {
         super("bw-smart-delete");
         this.editorPane = editorPane;
         this.fallback = fallback;

@@ -1,7 +1,5 @@
 package dia;
 
-import javax.swing.text.JTextComponent;
-
 import writer.commandes;
 import writer.ui.EditorFrame;
 import writer.util.AppInfo;
@@ -12,7 +10,7 @@ public class bienvenueAffichage {
 	public bienvenueAffichage(EditorFrame frame) {
         StringBuilder message = new StringBuilder(128);
 
-        JTextComponent editorPane = frame.getEditor();
+        writer.ui.NormalizingTextPane editorPane = frame.getEditor();
         char c = '\u283F';
         try {
 

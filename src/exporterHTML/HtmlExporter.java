@@ -28,7 +28,7 @@ public final class HtmlExporter {
      */
     public static Path exportHtml(String html, Path outPath, boolean openInBrowser) throws IOException {
         if (html == null) html = "";
-
+        
         // Normaliser nouvelle ligne
         html = html.replace("\r\n", "\n").replace("\r", "\n");
 

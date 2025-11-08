@@ -1,6 +1,8 @@
 package writer.ui.text;
 
-import javax.swing.text.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.Element;
 
 /*
  * Class permettant de connaitre la position du curseur dans le texte
@@ -11,14 +13,14 @@ public final class Lines {
     private Lines() {}
 
     /** Nombre de lignes (éléments) dans le Document. */
-    public static int getLineCount(JTextComponent c) {
+    public static int getLineCount(writer.ui.NormalizingTextPane c) {
         Document doc = c.getDocument();
         Element root = doc.getDefaultRootElement();
         return root.getElementCount();
     }
 
     /** Index de la ligne (0-based) qui contient l’offset donné. */
-    public static int getLineOfOffset(JTextComponent c, int offset) throws BadLocationException {
+    public static int getLineOfOffset(writer.ui.NormalizingTextPane c, int offset) throws BadLocationException {
         Document doc = c.getDocument();
         int len = doc.getLength();
         if (offset < 0 || offset > len) throw new BadLocationException("offset", offset);
@@ -27,21 +29,21 @@ public final class Lines {
     }
 
     /** Offset du début de la ligne (0-based). */
-    public static int getLineStartOffset(JTextComponent c, int line) throws BadLocationException {
+    public static int getLineStartOffset(writer.ui.NormalizingTextPane c, int line) throws BadLocationException {
         Element root = c.getDocument().getDefaultRootElement();
         if (line < 0 || line >= root.getElementCount()) throw new BadLocationException("line", line);
         return root.getElement(line).getStartOffset();
     }
 
     /** Offset de fin de ligne (attention : souvent = position après le '\n'). */
-    public static int getLineEndOffset(JTextComponent c, int line) throws BadLocationException {
+    public static int getLineEndOffset(writer.ui.NormalizingTextPane c, int line) throws BadLocationException {
         Element root = c.getDocument().getDefaultRootElement();
         if (line < 0 || line >= root.getElementCount()) throw new BadLocationException("line", line);
         return root.getElement(line).getEndOffset();
     }
 
     /** Ligne courante (0-based) du caret. */
-    public static int getCaretLine(JTextComponent c) {
+    public static int getCaretLine(writer.ui.NormalizingTextPane c) {
         try {
             return getLineOfOffset(c, c.getCaretPosition());
         } catch (BadLocationException e) {
@@ -50,7 +52,7 @@ public final class Lines {
     }
 
     /** Colonne vis-à-vis du début de la ligne. */
-    public static int getCaretColumn(JTextComponent c) {
+    public static int getCaretColumn(writer.ui.NormalizingTextPane c) {
         try {
             int caret = c.getCaretPosition();
             int line = getLineOfOffset(c, caret);
@@ -62,7 +64,7 @@ public final class Lines {
     }
 
     /** Va au début de la ligne courante. */
-    public static void moveCaretToLineStart(JTextComponent c) {
+    public static void moveCaretToLineStart(writer.ui.NormalizingTextPane c) {
         try {
             int line = getCaretLine(c);
             c.setCaretPosition(getLineStartOffset(c, line));
@@ -70,7 +72,7 @@ public final class Lines {
     }
 
     /** Va à la fin logique de la ligne courante (juste avant le '\n' s’il existe). */
-    public static void moveCaretToLineEnd(JTextComponent c) {
+    public static void moveCaretToLineEnd(writer.ui.NormalizingTextPane c) {
         try {
             int line = getCaretLine(c);
             int end = getLineEndOffset(c, line);
@@ -85,7 +87,7 @@ public final class Lines {
      * - Si str est null, on insère une chaîne vide.
      * - Met le caret à start + str.length() et efface la sélection.
      */
-    public static void replaceRange(JTextComponent c, String str, int start, int end) {
+    public static void replaceRange(writer.ui.NormalizingTextPane c, String str, int start, int end) {
         if (c == null) return;
         String s = (str == null) ? "" : str;
 
@@ -99,7 +101,7 @@ public final class Lines {
         b = Math.min(b, len);
 
         try {
-            // Équivalent replace: remove + insert (JTextComponent n'a pas replaceRange)
+            // Équivalent replace: remove + insert (writer.ui.NormalizingTextPane n'a pas replaceRange)
             if (b > a) doc.remove(a, b - a);
             if (!s.isEmpty()) doc.insertString(a, s, null);
 
@@ -112,10 +114,10 @@ public final class Lines {
     }
 
     /**
-     * Remplace la sélection courante par 'str' (comme replaceSelection de JTextComponent),
+     * Remplace la sélection courante par 'str' (comme replaceSelection de writer.ui.NormalizingTextPane),
      * mais utilisable partout via Lines.* avec la même API.
      */
-    public static void replaceSelection(JTextComponent c, String str) {
+    public static void replaceSelection(writer.ui.NormalizingTextPane c, String str) {
         if (c == null) return;
         int a = Math.min(c.getSelectionStart(), c.getSelectionEnd());
         int b = Math.max(c.getSelectionStart(), c.getSelectionEnd());
@@ -128,7 +130,7 @@ public final class Lines {
      * - Si str est null, rien n’est inséré.
      * - Le caret est placé juste après le texte inséré.
      */
-    public static void insert(JTextComponent c, String str, int pos) {
+    public static void insert(writer.ui.NormalizingTextPane c, String str, int pos) {
         if (c == null || str == null || str.isEmpty()) return;
 
         Document doc = c.getDocument();
@@ -147,7 +149,7 @@ public final class Lines {
      * Ajoute 'str' à la fin du document (équivalent simple de JTextArea.append).
      * Place le caret après le texte ajouté.
      */
-    public static void append(JTextComponent c, String str) {
+    public static void append(writer.ui.NormalizingTextPane c, String str) {
         if (c == null || str == null || str.isEmpty()) return;
         Document doc = c.getDocument();
         insert(c, str, doc.getLength());
@@ -157,7 +159,7 @@ public final class Lines {
      * Supprime la plage [start, end) si elle est valide.
      * Le caret est placé à 'start'.
      */
-    public static void deleteRange(JTextComponent c, int start, int end) {
+    public static void deleteRange(writer.ui.NormalizingTextPane c, int start, int end) {
         if (c == null) return;
         Document doc = c.getDocument();
         int len = doc.getLength();
@@ -178,7 +180,7 @@ public final class Lines {
     /**
      * Récupère le texte de [start, end) en sécurité.
      */
-    public static String getTextRange(JTextComponent c, int start, int end) {
+    public static String getTextRange(writer.ui.NormalizingTextPane c, int start, int end) {
         if (c == null) return "";
         Document doc = c.getDocument();
         int len = doc.getLength();
