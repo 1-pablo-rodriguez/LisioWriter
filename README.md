@@ -42,11 +42,12 @@ Tout se pilote au clavier, fonctionne avec NVDA ou JAWS, et la mise en forme est
 
 - L’ambition de LisioWriter est de favoriser l’**autonomie numérique** et l’**inclusion**, tout en restant proche des **standards bureautiques** connus (Word, Writer, Markdown) afin de faciliter l’apprentissage et l’intégration dans les **environnements éducatifs et professionnels**.
 
-## 📚 Documentations
+---
+
+# 📚 Documentations
 
 👉 [Page d'acceuil de la documentation en ligne](https://1-pablo-rodriguez.github.io/LisioWriter/)
 
-👉 [Page d'acceuil de la documentation en ligne](https://1-pablo-rodriguez.github.io/LisioWriter/)
 
 ## Capture d’écran — Import d’un fichier Word
 
