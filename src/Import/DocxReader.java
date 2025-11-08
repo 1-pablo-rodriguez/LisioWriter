@@ -15,6 +15,10 @@ import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.w3c.dom.Node;
+
+import writer.ui.editor.BraillePrefixer;
+import writer.ui.editor.enableCopyPasteVisibleTabs;
+
 import org.apache.poi.xwpf.usermodel.XWPFHyperlinkRun;
 
 
@@ -54,7 +58,12 @@ public class DocxReader {
         	    }
         	}
         }
-        return sb.toString();
+        
+     // --- ⟹ post-traitement : préfixer les paragraphes avec ⠿ ---
+        String imported = sb.toString();
+        String withBraille = BraillePrefixer.addBrailleAtParagraphStarts(imported) ; 
+        
+        return withBraille.toString();
     }
 
     @SuppressWarnings("unused")

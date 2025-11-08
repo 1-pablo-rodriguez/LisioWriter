@@ -1,5 +1,7 @@
 package writer.ui.editor;
 
+import java.util.regex.Pattern;
+
 /**
  * Utilitaires pour préfixer chaque paragraphe d'un texte avec un marqueur braille.
  *
@@ -11,6 +13,11 @@ package writer.ui.editor;
  *    commence par des espaces/tabs, le marqueur est inséré après l'indentation.
  */
 public final class BraillePrefixer {
+	
+	// Caractère braille et regex "commence déjà par ⠿ (après espaces éventuels)"
+    private static final char BRAILLE = '\u283F';
+    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u283F\\s*");
+
 
     private BraillePrefixer() {}
 
@@ -86,4 +93,35 @@ public final class BraillePrefixer {
         }
         return out.toString();
     }
+    
+    
+    /**
+     * Méthode utilisée pour importation des fichiers docx, .odt, .txt, .html
+     * Ajoute "⠿ " au début de chaque paragraphe non vide du bloc de texte,
+     * sauf si le paragraphe commence déjà par ⠿.
+     * - Conserve les lignes vides telles quelles
+     * - Gère CRLF / CR / LF
+     */
+    public static String addBrailleAtParagraphStarts(String text) {
+        // normalise les fins de ligne pour itérer proprement
+        String norm = text.replace("\r\n", "\n").replace('\r', '\n');
+        String[] lines = norm.split("\n", -1); // -1 pour conserver les vides de fin
+        StringBuilder out = new StringBuilder(norm.length() + lines.length * 2);
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (line.isBlank()) {           	
+            	out.append(BRAILLE).append(line);
+            } else if (LEADING_BRAILLE.matcher(line).find()) {
+                out.append(line); // déjà préfixé : ne pas dupliquer
+            } else {
+                out.append(BRAILLE).append(' ').append(line);
+            }
+            if (i < lines.length - 1) out.append('\n');
+        }
+        return out.toString();
+    }
+    
+    
+    
 }
