@@ -18,6 +18,7 @@ import javax.swing.SwingUtilities;
 
 import act.select_CANCEL;
 import act.select_OK;
+import writer.ChargeNouveauFichier;
 import writer.commandes;
 import writer.ui.EditorFrame;
 
@@ -66,21 +67,11 @@ public class BoiteNewDocument  {
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     // Valide la saisie lorsque la touche "Entrée" est appuyée
-                    String texte = textField.getText();
-                    if (texte.isBlank()) {
-                    	
+                    String nameFile = textField.getText();
+                    if (nameFile.isBlank()) {
+                    	dia.InfoDialog.show(parent, "Info", "Vous devez taper un nom de ficier.");
                     } else {
-                        commandes.nameFile = texte;
-                        commandes.hash=0;
-                        
-                        commandes.nodeblindWriter.retourneFirstEnfant("contentText").getContenu().clear();
-                       	commandes.nodeblindWriter.getAttributs().put("filename","nouveaux fichier LisioWriter");
-                        commandes.nameFile = texte;
-                        
-                        commandes.defaultStyles();
-                        
-                        parent.getEditor().setText("");
-                       
+                        new ChargeNouveauFichier(parent,nameFile );
                         fermeture();  // Ferme la boîte de dialogue
                     }
                 }

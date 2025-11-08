@@ -44,10 +44,8 @@ public class LisioWriter extends writer.ui.EditorFrame {
 		            if (startupPath != null && !startupPath.isBlank()) {
 		                openFileOnStartup(startupPath, frame); // méthode static (voir ci-dessous)
 		            }else {
-		            	new ChargeNouveauFichier(frame);
+		            	new ChargeNouveauFichier(frame,"Nouveau Fichier");
 		            }
-		            
-		            
 		            
 		            // 4) Affichage fenêtre de bienvenue
 		            new bienvenueAffichage(frame);

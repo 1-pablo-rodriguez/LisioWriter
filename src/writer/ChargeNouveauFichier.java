@@ -12,9 +12,19 @@ import writer.ui.NormalizingTextPane;
 
 public class ChargeNouveauFichier {
 
-	public ChargeNouveauFichier(EditorFrame parent) {
+	public ChargeNouveauFichier(EditorFrame parent, String nameFile) {
 		final String newText  = "⠿" ;
         SwingUtilities.invokeLater(() -> {
+        	
+        	commandes.nameFile = nameFile;
+            commandes.hash=0;
+            
+            commandes.nodeblindWriter.retourneFirstEnfant("contentText").getContenu().clear();
+           	commandes.nodeblindWriter.getAttributs().put("filename","nouveaux fichier LisioWriter");
+            
+            commandes.defaultStyles();
+        	
+        	
             try {
             	writer.ui.NormalizingTextPane editorComp = (NormalizingTextPane) parent.getEditor();
                 Document doc = editorComp.getDocument();
