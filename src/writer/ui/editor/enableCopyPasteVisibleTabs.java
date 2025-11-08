@@ -7,6 +7,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.lang.reflect.Method;
+import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -23,16 +24,20 @@ import javax.swing.text.JTextComponent;
 
 /**
  * Utilitaire : gère le comportement "[tab]" visible, collage transformant les tabulations,
- * et un TransferHandler qui restaure Ctrl+C / Ctrl+X / Ctrl+V correctement (avec fallback).
+ * et ajoute le caractère braille ⠿ au début de chaque paragraphe collé (si absent).
  *
- * Appel : VisibleTabs.enableVisibleTabs(myTextComponent);
+ * Appel : enableCopyPasteVisibleTabs.enableVisibleTabs(myTextComponent);
  */
 public final class enableCopyPasteVisibleTabs {
 
     private enableCopyPasteVisibleTabs() {}
 
+    // Caractère braille et regex "commence déjà par ⠿ (après espaces éventuels)"
+    private static final char BRAILLE = '\u283F';
+    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u283F\\s*");
+
     @SuppressWarnings("serial")
-	public static void enableVisibleTabs(final JTextComponent editor) {
+    public static void enableVisibleTabs(final JTextComponent editor) {
         if (editor == null) return;
 
         // 1) Le TAB ne doit pas déplacer le focus
@@ -59,7 +64,7 @@ public final class enableCopyPasteVisibleTabs {
                     Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
                     if (cb.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
                         String s = (String) cb.getData(DataFlavor.stringFlavor);
-                        s = mapTabs(s);             // \t -> [tab]
+                        s = mapPaste(s); // \t -> [tab], puis préfixe ⠿ au début de chaque paragraphe
                         editor.replaceSelection(s);
                         return;
                     }
@@ -92,7 +97,7 @@ public final class enableCopyPasteVisibleTabs {
                 try {
                     if (t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                         String s = (String) t.getTransferData(DataFlavor.stringFlavor);
-                        s = mapTabs(s);
+                        s = mapPaste(s);
                         if (comp instanceof JTextComponent) {
                             ((JTextComponent) comp).replaceSelection(s);
                             return true;
@@ -148,7 +153,6 @@ public final class enableCopyPasteVisibleTabs {
             }
         });
 
-
         // 5) DocumentFilter : couvre insertions programmées, replace, etc.
         Document doc = editor.getDocument();
         if (doc instanceof AbstractDocument) {
@@ -157,20 +161,55 @@ public final class enableCopyPasteVisibleTabs {
                 @Override
                 public void insertString(FilterBypass fb, int offs, String str, AttributeSet a)
                         throws BadLocationException {
-                    super.insertString(fb, offs, mapTabs(str), a);
+                    super.insertString(fb, offs, mapPaste(str), a);
                 }
                 @Override
                 public void replace(FilterBypass fb, int offs, int len, String str, AttributeSet a)
                         throws BadLocationException {
-                    super.replace(fb, offs, len, mapTabs(str), a);
+                    super.replace(fb, offs, len, mapPaste(str), a);
                 }
             });
         }
     }
 
+    // 1) \t -> [tab]  2) préfixe braille ⠿ en tête de chaque paragraphe non vide
+    private static String mapPaste(String s) {
+        if (s == null || s.isEmpty()) return s;
+        String withTabs = mapTabs(s);
+        return addBrailleAtParagraphStarts(withTabs);
+    }
+
     // remplace \t par [tab] (utilitaire)
     private static String mapTabs(String s) {
-        return (s == null) ? s : s.replace("\t", "[tab] ");
+        return (s == null) ? null : s.replace("\t", "[tab] ");
+    }
+
+    /**
+     * Ajoute "⠿ " au début de chaque paragraphe non vide du bloc de texte,
+     * sauf si le paragraphe commence déjà par ⠿.
+     * - Conserve les lignes vides telles quelles
+     * - Gère CRLF / CR / LF
+     */
+    private static String addBrailleAtParagraphStarts(String text) {
+        // normalise les fins de ligne pour itérer proprement
+        String norm = text.replace("\r\n", "\n").replace('\r', '\n');
+        String[] lines = norm.split("\n", -1); // -1 pour conserver les vides de fin
+        StringBuilder out = new StringBuilder(norm.length() + lines.length * 2);
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+
+            if (i==0) {
+                out.append(line); // conserve les lignes vides/espaces
+            } else if (line.isBlank()) {
+            	out.append(BRAILLE).append(line);
+            } else if (LEADING_BRAILLE.matcher(line).find()) {
+                out.append(line); // déjà préfixé : ne pas dupliquer
+            } else {
+                out.append(BRAILLE).append(' ').append(line);
+            }
+            if (i < lines.length - 1) out.append('\n');
+        }
+        return out.toString();
     }
 }
-

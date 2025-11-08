@@ -289,6 +289,9 @@ public class EditorFrame extends JFrame implements EditorApi {
     		    }
     		});
     		
+		// --- Ajoute les raccourcis clavier ---
+    	new writer.ui.editor.KeyboardShortcutManager(this, this.editorPane).installShortcuts();
+
     	// Listener sur la position du caret
     	editorPane.addCaretListener(ev ->
     	    javax.swing.SwingUtilities.invokeLater(() -> {
@@ -299,11 +302,7 @@ public class EditorFrame extends JFrame implements EditorApi {
     	        } catch (Exception ignore) {}
     	    })
     	);
-
     	
-    	// --- Ajoute les raccourcis clavier ---
-    	new writer.ui.editor.KeyboardShortcutManager(this, this.editorPane).installShortcuts();
-
     	// --- Mise à jour du titre de la fenêtre si modifier ---
     	updateWindowTitle();
     	
