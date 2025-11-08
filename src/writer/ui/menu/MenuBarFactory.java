@@ -610,8 +610,8 @@ public final class MenuBarFactory {
         });
     	
     	
-    	JMenuItem sautPageItem = createMenuItem("Insérer un saut de page manuel", KeyEvent.VK_SPACE, InputEvent.CTRL_DOWN_MASK, e -> {
-            System.out.println("Insérer un saut de page manuel");
+    	JMenuItem sautPageItem = createMenuItem("Insérer un saut de page", KeyEvent.VK_SPACE, InputEvent.CTRL_DOWN_MASK, e -> {
+            System.out.println("Insérer un saut de page");
             new page.sautPage(ctx).appliquer();
         });
          

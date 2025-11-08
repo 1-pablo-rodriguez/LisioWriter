@@ -14,16 +14,18 @@ public class sautPage {
 
 	public void appliquer() {
 		try {
-			 var editor = ctx.getEditor();
+			 writer.ui.NormalizingTextPane editor = ctx.getEditor();
 			 int caretPosition = editor.getCaretPosition();
 			 int line = Lines.getLineOfOffset(ctx.getEditor(), caretPosition);
 			 int lineStart = Lines.getLineStartOffset(ctx.getEditor(), line);
-			 int lineEnd =  Lines.getLineEndOffset(ctx.getEditor(), lineStart); 
+			 int lineEnd =  Lines.getLineEndOffset(ctx.getEditor(), line); 
 			 String lineText = editor.getText(lineStart, lineEnd - lineStart);
 	            
            lineText = lineText.replace("\r", "").replace("\n", "");
-           if(lineText.length()==0) {
-        	   Lines.replaceRange(editor, "@saut de page manuel\n", lineStart, lineEnd);
+           
+           // il faut tenir compte du caractère braille ⠿ au début de paragraphe.
+           if(lineText.length()==1) {
+        	   Lines.replaceRange(editor, "@saut de page\n", lineStart+1, lineEnd);
            }
            
        } catch (BadLocationException e1) {
