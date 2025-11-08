@@ -403,16 +403,23 @@ public class openSearchDialog extends JDialog {
         if (trimmed.startsWith("&&")) {
             String inner = java.util.regex.Pattern.quote(trimmed.substring(2).trim());
             int flags = java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE;
-            return java.util.regex.Pattern.compile("(?m)^.*" + inner + ".*$", flags);
+            String rx = "(?m)^(?:\\s*\\u283F\\s*)?.*" + inner + ".*$";
+            return java.util.regex.Pattern.compile(rx, flags);
         }
 
         // 2️⃣ Recherche uniquement dans les titres (lignes commençant par #)
-        if (trimmed.startsWith("##")) {
-            String inner = java.util.regex.Pattern.quote(trimmed.substring(2).trim());
-            int flags = java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE;
-            // On cherche des lignes commençant par un ou plusieurs #
-            return java.util.regex.Pattern.compile("(?m)^#+.*" + inner + ".*$", flags);
-        }
+		//      Compatible avec un éventuel préfixe braille "⠿" + espaces.
+		  if (trimmed.startsWith("##")) {
+		      String inner = java.util.regex.Pattern.quote(trimmed.substring(2).trim());
+		      int flags = java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE;
+		
+		      // ⟶ (?m)  multilignes
+		      // ⟶ ^(?:\s*\u283F\s*)?   préfixe braille optionnel (avec espaces)
+		      // ⟶ \#{1,} \s*           un ou plusieurs dièses (Markdown), puis espaces
+		      // ⟶ .*inner.*$           on veut "inner" quelque part dans le titre
+		      String rx = "(?m)^(?:\\s*\\u283F\\s*)?#{1,}\\s*.*" + inner + ".*$";
+		      return java.util.regex.Pattern.compile(rx, flags);
+		  }
 
        
         // Classe de "caractères de mot" utilisée pour jokers et pour les lookarounds :
@@ -526,23 +533,28 @@ public class openSearchDialog extends JDialog {
         if (index < 0) return -1;
 
         String all = getAllText();
-        java.util.regex.Pattern p = buildPattern(field.getText());
+        String query = field.getText();
+        java.util.regex.Pattern p = buildPattern(query);
         if (p == null) return -1;
 
+        boolean lineMode = isLineModeQuery(query);
         java.util.regex.Matcher m = p.matcher(all);
         int i = 0;
         while (m.find()) {
             if (i == index) {
                 int start = m.start();
-                int end = m.end();
+                int end   = m.end();
+                int caretStart = lineMode ? adjustCaretToLineContent(all, start, end) : start;
                 try {
                     editor.requestFocusInWindow();
                     editor.getHighlighter().removeAllHighlights();
+                    // Surbrillance : on garde la ligne entière (start..end)
                     editor.getHighlighter().addHighlight(start, end,
                         new javax.swing.text.DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW));
+                    // Sélection visible (optionnel) : idem
                     editor.select(start, end);
                     scrollToVisible(editor, start, end);
-                    return start; // ✅ retourne la position du mot
+                    return caretStart; // ← on renvoie le début "visuel"
                 } catch (Exception ignored) {}
                 break;
             }
@@ -610,8 +622,36 @@ public class openSearchDialog extends JDialog {
         brailleArea.getCaret().setVisible(true);
     }
 
+    private static boolean isLineModeQuery(String q) {
+        if (q == null) return false;
+        String t = q.stripLeading();
+        return t.startsWith("##") || t.startsWith("&&");
+    }
 
+    private static int adjustCaretToLineContent(String all, int start, int end) {
+        int i = Math.max(0, start);
+        int n = Math.min(all.length(), end);
 
+        // Sauter espaces/tabs en tête de ligne
+        while (i < n) {
+            char c = all.charAt(i);
+            if (c == ' ' || c == '\t') { i++; continue; }
+            break;
+        }
+        // Sauter préfixe braille ⠿ + espaces
+        if (i < n && all.charAt(i) == '\u283F') {
+            i++;
+            while (i < n && (all.charAt(i) == ' ' || all.charAt(i) == '\t')) i++;
+        }
+        // Si titre : sauter les dièses successifs + espaces
+        int j = i;
+        while (j < n && all.charAt(j) == '#') j++;
+        if (j > i) {
+            i = j;
+            while (i < n && (all.charAt(i) == ' ' || all.charAt(i) == '\t')) i++;
+        }
+        return i;
+    }
 
 
     
