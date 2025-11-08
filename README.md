@@ -44,7 +44,7 @@ Tout se pilote au clavier, fonctionne avec NVDA ou JAWS, et la mise en forme est
 
 ## 📚 Documentation
 
-👉 [Consulter la documentation en ligne](https://1-pablo-rodriguez.github.io/LisioWriter/docs/index.html)
+👉 [Consulter la documentation en ligne](https://1-pablo-rodriguez.github.io/LisioWriter/)
 
 ## Capture d’écran — Import d’un fichier Word
 
