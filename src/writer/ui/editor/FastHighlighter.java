@@ -47,8 +47,9 @@ public final class FastHighlighter {
     private static final Pattern PT_BRAILLE_PREFIX = Pattern.compile("(?m)^\\s*(" + Pattern.quote(BRAILLE) + ")");
 
     // Balises de tableau
-    private static final Pattern PT_T_OPEN  = Pattern.compile("(?im)^\u283F\\s*@t\\s*$");
-    private static final Pattern PT_T_CLOSE = Pattern.compile("(?im)^\u283F\\s*@/t\\s*$");
+    private static final Pattern PT_T_OPEN  = Pattern.compile("(?m)^\\s*(?:" + Pattern.quote(BRAILLE) + "\\s*)?@t\\s*$");
+    private static final Pattern PT_T_CLOSE = Pattern.compile("(?m)^\\s*(?:" + Pattern.quote(BRAILLE) + "\\s*)?@/t\\s*$");
+
 
     /** À appeler UNE FOIS après création de l’éditeur. */
     public static void install(writer.ui.NormalizingTextPane editor) {
@@ -153,48 +154,56 @@ public final class FastHighlighter {
         end = Math.min(end, doc.getLength());
         if (end <= start) return;
 
+        // 1) Reset local à neutre
         doc.setCharacterAttributes(start, end - start, ST_NORMAL, true);
 
-        String s = getTextRange(doc, start, end); // getTextRange lancera BLEx si out of range,
-                                                  // mais on a borné au-dessus
-        @SuppressWarnings("unused")
-		String trimmed = s.stripLeading(); // pour tests en début de ligne
+        // 2) Lecture de la fenêtre (un paragraphe / une ligne logique)
+        final String s = getTextRange(doc, start, end);
 
-        // ---- TABLES : @t et @/t ----
-        if (PT_T_OPEN.matcher(s).find() || PT_T_CLOSE.matcher(s).find()) {
-            // colorise toute la ligne du marqueur
+        // -------------------------------
+        // 3) Bloc TABLES (Fix B : par ligne)
+        // -------------------------------
+        // a) Trim à gauche pour tester le début réel
+        int idx = 0;
+        while (idx < s.length() && Character.isWhitespace(s.charAt(idx))) idx++;
+
+        // b) Braille en tête de ligne ? (on le colorise et on avance l'index de départ)
+        if (idx < s.length() && s.startsWith(BRAILLE, idx)) {
+            doc.setCharacterAttributes(start + idx, 1, ST_BRAILLE, false);
+            idx++;
+            while (idx < s.length() && Character.isWhitespace(s.charAt(idx))) idx++;
+        }
+
+        // c) Sous-chaîne "logique" de début de ligne (après espaces + braille)
+        String head = (idx < s.length()) ? s.substring(idx) : "";
+
+        // d) Marqueurs exacts @t et @/t (ligne de contrôle de tableau)
+        //    -> Si tu as déjà défini PT_T_OPEN/PT_T_CLOSE comme "ligne entière", tu peux aussi faire :
+        //       if (PT_T_OPEN.matcher(s).matches() || PT_T_CLOSE.matcher(s).matches()) { ... }
+        //    Ici, on reste simple et strict : @t ou @/t + espaces de fin uniquement.
+        String headTrimRight = head.stripTrailing();
+        if (headTrimRight.equals("@t") || headTrimRight.equals("@/t")) {
+            // Colorise toute la ligne (fenêtre) en style "code"
             doc.setCharacterAttributes(start, end - start, ST_CODE, false);
         } else {
-            // ---- TABLES : lignes commençant par | ou |! (préfixe braille possible) ----
-            // Détection d'un éventuel préfixe braille en tête de ligne
-            int idx = 0;
-            // sauter espaces initiaux
-            while (idx < s.length() && Character.isWhitespace(s.charAt(idx))) idx++;
-            // braille ?
-            if (idx < s.length() && s.startsWith(BRAILLE, idx)) {
-                // colorise le braille en jaune (comme ailleurs)
-                doc.setCharacterAttributes(start + idx, 1, ST_BRAILLE, false);
-                idx++;
-                // sauter espaces après braille
-                while (idx < s.length() && Character.isWhitespace(s.charAt(idx))) idx++;
-            }
-
-            // Ligne de tableau ?
-            if (idx < s.length() && s.charAt(idx) == '|') {
-                // Header si |!
-                if (idx + 1 < s.length() && s.charAt(idx + 1) == '!') {
-                    // colorise "|!"
+            // e) Lignes de tableau : | (ligne) ou |! (en-tête)
+            if (!head.isEmpty() && head.charAt(0) == '|') {
+                if (head.length() >= 2 && head.charAt(1) == '!') {
+                    // "|!" au début → colorise ces 2 caractères
                     doc.setCharacterAttributes(start + idx, 2, ST_CODE, false);
+                    // puis tous les '|' non échappés à partir de idx+2
                     colorizeUnescapedPipes(doc, s, start, idx + 2);
                 } else {
-                    // colorise "|" initial
+                    // "|" simple au début
                     doc.setCharacterAttributes(start + idx, 1, ST_CODE, false);
                     colorizeUnescapedPipes(doc, s, start, idx + 1);
                 }
             }
         }
 
-        // Autres patterns (titres, listes, etc.)
+        // --------------------------------
+        // 4) Autres patterns (hors "bloc tables" ci-dessus)
+        // --------------------------------
         applyPattern(doc, s, start, PT_TITLE,   ST_CODE);
         applyPattern(doc, s, start, PT_LIST,    ST_CODE);
         applyPattern(doc, s, start, PT_LISTNUM, ST_CODE);
@@ -204,23 +213,25 @@ public final class FastHighlighter {
         applyPattern(doc, s, start, PT_PAGE,    ST_NOTE);
         applyPattern(doc, s, start, PT_IMG,     ST_IMG);
 
-        // Liens : préfixe + URL soulignée
+        // 5) Liens : préfixe + URL
         Matcher lm = PT_LINK.matcher(s);
         while (lm.find()) {
             int fullStart = start + lm.start();
             int urlStart  = start + lm.start(2);
             int urlEnd    = start + lm.end(2);
-            if (urlStart > fullStart)
+            if (urlStart > fullStart) {
                 doc.setCharacterAttributes(fullStart, urlStart - fullStart, ST_PREFIX, false);
+            }
             doc.setCharacterAttributes(urlStart, urlEnd - urlStart, ST_LINK, false);
         }
 
-        // Braille en début de paragraphe (rappel : on l’a déjà géré ci-dessus dans les tables,
-        // mais on l’applique aussi ici pour uniformité hors tableaux)
+        // 6) Braille en début de paragraphe (hors tableaux) pour uniformité
         applyPattern(doc, s, start, PT_BRAILLE_PREFIX, ST_BRAILLE);
 
+        // 7) Rafraîchissement
         editor.repaint();
     }
+
 
     /** Colorise tous les '|' non échappés (\\|) à partir de 'from' dans la chaîne 's'. */
     private static void colorizeUnescapedPipes(StyledDocument doc, String s, int base, int from) {
