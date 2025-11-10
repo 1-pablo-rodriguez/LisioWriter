@@ -31,6 +31,7 @@ import org.jsoup.select.Elements;
 
 import Import.HtmlImporter;
 import writer.commandes;
+import writer.ui.editor.FastHighlighter;
 
 @SuppressWarnings("serial")
 public class HtmlBrowserDialog extends JDialog {
@@ -384,22 +385,15 @@ public class HtmlBrowserDialog extends JDialog {
 	                    transformed = formatted; // fallback
 	                }
 
-	                // --- Insérer dans le document (tu es déjà sur l'EDT dans done()) ---
+	                
 	                try {
-	                    // supprime tout (tu le fais déjà plus haut, on réutilise pos=0)
+	                    // supprime tout et insère
 	                    doc.insertString(pos, transformed, null);
 	                } catch (javax.swing.text.BadLocationException ble) {
 	                    ble.printStackTrace();
 	                }
 
-	                // --- Appliquer la colorisation si tu veux (optionnel) ---
-	                try {
-	                    if (editorPane instanceof javax.swing.JTextPane) {
-	                        writer.ui.editor.TextHighlighter.apply((javax.swing.JTextPane) editorPane);
-	                    }
-	                } catch (Throwable ignore) { /* ne pas bloquer l'insertion */ }
-
-	                // --- Vider l'historique undo pour éviter undo invalide (fortement conseillé) ---
+	                // --- Vider l'historique undo pour éviter undo invalide ---
 	                try {
 	                    java.awt.Window w = javax.swing.SwingUtilities.getWindowAncestor(editorPane);
 	                    if (w instanceof writer.ui.EditorFrame) {
@@ -411,13 +405,17 @@ public class HtmlBrowserDialog extends JDialog {
 	                    }
 	                } catch (Throwable ignore) {}
 
-	                
+	                // positionne le caret au début de l'article
 	                editorPane.setCaretPosition(pos);
 	                
+	                // colorisation
+	                FastHighlighter.rehighlightAll(editorPane);
 	                
-	                // ✅ Fermer la fenêtre et redonner le focus à l’éditeur
+	                // Fermer la fenêtre et redonner le focus à l’éditeur
 	                dispose();
+	                // initialise les valeurs de commandes
 	                commandes.init();
+	                // nom du future ficier
 	                commandes.nameFile = articleTitle;
 	                
 	                SwingUtilities.invokeLater(() -> editorPane.requestFocusInWindow());

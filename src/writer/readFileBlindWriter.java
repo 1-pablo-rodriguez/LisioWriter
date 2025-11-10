@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
@@ -12,6 +11,7 @@ import javax.swing.text.Document;
 import javax.swing.undo.UndoManager;
 
 import writer.ui.EditorFrame;
+import writer.ui.editor.FastHighlighter;
 import xml.node;
 import xml.transformeXLMtoNode;
 
@@ -104,6 +104,9 @@ public class readFileBlindWriter {
                         editorComp.setText(newText);
                     }
 
+                    // colorisation
+                    FastHighlighter.rehighlightAll(editorComp); // une passe globale, optionnelle
+
                     // positionner le caret au début
                     try { editorComp.setCaretPosition(0); } catch (Exception ignore) {}
    
@@ -129,25 +132,25 @@ public class readFileBlindWriter {
                     try { parent.getRedoAction().setEnabled(false); } catch (Throwable ignore) {}
 
                     
-                    // -> insère le aractère braille début de paragraphe 
-                    if (parent instanceof EditorFrame) {
-                        ((EditorFrame) parent).ensureLeadingBrailleMarkOnAllParagraphs();
-                    }
+//                    // -> insère le aractère braille début de paragraphe 
+//                    if (parent instanceof EditorFrame) {
+//                        ((EditorFrame) parent).ensureLeadingBrailleMarkOnAllParagraphs();
+//                    }
                     
-                    // Appliquer la colorisation/surlignage si possible (TextHighlighter.apply attend un JTextPane)
-                    try {
-                        if (editorComp instanceof JTextPane tp) {
-                            writer.ui.editor.TextHighlighter.apply(tp);
-                            // si la colorisation a généré des edits, on vide l'historique à nouveau
-                            try {
-                                UndoManager um2 = parent.getUndoManager();
-                                if (um2 != null) um2.discardAllEdits();
-                            } catch (Throwable ignore) {}
-                        }
-                    } catch (Throwable t) {
-                        // ne bloque pas le chargement si le highlighter échoue
-                        t.printStackTrace();
-                    }
+//                    // Appliquer la colorisation/surlignage si possible (TextHighlighter.apply attend un JTextPane)
+//                    try {
+//                        if (editorComp instanceof JTextPane tp) {
+//                            writer.ui.editor.TextHighlighter.apply(tp);
+//                            // si la colorisation a généré des edits, on vide l'historique à nouveau
+//                            try {
+//                                UndoManager um2 = parent.getUndoManager();
+//                                if (um2 != null) um2.discardAllEdits();
+//                            } catch (Throwable ignore) {}
+//                        }
+//                    } catch (Throwable t) {
+//                        // ne bloque pas le chargement si le highlighter échoue
+//                        t.printStackTrace();
+//                    }
 
                     // final : revalidate / repaint / focus
                     editorComp.revalidate();

@@ -25,6 +25,7 @@ import javax.swing.text.Position;
 import Import.HtmlImporter;
 import writer.commandes;
 import writer.ui.EditorFrame;
+import writer.ui.editor.FastHighlighter;
 
 
 /** Boîte "Ouvrir" accessible (clavier/lecteur d’écran). */
@@ -362,6 +363,8 @@ public final class ouvrirHTML extends JDialog {
         		String converted = HtmlImporter.importFileToBlindWriter(sel, sel.getParentFile().toURI().toString());
         		//parent.getEditor().getDocument().insertString(parent.getEditor().getDocument().getLength(), converted, null);
         		parent.getEditor().setText(converted);
+        		// colorisation
+        		FastHighlighter.rehighlightAll(parent.getEditor());
         		// replacer le caret au tout début :
         		parent.getEditor().setCaretPosition(0);
         	} catch (Exception ex) {

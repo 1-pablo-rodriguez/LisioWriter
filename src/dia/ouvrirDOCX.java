@@ -25,6 +25,7 @@ import javax.swing.text.Position;
 import Import.DocxReader;
 import writer.commandes;
 import writer.ui.EditorFrame;
+import writer.ui.editor.FastHighlighter;
 
 
 /** Boîte "Ouvrir" accessible (clavier/lecteur d’écran). */
@@ -725,7 +726,10 @@ public final class ouvrirDOCX extends JDialog {
          commandes.hash = commandes.texteDocument.hashCode();
          
          parent.getEditor().setText(commandes.texteDocument);
-
+         
+         // colorisation
+         FastHighlighter.rehighlightAll(parent.getEditor());
+         
          parent.getEditor().setCaretPosition(0);
          
          commandes.nameFile = selectedFile.getName().replaceFirst("\\.docx$", "");

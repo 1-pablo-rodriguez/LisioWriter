@@ -73,25 +73,25 @@ public class ChargeNouveauFichier {
                 try { parent.getRedoAction().setEnabled(false); } catch (Throwable ignore) {}
 
                 
-                // -> insère le aractère braille début de paragraphe 
-                if (parent instanceof EditorFrame) {
-                    ((EditorFrame) parent).ensureLeadingBrailleMarkOnAllParagraphs();
-                }
+//                // -> insère le caractère braille début de paragraphe 
+//                if (parent instanceof EditorFrame) {
+//                    ((EditorFrame) parent).ensureLeadingBrailleMarkOnAllParagraphs();
+//                }
                 
-                // Appliquer la colorisation/surlignage si possible (TextHighlighter.apply attend un JTextPane)
-                try {
-                    if (editorComp instanceof JTextPane tp) {
-                        writer.ui.editor.TextHighlighter.apply(tp);
-                        // si la colorisation a généré des edits, on vide l'historique à nouveau
-                        try {
-                            UndoManager um2 = parent.getUndoManager();
-                            if (um2 != null) um2.discardAllEdits();
-                        } catch (Throwable ignore) {}
-                    }
-                } catch (Throwable t) {
-                    // ne bloque pas le chargement si le highlighter échoue
-                    t.printStackTrace();
-                }
+//                // Appliquer la colorisation/surlignage si possible (TextHighlighter.apply attend un JTextPane)
+//                try {
+//                    if (editorComp instanceof JTextPane tp) {
+//                        writer.ui.editor.TextHighlighter.apply(tp);
+//                        // si la colorisation a généré des edits, on vide l'historique à nouveau
+//                        try {
+//                            UndoManager um2 = parent.getUndoManager();
+//                            if (um2 != null) um2.discardAllEdits();
+//                        } catch (Throwable ignore) {}
+//                    }
+//                } catch (Throwable t) {
+//                    // ne bloque pas le chargement si le highlighter échoue
+//                    t.printStackTrace();
+//                }
 
                 // final : revalidate / repaint / focus
                 editorComp.revalidate();

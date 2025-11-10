@@ -28,6 +28,8 @@ import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
@@ -46,7 +48,7 @@ import writer.model.Affiche;
 import writer.spell.SpellCheckLT;
 import writer.ui.editor.CompositeDocumentFilter;
 import writer.ui.editor.EnterBrailleInsertAction;
-import writer.ui.editor.TextHighlighter;
+import writer.ui.editor.FastHighlighter;
 import writer.ui.editor.WrapEditorKit;
 import writer.ui.editor.enableCopyPasteVisibleTabs;
 import writer.util.IconLoader;
@@ -99,8 +101,9 @@ public class EditorFrame extends JFrame implements EditorApi {
 
         // --- CONFIGURATION DE L'ÉDITEUR ---
         scrollPane = new JScrollPane(editorPane);
+        
         // Pour forcer le wrap vertical proprement dans le viewport :
-        editorPane.setEditorKit(new WrapEditorKit());
+//        editorPane.setEditorKit(new WrapEditorKit());
         
         getContentPane().add(scrollPane, BorderLayout.CENTER);
 
@@ -146,7 +149,6 @@ public class EditorFrame extends JFrame implements EditorApi {
 		        }
 		    }
 		});
-        
         
         // --- ZOOM au CTRL+molette ---
         editorPane.addMouseWheelListener(e -> {
@@ -237,23 +239,12 @@ public class EditorFrame extends JFrame implements EditorApi {
         this.editorPane.getActionMap().put("bw-smart-backspace",
             new writer.ui.editor.SmartBackspaceAction(editorPane, defaultBackspace));
         
-        // Fitre automatique pour que toute tabulation soit ue comme [Tab] dans l'éditeur.
+        // Filtre automatique pour que toute tabulation soit ue comme [Tab] dans l'éditeur.
         enableCopyPasteVisibleTabs.enableVisibleTabs(this.editorPane);
 
         // --- BARRE DE MENUS ---
         setJMenuBar(writer.ui.menu.MenuBarFactory.create(this));
         
-    	// --- Applique les marges pour le texte ---
-    	this.editorPane.addCaretListener(ev ->
-    	SwingUtilities.invokeLater(() -> ensureCaretHorizontalMargins(108, 108))
-			);
-    	
-    	// Garde le caret (le mot courant) visible avec une marge
-  	    editorPane.addCaretListener(ev -> {
-  	        // Petit defer pour laisser Swing finir le déplacement de caret
-  	        SwingUtilities.invokeLater(() -> ensureWordVisibleWithMargin(108, 108)); // 108 px à gauche/droite, 108 px en vertical
-  	    });
-    	
         // --- FOCUS INITIAL ---
         SwingUtilities.invokeLater(this.editorPane::requestFocusInWindow);
 
@@ -337,7 +328,13 @@ public class EditorFrame extends JFrame implements EditorApi {
         this.editorPane.getActionMap().put("bw-smart-delete",
             new writer.ui.editor.SmartDeleteAction(editorPane, defaultBackspace));      
     
+        // colorisation - installer le highlighter (DocumentFilter incrémental)
+        javax.swing.SwingUtilities.invokeLater(() -> FastHighlighter.install( this.editorPane));
+
+        // activer la recolorisation sur déplacement de caret
+        FastHighlighter.enableCaretRecolor( this.editorPane, true);
     
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
     
 
@@ -359,30 +356,9 @@ public class EditorFrame extends JFrame implements EditorApi {
         ParagraphHighlighter.install(this.editorPane);
         CaretStyler.install(this.editorPane, new Color(255, 120, 120), 2, 500);
         WordSelectOnShiftRight.install(this.editorPane);
-        
-  	    
+
   	    //editorPane.setFont(new Font("Arial", Font.PLAIN, 34));
   	    applyEditorFont();
-  	    String Texte = commandes.nodeblindWriter.retourneFirstEnfant("contentText").getContenuAvecTousLesContenusDesEnfants();
-  	    this.editorPane.setText(Texte);
-  	    commandes.nameFile = commandes.nodeblindWriter.getAttributs().get("filename");
-  	    this.editorPane.setCaretPosition(0);
-
-  	    // marquer le doc comme "modifié" à la moindre modification utilisateur
-  	    // colorisation des codes LisioWriter
-  	    this.editorPane.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-  	    	@Override public void insertUpdate(javax.swing.event.DocumentEvent e) {
-  	    		setModified(true);
-  	    		SwingUtilities.invokeLater(() -> applyHighlightsNoUndo());
-  	    		}
-  	    	@Override public void removeUpdate(javax.swing.event.DocumentEvent e) {
-  	    	setModified(true);
-  	    	SwingUtilities.invokeLater(() -> applyHighlightsNoUndo());
-  	    	}
-  	    @Override public void changedUpdate(javax.swing.event.DocumentEvent e) {
-  	    	setModified(true);
-  	    	}
-  	    });
 
   	    // --- AJOUTE LES CLASS QUI PERMETTENT LES LISTES PUCES OU NULEROTES ---
   	    // --- empêche insèrer quelque chose en position zéro
@@ -393,14 +369,12 @@ public class EditorFrame extends JFrame implements EditorApi {
 	  	  ad.setDocumentFilter(existing == null ? guard
                   : new CompositeDocumentFilter(existing, guard));
 	  	}
-  	    
   	   
   	    this.editorPane.getAccessibleContext().setAccessibleName("Zone de texte.");
   	    ((AbstractDocument) editorPane.getDocument()).setDocumentFilter(new AutoListContinuationFilter(this.editorPane));
   	
   	}
     
-  	
   	// --- Vérifier si le frame a un menu visible ----
     @SuppressWarnings("unused")
 	private boolean isMenuOpen() {
@@ -744,74 +718,8 @@ public class EditorFrame extends JFrame implements EditorApi {
 	    this.editorPane.repaint();
 
 	    // Le caret bien visible même après zoom
-	    SwingUtilities.invokeLater(() -> ensureCaretHorizontalMargins(108, 108));
+//	    SwingUtilities.invokeLater(() -> ensureCaretHorizontalMargins(108, 108));
 	}
-
-    
-	/** Force une marge horizontale minimale autour du caret dans le viewport. */
- 	private void ensureCaretHorizontalMargins(int leftMarginPx, int rightMarginPx) {
- 		if (this.editorPane == null || this.scrollPane == null) return;
- 	    try {
- 	        int pos = Math.max(0, Math.min(this.editorPane.getCaretPosition(), this.editorPane.getDocument().getLength()));
- 	        java.awt.geom.Rectangle2D r2 = this.editorPane.modelToView2D(pos);
- 	        if (r2 == null) return; // <-- garde-fou
- 	        java.awt.Rectangle r = r2.getBounds();
-
- 	        javax.swing.JViewport vp = scrollPane.getViewport();
- 	        java.awt.Rectangle view = vp.getViewRect();
- 	        int newX = view.x;
-
- 	        if (r.x - leftMarginPx < view.x) {
- 	            newX = Math.max(0, r.x - leftMarginPx);
- 	        } else if (r.x + r.width + rightMarginPx > view.x + view.width) {
- 	            newX = r.x + r.width + rightMarginPx - view.width;
- 	        }
- 	        int maxX = Math.max(0, this.editorPane.getWidth() - view.width);
- 	        newX = Math.max(0, Math.min(newX, maxX));
- 	        if (newX != view.x) vp.setViewPosition(new java.awt.Point(newX, view.y));
- 	    } catch (javax.swing.text.BadLocationException ignore) { }
- 	}
- 	
- 	/** Fait défiler pour que le mot sous le caret soit visible avec une marge. */
-    private void ensureWordVisibleWithMargin(int hMarginPx, int vMarginPx) {   	
-    	if (this.editorPane == null || this.scrollPane == null) return;
-
-        try {
-            int pos = editorPane.getCaretPosition();
-
-            // Limites de mot (robuste même entre espaces/ponctuation)
-            int ws = javax.swing.text.Utilities.getWordStart(editorPane, pos);
-            int we = javax.swing.text.Utilities.getWordEnd(editorPane, pos);
-            if (ws < 0 || we < ws) {
-                // fallback sur le caractère
-                Rectangle2D r2 = editorPane.modelToView2D(pos);
-                if (r2 != null) {
-                    Rectangle r = r2.getBounds();
-                    expandAndScroll(r, hMarginPx, vMarginPx);
-                }
-                return;
-            }
-
-            // Rectangle du mot = union des bornes start/end
-            Rectangle2D rStart2 = editorPane.modelToView2D(ws);
-            Rectangle2D rEnd2   = editorPane.modelToView2D(Math.max(ws, Math.min(we, editorPane.getDocument().getLength())));
-            if (rStart2 == null || rEnd2 == null) return;
-
-            Rectangle rStart = rStart2.getBounds();
-            Rectangle rEnd   = rEnd2.getBounds();
-
-            Rectangle wordRect = new Rectangle(
-                Math.min(rStart.x, rEnd.x),
-                Math.min(rStart.y, rEnd.y),
-                Math.abs((rEnd.x + rEnd.width) - rStart.x),
-                Math.max(rStart.height, rEnd.height)
-            );
-
-            // Étend avec la marge et scroll
-            expandAndScroll(wordRect, hMarginPx, vMarginPx);
-
-        } catch (BadLocationException ignored) {}
-    }
     
     /** Agrandit un rectangle avec des marges et appelle scrollRectToVisible. */
     private void expandAndScroll(Rectangle r, int hMarginPx, int vMarginPx) {
@@ -828,23 +736,7 @@ public class EditorFrame extends JFrame implements EditorApi {
         // Fait défiler la vue
         this.editorPane.scrollRectToVisible(padded);
     }
- 
-    /** Appliquer TextHighlighter mais sans ajouter d'undo (les modifications ne seront pas undoables). */
-	private void applyHighlightsNoUndo() {
-        javax.swing.text.Document doc = editorPane.getDocument();
-        if (doc instanceof AbstractDocument ad) {
-            ad.removeUndoableEditListener(defaultUndoableEditListener);
-            try {
-                // Appel synchrone sur EDT (TextHighlighter fait normalement des setCharacterAttributes...)
-                TextHighlighter.apply(editorPane);
-            } finally {
-                ad.addUndoableEditListener(defaultUndoableEditListener);
-            }
-        } else {
-            // fallback
-            TextHighlighter.apply(editorPane);
-        }
-    }
+
 	
 	/** Exécute une édition du document SANS créer d’entrée d’historique (UndoManager). */
 	public void runWithoutUndo(Runnable edit) {
@@ -877,70 +769,70 @@ public class EditorFrame extends JFrame implements EditorApi {
 	}
 
 
-	/**
-	 * Préfixe chaque paragraphe visible par le caractère braille (⠿ = '\u283F'),
-	 * sans créer d'undo et en restant sûr vis-à-vis de l'EDT.
-	 */
-	public void ensureLeadingBrailleMarkOnAllParagraphs() {
-	    final char mark = '\u283F';
-	
-	    // Force exécution sur EDT
-	    SwingUtilities.invokeLater(() -> {
-	        try {
-	            javax.swing.text.Document doc = editorPane.getDocument();
-	            if (doc == null) return;
-	
-	            // Lire texte courant
-	            String current = doc.getText(0, doc.getLength());
-	
-	            // Transformer (préserve l'indentation)
-	            String transformed = writer.ui.editor.BraillePrefixer
-	                    .prefixParagraphsWithBrailleMarkPreserveIndent(current, mark);
-	
-	            if (transformed.equals(current)) return; // rien à faire
-	
-	            // sauvegarder position caret relative (optionnel)
-	            int oldCaret = Math.max(0, editorPane.getCaretPosition());
-	
-	            // Retirer temporairement le listener qui ajoute des edits à l'UndoManager
-	            if (doc instanceof javax.swing.text.AbstractDocument ad) {
-	                try {
-	                    ad.removeUndoableEditListener(defaultUndoableEditListener);
-	                } catch (Exception ignore) {}
-	            }
-	
-	            try {
-	                // Remplacer tout le contenu proprement (sur EDT)
-	                // (on évite writeLock() car non visible depuis ici)
-	                if (doc.getLength() > 0) doc.remove(0, doc.getLength());
-	                doc.insertString(0, transformed, null);
-	            } finally {
-	                // remettre le listener
-	                if (doc instanceof javax.swing.text.AbstractDocument ad) {
-	                    try { ad.addUndoableEditListener(defaultUndoableEditListener); } catch (Exception ignore) {}
-	                }
-	            }
-	
-	            // repositionner caret : essaie de placer proche de l'ancienne position
-	            int newPos = Math.max(0, Math.min(oldCaret, doc.getLength()));
-	            editorPane.setCaretPosition(newPos);
-	
-	            // vider l'historique d'undo (on veut que cette opération ne soit pas undoable)
-	            try { if (this.undoManager != null) this.undoManager.discardAllEdits(); } catch (Throwable ignore) {}
-	
-	            // mettre à jour l'UI des actions undo/redo
-	            updateUndoRedoState();
-	
-	            // réappliquer la colorisation (si tu veux) — fait après le préfixage
-	            SwingUtilities.invokeLater(() -> {
-	                try { applyHighlightsNoUndo(); } catch (Throwable ignore) {}
-	            });
-	
-	        } catch (javax.swing.text.BadLocationException ex) {
-	            ex.printStackTrace();
-	        }
-	    });
-	}
+//	/**
+//	 * Préfixe chaque paragraphe visible par le caractère braille (⠿ = '\u283F'),
+//	 * sans créer d'undo et en restant sûr vis-à-vis de l'EDT.
+//	 */
+//	public void ensureLeadingBrailleMarkOnAllParagraphs() {
+//	    final char mark = '\u283F';
+//	
+//	    // Force exécution sur EDT
+//	    SwingUtilities.invokeLater(() -> {
+//	        try {
+//	            javax.swing.text.Document doc = editorPane.getDocument();
+//	            if (doc == null) return;
+//	
+//	            // Lire texte courant
+//	            String current = doc.getText(0, doc.getLength());
+//	
+//	            // Transformer (préserve l'indentation)
+//	            String transformed = writer.ui.editor.BraillePrefixer
+//	                    .prefixParagraphsWithBrailleMarkPreserveIndent(current, mark);
+//	
+//	            if (transformed.equals(current)) return; // rien à faire
+//	
+//	            // sauvegarder position caret relative (optionnel)
+//	            int oldCaret = Math.max(0, editorPane.getCaretPosition());
+//	
+//	            // Retirer temporairement le listener qui ajoute des edits à l'UndoManager
+//	            if (doc instanceof javax.swing.text.AbstractDocument ad) {
+//	                try {
+//	                    ad.removeUndoableEditListener(defaultUndoableEditListener);
+//	                } catch (Exception ignore) {}
+//	            }
+//	
+//	            try {
+//	                // Remplacer tout le contenu proprement (sur EDT)
+//	                // (on évite writeLock() car non visible depuis ici)
+//	                if (doc.getLength() > 0) doc.remove(0, doc.getLength());
+//	                doc.insertString(0, transformed, null);
+//	            } finally {
+//	                // remettre le listener
+//	                if (doc instanceof javax.swing.text.AbstractDocument ad) {
+//	                    try { ad.addUndoableEditListener(defaultUndoableEditListener); } catch (Exception ignore) {}
+//	                }
+//	            }
+//	
+//	            // repositionner caret : essaie de placer proche de l'ancienne position
+//	            int newPos = Math.max(0, Math.min(oldCaret, doc.getLength()));
+//	            editorPane.setCaretPosition(newPos);
+//	
+//	            // vider l'historique d'undo (on veut que cette opération ne soit pas undoable)
+//	            try { if (this.undoManager != null) this.undoManager.discardAllEdits(); } catch (Throwable ignore) {}
+//	
+//	            // mettre à jour l'UI des actions undo/redo
+//	            updateUndoRedoState();
+//	
+//	            // réappliquer la colorisation (si tu veux) — fait après le préfixage
+//	            SwingUtilities.invokeLater(() -> {
+//	                try { applyHighlightsNoUndo(); } catch (Throwable ignore) {}
+//	            });
+//	
+//	        } catch (javax.swing.text.BadLocationException ex) {
+//	            ex.printStackTrace();
+//	        }
+//	    });
+//	}
 
 
 	

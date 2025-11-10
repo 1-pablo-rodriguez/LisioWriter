@@ -25,6 +25,7 @@ import javax.swing.text.Position;
 import Import.OdtReader;
 import writer.commandes;
 import writer.ui.EditorFrame;
+import writer.ui.editor.FastHighlighter;
 
 
 /** Boîte "Ouvrir" accessible (clavier/lecteur d’écran). */
@@ -725,6 +726,9 @@ public final class ouvrirODT extends JDialog {
          commandes.hash = commandes.texteDocument.hashCode();
          
          parent.getEditor().setText(commandes.texteDocument);
+         
+         // colorisation
+         FastHighlighter.rehighlightAll(parent.getEditor());
 
          parent.getEditor().setCaretPosition(0);
          
