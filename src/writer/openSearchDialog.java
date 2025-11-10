@@ -176,15 +176,30 @@ public class openSearchDialog extends JDialog {
                 }
             }
         });
+        
+        // Entrée dans la zone braille = valider le résultat courant (même action que la liste)
+        bim.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "validateFromBraille");
+        bam.put("validateFromBraille", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                int idx = resultList.getSelectedIndex();
+                if (idx >= 0) {
+                    int start = highlightOccurrence(idx);
+                    userValidated = true;
+                    if (start >= 0) {
+                        editor.setCaretPosition(start);
+                        scrollToVisible(editor, start, start + 1);
+                    }
+                    SwingUtilities.invokeLater(() -> close());
+                }
+            }
+        });
+
 
         // --- Quand la sélection change, affiche le texte dans la zone braille
         resultList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 String text = resultList.getSelectedValue();
-                if (text != null) {
-                    brailleArea.setText(text);
-                    brailleArea.setCaretPosition(0);
-                }
+                updateBraillePreview(text); // <-- pas de focus volé
             }
         });
 
@@ -247,7 +262,7 @@ public class openSearchDialog extends JDialog {
 	            }
 	            if (resultList.getSelectedIndex() >= 0) {
 	                String text = resultList.getModel().getElementAt(resultList.getSelectedIndex());
-	                showBrailleSegment(text);
+	                updateBraillePreview(text);
 	            }
 	        }
 	    });
@@ -569,20 +584,18 @@ public class openSearchDialog extends JDialog {
         countOccurrences();
 
         if (totalCount == 0) {
-            brailleArea.setText("Aucune occurrence trouvée.");
-            brailleArea.requestFocusInWindow();
-            brailleArea.getCaret().setVisible(true);
+            updateBraillePreview("Aucune occurrence trouvée.");
+            // Le focus peut rester sur le champ ou la zone braille, peu importe
             lblCount.setText("0 occurrence.");
         } else {
             lblCount.setText(totalCount + " occurrence" + (totalCount > 1 ? "s" : "") + ".");
             resultList.setSelectedIndex(0);
-            resultList.requestFocusInWindow(); // place le focus sur la liste
-            brailleArea.getCaret().setVisible(true);
-            highlightOccurrence(0); // surligne la première
-        }
-        if (resultList.getSelectedIndex() >= 0) {
-            String text = resultList.getModel().getElementAt(resultList.getSelectedIndex());
-            showBrailleSegment(text);
+            resultList.requestFocusInWindow(); // focus sur la liste
+            highlightOccurrence(0);            // surligner la première
+
+            // Mettre à jour l’aperçu sans voler le focus :
+            String text = resultList.getModel().getElementAt(0);
+            updateBraillePreview(text);
         }
         // Réactive le focus et les raccourcis clavier de la liste après une nouvelle recherche
         SwingUtilities.invokeLater(() -> {
@@ -613,12 +626,12 @@ public class openSearchDialog extends JDialog {
 
     /** Affiche la portion de texte lisible sur la barre braille */
     /** Affiche le texte sélectionné dans la zone de lecture braille */
-    private void showBrailleSegment(String text) {
+    /** Met à jour la zone de lecture braille sans prendre le focus */
+    private void updateBraillePreview(String text) {
         if (text == null) text = "";
         brailleArea.setText(text);
         brailleArea.setCaretPosition(0); // le curseur au début pour NVDA/braille
-        brailleArea.requestFocusInWindow(); // donne le focus pour la lecture
-        brailleArea.getCaret().setVisible(true);
+        // Surtout NE PAS faire requestFocusInWindow() ici
     }
 
     private static boolean isLineModeQuery(String q) {
