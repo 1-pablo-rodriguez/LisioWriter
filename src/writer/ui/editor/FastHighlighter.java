@@ -181,8 +181,7 @@ public final class FastHighlighter {
         //    -> Si tu as déjà défini PT_T_OPEN/PT_T_CLOSE comme "ligne entière", tu peux aussi faire :
         //       if (PT_T_OPEN.matcher(s).matches() || PT_T_CLOSE.matcher(s).matches()) { ... }
         //    Ici, on reste simple et strict : @t ou @/t + espaces de fin uniquement.
-        String headTrimRight = head.stripTrailing();
-        if (headTrimRight.equals("@t") || headTrimRight.equals("@/t")) {
+        if (PT_T_OPEN.matcher(s).matches() || PT_T_CLOSE.matcher(s).matches()) {
             // Colorise toute la ligne (fenêtre) en style "code"
             doc.setCharacterAttributes(start, end - start, ST_CODE, false);
         } else {
