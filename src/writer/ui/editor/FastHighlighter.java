@@ -68,11 +68,19 @@ public final class FastHighlighter {
     public static void rehighlightAll(writer.ui.NormalizingTextPane editor) {
         try {
             StyledDocument doc = editor.getStyledDocument();
-            rehighlight(editor, 0, doc.getLength());
+            Element root = doc.getDefaultRootElement();
+            int n = root.getElementCount();
+            for (int i = 0; i < n; i++) {
+                Element para = root.getElement(i);
+                int start = para.getStartOffset();
+                int end   = Math.min(para.getEndOffset(), doc.getLength());
+                rehighlight(editor, start, end); // ta routine “par ligne”
+            }
         } catch (BadLocationException e) {
             e.printStackTrace();
         }
     }
+
 
     // ---------- DocumentFilter incrémental ultra-local ----------
     private static final class DF extends DocumentFilter {
