@@ -14,12 +14,13 @@ import javax.swing.SwingUtilities;
 
 import writer.ui.EditorFrame;
 import writer.ui.editor.BraillePrefixer;
+import writer.ui.editor.FastHighlighter;
 
 public final class readFileTXT {
 
 	EditorFrame parent;
 	
-    @SuppressWarnings("unused")
+	@SuppressWarnings("unused")
 	public readFileTXT(File f, EditorFrame parent) {
         if (f == null || !f.isFile()) {
         	System.out.println("Fichier introuvable.");
@@ -62,6 +63,9 @@ public final class readFileTXT {
 
             // Afficher dans l’éditeur
             parent.getEditor().setText(texte != null ? BraillePrefixer.addBrailleAtParagraphStarts(texte) : BraillePrefixer.addBrailleAtParagraphStarts(""));
+            
+            // colorisation
+            FastHighlighter.rehighlightAll(parent.getEditor());
             
             // initialisation des bookmarks
             parent.createNewBookmarkManager();

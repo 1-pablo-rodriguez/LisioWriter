@@ -342,7 +342,8 @@ public final class ouvrirHTML extends JDialog {
 
     /** Ouvre l’élément sélectionné : dossier → naviguer, fichier .html → charger. 
      * @throws Exception */
-    private void openSelected() throws Exception {
+    @SuppressWarnings("unused")
+	private void openSelected() throws Exception {
         File sel = fileList.getSelectedValue();
         if (sel == null) return;
 
@@ -361,17 +362,44 @@ public final class ouvrirHTML extends JDialog {
         	try {
         		System.out.println("Lecture du fichier .html");
         		String converted = HtmlImporter.importFileToBlindWriter(sel, sel.getParentFile().toURI().toString());
+        		
+        		// reset des valeurs de commandes
+        		commandes.init();
+        		
         		//parent.getEditor().getDocument().insertString(parent.getEditor().getDocument().getLength(), converted, null);
         		parent.getEditor().setText(converted);
         		// colorisation
         		FastHighlighter.rehighlightAll(parent.getEditor());
         		// replacer le caret au tout début :
         		parent.getEditor().setCaretPosition(0);
+        		
+        		
+        		 // Recupération du nom du fichier
+                File nameFolder = sel.getAbsoluteFile().getParentFile(); // dossier contenant f
+
+	             // 1) Nom "pur" du dossier (ex: "Documents")
+	             String nomDossier = (parent != null && nameFolder.getName() != null && !nameFolder.getName().isBlank())
+	                     ? nameFolder.getName()
+	                     : (nameFolder != null ? nameFolder.getAbsolutePath() : ""); // fallback (racine: C:\ ou "/")
+	
+	             // 2) Chemin absolu du dossier (ex: "C:\Users\Moi\Documents")
+	             String cheminDossier = (nameFolder != null) ? nameFolder.getAbsolutePath() : null;
+	
+	             // Mettre à jour tes variables d’appli
+	             commandes.nameFile = stripExt(sel.getName());        // nom du fichier (avec extension)
+	             commandes.nomDossierCourant = cheminDossier; // chemin du dossier
+	             commandes.currentDirectory = nameFolder;     // si tu l’utilises ailleurs
+        		
         	} catch (Exception ex) {
                 ex.printStackTrace();
             }
                 closeDialog(false);
         }
+    }
+    
+    private static String stripExt(String name) {
+        int i = name.lastIndexOf('.');
+        return (i > 0) ? name.substring(0, i) : name;
     }
 
     /** Ferme la boîte. restoreDir=true → remet le dossier courant initial. */
