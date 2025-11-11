@@ -1,8 +1,8 @@
 {
   "channel": "stable",
-  "version": "1.1.9",
-  "url": "https://github.com/1-pablo-rodriguez/LisioWriter/releases/download/v1.1.9/Installation_LisioWriter_1.1.9.0.exe",
-  "sha256": "e8ad6a2694298286836bdc02bffc21b279ab65e2b5edd3f563f6f6dd40052107",
-  "size": 140356200,
-  "releaseNotes": "Améliorations majeurs sur l'éditeur et accès aux articles Wikipédia."
+  "version": "1.1.10",
+  "url": "https://github.com/1-pablo-rodriguez/LisioWriter/releases/download/v1.1.10/Installation_LisioWriter_1.1.10.0.exe",
+  "sha256": "c859a7024f5b96e635b6b901512c9d4ed6a440fe061adbdcc50a92f9432980be",
+  "size": 140360324 ,
+  "releaseNotes": "Améliorations majeurs sur l'éditeur."
 }
