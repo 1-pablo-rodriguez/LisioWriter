@@ -2,6 +2,7 @@ package writer.ui.editor;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,17 +27,17 @@ public final class OpenLinkAtCaretAction extends AbstractAction {
         "(?i)\\b((?:https?|ftp)://[\\w\\-._~:/?#\\[\\]@!$&'()*+,;=%]+)"
     );
 
-    @SuppressWarnings("unused")
-	private final EditorFrame parent;          // JFrame owner
+    // Jeton [LienN] ou [lien 12]
+    private static final Pattern TOKEN_LINK = Pattern.compile("\\[(?:Lien|lien)\\s*(\\d+)]");
+
+    private final EditorFrame parent;          // JFrame owner
     private final NormalizingTextPane editor;  // ton éditeur
 
     public OpenLinkAtCaretAction(EditorFrame parent) {
         super("bw-open-link");
         this.parent = Objects.requireNonNull(parent, "parent must not be null");
         JTextComponent ed = Objects.requireNonNull(parent.getEditor(), "parent.getEditor() must not be null");
-        // on s’assure du type attendu par HtmlBrowserDialog
-        this.editor = (ed instanceof NormalizingTextPane) ? (NormalizingTextPane) ed
-                                                          : null;
+        this.editor = (ed instanceof NormalizingTextPane) ? (NormalizingTextPane) ed : null;
         if (this.editor == null) {
             throw new IllegalStateException("Editor must be a NormalizingTextPane");
         }
@@ -45,15 +46,28 @@ public final class OpenLinkAtCaretAction extends AbstractAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         try {
-            final int pos = editor.getCaretPosition();
+            final int pos  = editor.getCaretPosition();
             final Document doc = editor.getDocument();
             final String text = doc.getText(0, doc.getLength());
 
-            // 1) Si caret dans une URL de lien LisioWriter @[Titre : URL]
+            // 0) Si caret dans un jeton [LienN], résoudre via la map du Document
+            Integer n = findTokenNumberUnderCaret(text, pos);
+            if (n != null) {
+                Map<Integer,String> map = LinkTokenIndexer.getLinkMap(doc);
+                String url = (map != null) ? map.get(n) : null;
+                if (url != null && !url.isBlank()) {
+                    open("Lien " + n, url);
+                    return;
+                }
+                // Si pas de map ou numéro absent → beep et on continue la détection classique
+                Toolkit.getDefaultToolkit().beep();
+            }
+
+            // 1) caret dans une URL de lien LisioWriter @[Titre : URL]
             String[] link = findAtLinkUnderCaret(text, pos);
             if (link != null) { open(link[0], link[1]); return; }
 
-            // 2) Sinon, si caret sur une URL brute
+            // 2) caret sur une URL brute
             String raw = findRawUrlUnderCaret(text, pos);
             if (raw != null) { open(raw, raw); return; }
 
@@ -62,6 +76,8 @@ public final class OpenLinkAtCaretAction extends AbstractAction {
             Toolkit.getDefaultToolkit().beep();
         }
     }
+
+    // --- Détections ---
 
     private static String[] findAtLinkUnderCaret(String text, int caret) {
         Matcher m = AT_LINK.matcher(text);
@@ -83,15 +99,47 @@ public final class OpenLinkAtCaretAction extends AbstractAction {
         return null;
     }
 
-    /** Ouvre via ta boîte HtmlBrowserDialog (EDT). */
-    // OpenLinkAtCaretAction.java
+    /** Retourne le numéro N si le caret est *à l’intérieur* d’un token [LienN], sinon null. */
+    private static Integer findTokenNumberUnderCaret(String text, int caret) {
+        // Cherche le '[' le plus proche à gauche et le ']' le plus proche à droite
+        int left = findPrevChar(text, caret, '[');
+        int right = findNextChar(text, caret, ']');
+        if (left < 0 || right < 0 || right <= left) return null;
+
+        String candidate = text.substring(left, right + 1); // inclut les crochets
+        Matcher mt = TOKEN_LINK.matcher(candidate);
+        if (!mt.matches()) return null;
+
+        try {
+            return Integer.parseInt(mt.group(1));
+        } catch (NumberFormatException ignore) {
+            return null;
+        }
+    }
+
+    private static int findPrevChar(String s, int from, char target) {
+        int i = Math.min(Math.max(0, from), s.length());
+        for (int p = i - 1; p >= 0; p--) {
+            char c = s.charAt(p);
+            if (c == target) return p;
+            if (c == ']') break; // on est entré dans un autre token
+        }
+        return -1;
+    }
+
+    private static int findNextChar(String s, int from, char target) {
+        int i = Math.min(Math.max(0, from), s.length());
+        for (int p = i; p < s.length(); p++) {
+            char c = s.charAt(p);
+            if (c == target) return p;
+            if (c == '[' && target == ']') break; // nouveau token, stop
+        }
+        return -1;
+    }
+
+    /** Ouvre via ta routine d’insertion directe. */
     private void open(String title, String url) {
         System.out.println("Import direct Wikipédia : " + title + " → " + url);
-
-        // Option : restreindre au domaine Wikipédia si tu veux
-        // if (!url.contains("wikipedia.org")) { Toolkit.getDefaultToolkit().beep(); return; }
-
-        // Appel direct sans ouvrir de JDialog
         dia.HtmlBrowserDialog.insertArticleDirect(editor, url);
     }
 }

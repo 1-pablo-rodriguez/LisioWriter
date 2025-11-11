@@ -2,18 +2,18 @@ package writer.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Desktop;
+//import java.awt.Desktop;
 import java.awt.Font;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
+//import java.awt.Rectangle;
+//import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.geom.Rectangle2D;
-import java.net.URI;
-import java.util.regex.Matcher;
+//import java.awt.geom.Rectangle2D;
+//import java.net.URI;
+//import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
@@ -28,14 +28,14 @@ import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+//import javax.swing.event.DocumentEvent;
+//import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
-import javax.swing.text.BadLocationException;
+//import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
-import javax.swing.text.StyledDocument;
+//import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
 
 import writer.CaretStyler;
@@ -49,7 +49,7 @@ import writer.spell.SpellCheckLT;
 import writer.ui.editor.CompositeDocumentFilter;
 import writer.ui.editor.EnterBrailleInsertAction;
 import writer.ui.editor.FastHighlighter;
-import writer.ui.editor.WrapEditorKit;
+//import writer.ui.editor.WrapEditorKit;
 import writer.ui.editor.enableCopyPasteVisibleTabs;
 import writer.util.IconLoader;
 
@@ -86,6 +86,9 @@ public class EditorFrame extends JFrame implements EditorApi {
   	
   	// === ANNONCE LA POSITION DANS LE TEXTE DU CURSEUR ===
   	private final Action actAnnouncePosition = new writer.ui.editor.AnnouncePositionAction(this.editorPane);
+
+  	// === Drapeau pour suspendre l'enregistrement de l'historique ===
+   	private volatile boolean undoSuspended = false;
 
 
     // === CONSTRUCTEUR ===
@@ -166,7 +169,7 @@ public class EditorFrame extends JFrame implements EditorApi {
         // --- Ouvrir lien wikipédia sous le curseur (Ctrl + Entrée) ---
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "bw-open-link");
         am.put("bw-open-link", new writer.ui.editor.OpenLinkAtCaretAction(this));
-        
+               
         // Key binding: TAB et Shift+TAB pour saisir à la place [Tab]
         im.put(KeyStroke.getKeyStroke("TAB"), "bw-insert-tab-tag");
         im.put(KeyStroke.getKeyStroke("shift TAB"), "bw-insert-tab-tag");
@@ -312,6 +315,16 @@ public class EditorFrame extends JFrame implements EditorApi {
     // Méthode undo et redo
     private final UndoableEditListener defaultUndoableEditListener = new UndoableEditListener() {
         @Override public void undoableEditHappened(UndoableEditEvent e) {
+            // ➊ coupe l’enregistrement si le flag global de la frame est actif
+            if (undoSuspended) return;
+
+            // ➋ coupe l’enregistrement si le Document demande une suspension (FastHighlighter)
+            Object src = e.getSource();
+            if (src instanceof javax.swing.text.Document d) {
+                Object flag = d.getProperty("fh.suspendUndo");
+                if (Boolean.TRUE.equals(flag)) return;
+            }
+
             undoManager.addEdit(e.getEdit());
             updateUndoRedoState();
         }
@@ -692,41 +705,31 @@ public class EditorFrame extends JFrame implements EditorApi {
 //	    SwingUtilities.invokeLater(() -> ensureCaretHorizontalMargins(108, 108));
 	}
     
-    /** Agrandit un rectangle avec des marges et appelle scrollRectToVisible. */
-    private void expandAndScroll(Rectangle r, int hMarginPx, int vMarginPx) {
-        if (r == null) return;
-
-        // On crée un rect “coussin” pour éviter d’être collé au bord
-        int x = Math.max(0, r.x - hMarginPx);
-        int y = Math.max(0, r.y - vMarginPx);
-        int w = r.width  + 2 * hMarginPx;
-        int h = r.height + 2 * vMarginPx;
-
-        Rectangle padded = new Rectangle(x, y, w, h);
-
-        // Fait défiler la vue
-        this.editorPane.scrollRectToVisible(padded);
-    }
+//    /** Agrandit un rectangle avec des marges et appelle scrollRectToVisible. */
+//    private void expandAndScroll(Rectangle r, int hMarginPx, int vMarginPx) {
+//        if (r == null) return;
+//
+//        // On crée un rect “coussin” pour éviter d’être collé au bord
+//        int x = Math.max(0, r.x - hMarginPx);
+//        int y = Math.max(0, r.y - vMarginPx);
+//        int w = r.width  + 2 * hMarginPx;
+//        int h = r.height + 2 * vMarginPx;
+//
+//        Rectangle padded = new Rectangle(x, y, w, h);
+//
+//        // Fait défiler la vue
+//        this.editorPane.scrollRectToVisible(padded);
+//    }
 
 	
-	/** Exécute une édition du document SANS créer d’entrée d’historique (UndoManager). */
+	/** Exécute une édition du document sans créer d’entrée d’historique. */
 	public void runWithoutUndo(Runnable edit) {
-	    final javax.swing.text.Document doc = editorPane.getDocument();
-
-	    // Toujours faire l’édition sur l’EDT
 	    Runnable task = () -> {
-	        if (doc instanceof javax.swing.text.AbstractDocument ad) {
-	            // Débranche l'UndoManager le temps de l'édition
-	            ad.removeUndoableEditListener(defaultUndoableEditListener);
-	            try {
-	                edit.run();   // ← tes remove/insert/replace ici
-	            } finally {
-	                ad.addUndoableEditListener(defaultUndoableEditListener);
-	                updateUndoRedoState();
-	            }
-	        } else {
-	            // Document exotique
-	            edit.run();
+	        undoSuspended = true;               // ← coupe l’Undo (texte + styles)
+	        try {
+	            edit.run();                     // (setText, setCharacterAttributes, etc.)
+	        } finally {
+	            undoSuspended = false;          // ← réactive
 	            updateUndoRedoState();
 	        }
 	    };
@@ -734,76 +737,10 @@ public class EditorFrame extends JFrame implements EditorApi {
 	    if (javax.swing.SwingUtilities.isEventDispatchThread()) {
 	        task.run();
 	    } else {
-	        // pas d'Internet ici : invokeLater suffit (synchro non requise)
 	        javax.swing.SwingUtilities.invokeLater(task);
 	    }
 	}
 
-
-//	/**
-//	 * Préfixe chaque paragraphe visible par le caractère braille (⠿ = '\u283F'),
-//	 * sans créer d'undo et en restant sûr vis-à-vis de l'EDT.
-//	 */
-//	public void ensureLeadingBrailleMarkOnAllParagraphs() {
-//	    final char mark = '\u283F';
-//	
-//	    // Force exécution sur EDT
-//	    SwingUtilities.invokeLater(() -> {
-//	        try {
-//	            javax.swing.text.Document doc = editorPane.getDocument();
-//	            if (doc == null) return;
-//	
-//	            // Lire texte courant
-//	            String current = doc.getText(0, doc.getLength());
-//	
-//	            // Transformer (préserve l'indentation)
-//	            String transformed = writer.ui.editor.BraillePrefixer
-//	                    .prefixParagraphsWithBrailleMarkPreserveIndent(current, mark);
-//	
-//	            if (transformed.equals(current)) return; // rien à faire
-//	
-//	            // sauvegarder position caret relative (optionnel)
-//	            int oldCaret = Math.max(0, editorPane.getCaretPosition());
-//	
-//	            // Retirer temporairement le listener qui ajoute des edits à l'UndoManager
-//	            if (doc instanceof javax.swing.text.AbstractDocument ad) {
-//	                try {
-//	                    ad.removeUndoableEditListener(defaultUndoableEditListener);
-//	                } catch (Exception ignore) {}
-//	            }
-//	
-//	            try {
-//	                // Remplacer tout le contenu proprement (sur EDT)
-//	                // (on évite writeLock() car non visible depuis ici)
-//	                if (doc.getLength() > 0) doc.remove(0, doc.getLength());
-//	                doc.insertString(0, transformed, null);
-//	            } finally {
-//	                // remettre le listener
-//	                if (doc instanceof javax.swing.text.AbstractDocument ad) {
-//	                    try { ad.addUndoableEditListener(defaultUndoableEditListener); } catch (Exception ignore) {}
-//	                }
-//	            }
-//	
-//	            // repositionner caret : essaie de placer proche de l'ancienne position
-//	            int newPos = Math.max(0, Math.min(oldCaret, doc.getLength()));
-//	            editorPane.setCaretPosition(newPos);
-//	
-//	            // vider l'historique d'undo (on veut que cette opération ne soit pas undoable)
-//	            try { if (this.undoManager != null) this.undoManager.discardAllEdits(); } catch (Throwable ignore) {}
-//	
-//	            // mettre à jour l'UI des actions undo/redo
-//	            updateUndoRedoState();
-//	
-//	            // réappliquer la colorisation (si tu veux) — fait après le préfixage
-//	            SwingUtilities.invokeLater(() -> {
-//	                try { applyHighlightsNoUndo(); } catch (Throwable ignore) {}
-//	            });
-//	
-//	        } catch (javax.swing.text.BadLocationException ex) {
-//	            ex.printStackTrace();
-//	        }
-//	    });
-//	}
 
 
 	

@@ -242,13 +242,22 @@ public final class MenuBarFactory {
    	 	
    	
    		// Active/ désactive l'édition
-	 	JMenuItem removeLink = createMenuItem("Supprime les liens", KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK, e -> {
+	 	JMenuItem removeLink = createMenuItem("Supprime les liens", KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK|InputEvent.SHIFT_DOWN_MASK, e -> {
             var win = ctx.getWindow();
             if (win instanceof EditorFrame frame) {
             	   new act.removeLinks(ctx.getEditor(), frame).actionPerformed(null);
             	   System.out.println("Supprime les liens");
             }
 	    });
+
+	 	// Convertie les liens
+ 	 	JMenuItem convertLink = createMenuItem("Simplifier les liens", KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK, e -> {
+ 	 		var win = ctx.getWindow();
+            if (win instanceof EditorFrame frame) {
+            	new act.convertAtLink(ctx.getEditor(),frame).actionPerformed(null);
+            	System.out.println("Simplifier les liens");
+            }
+ 	    });
 
     	// Vérification de tout le document
     	 JMenuItem checkAll = createMenuItem("Vérifier tout le document", KeyEvent.VK_F7, InputEvent.CTRL_DOWN_MASK, e -> {
@@ -282,12 +291,12 @@ public final class MenuBarFactory {
 		JMenuItem suggestion = createSimpleMenuItem("Vérif. suggestion(s)", e -> {
 		    spell.showPopupAtCaret();
 		});
-
     	
     	// Ajouter des ChangeListeners pour les JMenuItem
 		 ctx.addItemChangeListener(undoItem);
 		 ctx.addItemChangeListener(redoItem);
 		 ctx.addItemChangeListener(edition);
+		 ctx.addItemChangeListener(convertLink);
 		 ctx.addItemChangeListener(removeLink);
 		 ctx.addItemChangeListener(checkAll);
 		 ctx.addItemChangeListener(checkSel);
@@ -300,6 +309,7 @@ public final class MenuBarFactory {
         editionMenu.addSeparator();
         editionMenu.add(edition);
         editionMenu.add(removeLink);
+        editionMenu.add(convertLink);
     	editionMenu.addSeparator();
     	editionMenu.add(checkAll);
     	editionMenu.add(checkSel);

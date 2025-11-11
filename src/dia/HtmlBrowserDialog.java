@@ -31,6 +31,7 @@ import org.jsoup.select.Elements;
 
 import Import.HtmlImporter;
 import writer.commandes;
+import writer.ui.EditorFrame;
 import writer.ui.editor.FastHighlighter;
 
 @SuppressWarnings("serial")
@@ -566,7 +567,12 @@ public class HtmlBrowserDialog extends JDialog {
 
 	                // caret + rehighlight
 	                editorPane.setCaretPosition(0);
-	                writer.ui.editor.FastHighlighter.rehighlightAll(editorPane);
+	                
+	                // --- ÉDITION SANS HISTORIQUE ---
+	                var obj = editorPane.getParent();
+	                if (obj instanceof EditorFrame frame) {
+	                	frame.runWithoutUndo(() -> FastHighlighter.rehighlightAll(editorPane));
+	                }   
 
 	                // focus retour
 	                SwingUtilities.invokeLater(editorPane::requestFocusInWindow);

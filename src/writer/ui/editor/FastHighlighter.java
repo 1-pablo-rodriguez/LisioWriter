@@ -45,6 +45,7 @@ public final class FastHighlighter {
     private static final Pattern PT_LINK    = Pattern.compile("@\\[([^\\]]+?):\\s*(https?://[^\\s\\]]+)\\]");
     private static final Pattern PT_IMG     = Pattern.compile("!\\[([^\\]]*?):\\s*([^\\]]+)\\]");
     private static final Pattern PT_BRAILLE_PREFIX = Pattern.compile("(?m)^\\s*(" + Pattern.quote(BRAILLE) + ")");
+    private static final Pattern PT_TOKEN_LINK = Pattern.compile("\\[(?:Lien|lien)\\s*\\d+]");
 
     // Balises de tableau
     private static final Pattern PT_T_OPEN  = Pattern.compile("(?m)^\\s*(?:" + Pattern.quote(BRAILLE) + "\\s*)?@t\\s*$");
@@ -57,11 +58,16 @@ public final class FastHighlighter {
         if (doc instanceof AbstractDocument adoc) {
             adoc.setDocumentFilter(new DF(editor));
         }
-        // premier passage : tout le doc (optionnel, utile au démarrage)
         try {
-            rehighlight(editor, 0, doc.getLength());
-        } catch (BadLocationException e) {
-            e.printStackTrace();
+            withUndoSuspended(doc, () -> {
+                try {
+                    rehighlight(editor, 0, doc.getLength());
+                } catch (BadLocationException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } catch (RuntimeException ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -70,18 +76,23 @@ public final class FastHighlighter {
         try {
             StyledDocument doc = editor.getStyledDocument();
             Element root = doc.getDefaultRootElement();
-            int n = root.getElementCount();
-            for (int i = 0; i < n; i++) {
-                Element para = root.getElement(i);
-                int start = para.getStartOffset();
-                int end   = Math.min(para.getEndOffset(), doc.getLength());
-                rehighlight(editor, start, end); // ta routine “par ligne”
-            }
-        } catch (BadLocationException e) {
-            e.printStackTrace();
+            withUndoSuspended(doc, () -> {
+                int n = root.getElementCount();
+                for (int i = 0; i < n; i++) {
+                    Element para = root.getElement(i);
+                    int start = para.getStartOffset();
+                    int end   = Math.min(para.getEndOffset(), doc.getLength());
+                    try {
+                        rehighlight(editor, start, end);
+                    } catch (BadLocationException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        } catch (RuntimeException ex) {
+            ex.printStackTrace();
         }
     }
-
 
     // ---------- DocumentFilter incrémental ultra-local ----------
     private static final class DF extends DocumentFilter {
@@ -123,9 +134,16 @@ public final class FastHighlighter {
             int lastTouched = Math.max(0, Math.min(len, offset + Math.max(0, span - 1)));
             int endLine = root.getElementIndex(lastTouched);
 
-            rehighlightLine(ed, startLine);
-            if (endLine != startLine) rehighlightLine(ed, endLine);
+            withUndoSuspended(doc, () -> {
+                try {
+                    rehighlightLine(ed, startLine);
+                    if (endLine != startLine) rehighlightLine(ed, endLine);
+                } catch (BadLocationException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         }
+
     }
 
     // ---------- Utilitaires de recoloration ----------
@@ -223,6 +241,9 @@ public final class FastHighlighter {
             }
             doc.setCharacterAttributes(urlStart, urlEnd - urlStart, ST_LINK, false);
         }
+        
+        // 5bis) Jetons [LienN] : tout le token en style lien (bleu souligné)
+        applyPattern(doc, s, start, PT_TOKEN_LINK, ST_LINK);
 
         // 6) Braille en début de paragraphe (hors tableaux) pour uniformité
         applyPattern(doc, s, start, PT_BRAILLE_PREFIX, ST_BRAILLE);
@@ -335,6 +356,19 @@ public final class FastHighlighter {
         if (pos >= len) return len - 1; // ne jamais pointer au-delà du dernier char
         return pos;
     }
+    
+    /** Exécute r avec l’Undo suspendu pour ce Document. */
+    private static void withUndoSuspended(StyledDocument doc, Runnable r) {
+        Object prev = doc.getProperty("fh.suspendUndo");
+        try {
+            doc.putProperty("fh.suspendUndo", Boolean.TRUE);
+            r.run();
+        } finally {
+            // on restaure l’ancienne valeur (null ou false en général)
+            doc.putProperty("fh.suspendUndo", prev);
+        }
+    }
+
 
 
 }
