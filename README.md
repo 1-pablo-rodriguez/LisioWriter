@@ -44,7 +44,9 @@ Tout se pilote au clavier, fonctionne avec NVDA ou JAWS, et la mise en forme est
 
 ---
 
-# 📚 Documentations
+# 📚 Documentations pour les aidants
+
+Fort de l’expérience d’enseignement en informatique, un constat revient souvent : les **concepts de mise en forme et de structuration** (titres hiérarchisés, styles de paragraphe, listes, citations) **sont rarement enseignés** aux apprenants non-voyants. Résultat : la prise en main d’un traitement de texte peut être inutilement difficile.
 
 👉 [Page d'acceuil de la documentation en ligne](https://1-pablo-rodriguez.github.io/LisioWriter/)
 
