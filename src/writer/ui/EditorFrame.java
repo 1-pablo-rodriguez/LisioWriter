@@ -67,11 +67,6 @@ public class EditorFrame extends JFrame implements EditorApi {
     private BookmarkManager bookmarks;
     // --- Motif unique : "#<niveau>. <texte>" strictement en début de ligne ---
   	private static final Pattern HEADING_PATTERN = Pattern.compile("^#([1-6])\\.\\s+(.+?)\\s*$");
-
-  	// Détecte un lien au format @[Titre du lien: https://exemple.com]
-  	private static final Pattern URL_PATTERN = Pattern.compile(
-  	    "@\\[([^\\]]+?):\\s*(https?://[^\\s\\]]+)\\]"
-  	);
   	
   	// Détecte une image au format ![Image : description]
   	@SuppressWarnings("unused")
@@ -168,33 +163,9 @@ public class EditorFrame extends JFrame implements EditorApi {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK), "Redo");
         am.put("Redo", redoAction);
         
-        // --- Ouvrir lien sous le curseur (Ctrl + Entrée) ---
+        // --- Ouvrir lien wikipédia sous le curseur (Ctrl + Entrée) ---
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "bw-open-link");
-        am.put("bw-open-link", new AbstractAction() {
-            @Override public void actionPerformed(ActionEvent e) {
-                try {
-                    int pos = editorPane.getCaretPosition();
-                    StyledDocument doc = editorPane.getStyledDocument();
-                    String text = doc.getText(0, doc.getLength());
-                    Matcher m = URL_PATTERN.matcher(text);
-                    while (m.find()) {
-                        int start = m.start(2);
-                        int end = m.end(2);
-                        if (pos >= start && pos <= end) {
-                            String title = m.group(1).trim();
-                            String url = m.group(2).trim();
-                            System.out.println("Ouverture du lien : " + title + " → " + url);
-                            Desktop.getDesktop().browse(new URI(url));
-                            return;
-                        }
-                    }
-                    Toolkit.getDefaultToolkit().beep();
-                } catch (Exception ex) {
-                    Toolkit.getDefaultToolkit().beep();
-                }
-            }
-        });
-
+        am.put("bw-open-link", new writer.ui.editor.OpenLinkAtCaretAction(this));
         
         // Key binding: TAB et Shift+TAB pour saisir à la place [Tab]
         im.put(KeyStroke.getKeyStroke("TAB"), "bw-insert-tab-tag");

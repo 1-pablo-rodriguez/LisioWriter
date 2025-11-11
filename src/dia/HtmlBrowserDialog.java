@@ -41,6 +41,9 @@ public class HtmlBrowserDialog extends JDialog {
     private final DefaultListModel<WikiResult> resultModel = new DefaultListModel<>();
     private final JList<WikiResult> resultList = new JList<>(resultModel);
 
+    public HtmlBrowserDialog() {
+    	
+    }
 
     public HtmlBrowserDialog(JFrame owner, writer.ui.NormalizingTextPane editorPane, String searchUrl) {
         super(owner, "Résultats Wikipédia", true);
@@ -203,7 +206,10 @@ public class HtmlBrowserDialog extends JDialog {
         wk.execute();
     }
 
-   /** Insère le texte de l’article sélectionné dans le document. */
+    
+    
+    
+    /** Insère le texte de l’article sélectionné dans le document. */
 	private void insertIntoEditor(writer.ui.NormalizingTextPane editorPane) {
 	    WikiResult sel = resultList.getSelectedValue();
 	    if (sel == null || sel.url == null || sel.url.isBlank()) {
@@ -429,6 +435,154 @@ public class HtmlBrowserDialog extends JDialog {
 	    wk.execute();
 	}
 
+	
+	
+	// --- Ouverture directe de l'article sans passer par la boite résultat ---
+	public static void insertArticleDirect(writer.ui.NormalizingTextPane editorPane, String url) {
+	    if (url == null || url.isBlank()) {
+	        Toolkit.getDefaultToolkit().beep();
+	        return;
+	    }
+
+	    SwingWorker<Void, Void> wk = new SwingWorker<>() {
+	        String converted = null;
+	        String error = null;
+	        String articleTitle = "Article Wikipédia";
+
+	        @Override
+	        protected Void doInBackground() {
+	            try {
+	                org.jsoup.nodes.Document doc = Jsoup.connect(url)
+	                        .userAgent("LisioWriter/accessible-browser")
+	                        .timeout(15000)
+	                        .followRedirects(true)
+	                        .get();
+
+	                // Récupère le bloc contenu
+	                org.jsoup.nodes.Element content = doc.selectFirst("#mw-content-text");
+	                // Récupère le titre (si dispo)
+	                org.jsoup.nodes.Element h1 = doc.selectFirst("#firstHeading");
+	                if (h1 != null && !h1.text().isBlank()) articleTitle = h1.text();
+
+	                if (content != null) {
+	                    // Nettoyage des éléments non pertinents
+	                    content.select(
+	                            ".mw-editsection, .reflist, .navbox, .metadata, " +
+	                            "sup.reference, div[class^=infobox], table[class~=\\binfobox\\b]"
+	                    ).remove();
+	                    content.select("table.infobox, table.infobox_v2, table.infobox--frwiki").remove();
+	                    content.select("[class~=\\bbandeau-container\\b], [class~=\\bbandeau-section\\b], " +
+	                                   "[class~=\\bmetadata\\b], [class~=\\bbandeau-niveau-information\\b]").remove();
+	                    content.select("li[id^=cite_note]").remove();
+	                    content.select("[id^=cite_note], [id^=cite_ref]").remove();
+	                    content.select("ol.references > li[id^=cite_note]").remove();
+
+	                    // Images (tes helpers)
+	                    convertFiguresAndThumbs(content);
+	                    convertLooseImages(content);
+
+	                    // Tableaux -> @t ... @/t
+	                    convertAllTables(content);
+
+	                    // Liens -> @[lien : URL]
+	                    convertLinksInline(content);
+
+	                    // Conversion finale
+	                    String html = content.html();
+	                    converted = Import.HtmlImporter.importFromHtml(html);
+	                    if (converted != null) {
+	                        converted = converted
+	                                .replace('\u00A0', ' ')      // nbsp -> espace
+	                                .replace('\u2028', '\n')     // séparateur de ligne -> \n
+	                                .replace('\u2029', '\n')     // séparateur de paragraphe -> \n
+	                                .replaceAll("[\\r\\n]{3,}", "\n\n")
+	                                // 1) enlever espaces avant marqueur liste
+	                                .replaceAll("(?m)^[ \\t]+(?=(?:-\\.|\\*|\\d+\\.)\\s)", "")
+	                                // 2) aucun espace après marqueur
+	                                .replaceAll("(?m)^(?:\\s*)(-\\.|\\*|\\d+\\.)\\s+", "$1")
+	                                // chemins indésirables entre parenthèses
+	                                .replaceAll("(?is)\\([^)]*(?:[\\\\/]|(?:\\b(?:text|file|src|href|path|url)\\=))[^\"]*?\\)", "")
+	                                .replaceAll("\\n{2,}", "\n")
+	                                .trim();
+	                    }
+	                }
+	            } catch (Exception ex) {
+	                error = ex.getMessage();
+	            }
+	            return null;
+	        }
+
+	        @Override
+	        protected void done() {
+	            if (error != null) {
+	                Toolkit.getDefaultToolkit().beep();
+	                System.out.println("Erreur import Wikipédia : " + error);
+	                return;
+	            }
+	            try {
+	                javax.swing.text.Document doc = editorPane.getDocument();
+
+	                // vider le doc
+	                try { doc.remove(0, doc.getLength()); } catch (javax.swing.text.BadLocationException ignore) {}
+	                try { editorPane.getHighlighter().removeAllHighlights(); } catch (Exception ignore) {}
+
+	                // Prépare le contenu final (titre + contenu)
+	                final char BRAILLE_MARK = '\u283F';
+	                String formatted = "⠿#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
+
+	                String transformed;
+	                try {
+	                    int firstNewline = formatted.indexOf('\n');
+	                    if (firstNewline >= 0 && formatted.startsWith("⠿#1.")) {
+	                        String titleLine = formatted.substring(0, firstNewline + 1);
+	                        String rest = formatted.substring(firstNewline + 1);
+	                        rest = writer.ui.editor.BraillePrefixer
+	                               .prefixParagraphsWithBrailleMark(rest, BRAILLE_MARK);
+	                        transformed = titleLine + rest;
+	                    } else {
+	                        transformed = writer.ui.editor.BraillePrefixer
+	                               .prefixParagraphsWithBrailleMark(formatted, BRAILLE_MARK);
+	                    }
+	                } catch (Throwable t) {
+	                    t.printStackTrace();
+	                    transformed = formatted;
+	                }
+
+	                try { doc.insertString(0, transformed, null); }
+	                catch (javax.swing.text.BadLocationException ble) { ble.printStackTrace(); }
+
+	                // reset undo/redo si EditorFrame
+	                try {
+	                    java.awt.Window w = javax.swing.SwingUtilities.getWindowAncestor(editorPane);
+	                    if (w instanceof writer.ui.EditorFrame ef) {
+	                        ef.getUndoManager().discardAllEdits();
+	                        try { ef.getUndoAction().setEnabled(false); } catch (Throwable ignore) {}
+	                        try { ef.getRedoAction().setEnabled(false); } catch (Throwable ignore) {}
+	                        // MAJ meta commandes (si tu veux)
+	                        writer.commandes.init();
+	                        writer.commandes.nameFile = articleTitle;
+	                    }
+	                } catch (Throwable ignore) {}
+
+	                // caret + rehighlight
+	                editorPane.setCaretPosition(0);
+	                writer.ui.editor.FastHighlighter.rehighlightAll(editorPane);
+
+	                // focus retour
+	                SwingUtilities.invokeLater(editorPane::requestFocusInWindow);
+
+	            } catch (Exception ex) {
+	                ex.printStackTrace();
+	                Toolkit.getDefaultToolkit().beep();
+	            }
+	        }
+	    };
+
+	    wk.execute();
+	}
+
+	
+	
 	/** Échappe | et \ dans les cellules pour la syntaxe LisioWriter. */
 	private static String escapeCell(String s) {
 	    if (s == null) return "";

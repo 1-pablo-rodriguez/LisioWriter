@@ -56,7 +56,6 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
             // ignore - si erreur on laisse counts à 0
         }
 
-        char p = '\u00B6';
         char c = '\u283F';
 
         double pct = (totalWords == 0) ? 0.0 : (100.0 * wordsBefore / totalWords);
@@ -64,9 +63,10 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
         StringBuilder msg = new StringBuilder(256);
         msg.append(String.format("Lecture réalisée : %.1f%% (%d / %d mots).",
                 Math.rint(pct * 10.0) / 10.0, wordsBefore, totalWords) + " ↓\n");
+        msg.append(c).append("Curseur paragraphe ").append(" : ").append(caretPara);
         msg.append(c).append(formatHeadingLine("Titre au-dessus : ", above)).append(" ↓\n");
         msg.append(c).append(formatHeadingLine("Titre suivant : ", below)).append(" ↓\n");
-        msg.append(c).append("Curseur dans le ").append(p).append(" : ").append(caretPara);
+       
 
         java.awt.Window owner = SwingUtilities.getWindowAncestor(editor);
         dia.InfoDialog.show(owner, "Position dans le texte", msg.toString());
@@ -167,7 +167,7 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
 
     private String formatHeadingLine(String prefix, HeadingFound h) {
         if (h == null) return prefix + "Aucun titre détecté.";
-        char p = '\u00B6';
+        char p = '¶';
         return String.format("%s%s %s ("+p+" %d)", prefix, h.levelLabel, h.text, h.paraIndex);
     }
 
