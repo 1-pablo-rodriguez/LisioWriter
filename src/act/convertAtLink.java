@@ -12,7 +12,8 @@ import writer.ui.editor.LinkTokenIndexer;
 @SuppressWarnings("serial")
 public class convertAtLink extends AbstractAction {
     private final writer.ui.NormalizingTextPane editorPane;
-    private final EditorFrame frame;
+    @SuppressWarnings("unused")
+	private final EditorFrame frame;
 
     // Constructeur
     public convertAtLink(writer.ui.NormalizingTextPane editorPane, EditorFrame frame) {

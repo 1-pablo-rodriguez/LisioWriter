@@ -30,7 +30,8 @@ public final class OpenLinkAtCaretAction extends AbstractAction {
     // Jeton [LienN] ou [lien 12]
     private static final Pattern TOKEN_LINK = Pattern.compile("\\[(?:Lien|lien)\\s*(\\d+)]");
 
-    private final EditorFrame parent;          // JFrame owner
+    @SuppressWarnings("unused")
+	private final EditorFrame parent;          // JFrame owner
     private final NormalizingTextPane editor;  // ton éditeur
 
     public OpenLinkAtCaretAction(EditorFrame parent) {

@@ -78,12 +78,13 @@ public class KeyboardShortcutManager {
 
         // === PUCES ===
         Action puceAction = new InsertUnorderedBulletAction(editorPane);
-        addKeyBinding(KeyEvent.VK_PERIOD, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, "puceTexte.us", puceAction);
-        addKeyBinding(KeyEvent.VK_SEMICOLON, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, "puceTexte.fr", puceAction);
-        addKeyBinding(KeyEvent.VK_DECIMAL, InputEvent.CTRL_DOWN_MASK, "puceTexte.numPad", puceAction);
-        addKeyBinding(KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, "puceTexte.alt", puceAction);
+        addKeyBinding(KeyEvent.VK_DEAD_GRAVE, InputEvent.CTRL_DOWN_MASK, "puceTexte.fr", puceAction);
 
-        // === AUTRES ===
+//	     // 2) En plus, bind sur le caractère 'è' + Ctrl (certaines JRE/IMEs envoient le caractère directement)
+//	     editorPane.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke('è', InputEvent.CTRL_DOWN_MASK), "puceTexte.fr");
+//	     editorPane.getActionMap().put("puceTexte.fr", puceAction);
+        
+	     // === AUTRES ===
         addKeyBinding(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK, "toggleEdit", new ToggleEditAction(editorPane));
         addKeyBinding(KeyEvent.VK_F2, 0, "announceHeadingsAround", frame.actAnnouncePosition());
         addKeyBinding(KeyEvent.VK_F3, 0, "gotoNextHeading", frame.actGotoNextHeading());
