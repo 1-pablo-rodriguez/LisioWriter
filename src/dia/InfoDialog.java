@@ -179,7 +179,7 @@ public final class InfoDialog extends JDialog {
     	StringBuilder msg = new StringBuilder();
     	char c = '\u283F';
     	msg.append(c).append(message).append(" ↓");
-        msg.append("\n").append(c).append("Échappe ou Entrée");
+        msg.append("\n").append(c).append("Échap ou Entrée.");
         InfoDialog d = new InfoDialog(owner, title, msg.toString());
         d.setVisible(true);
     }

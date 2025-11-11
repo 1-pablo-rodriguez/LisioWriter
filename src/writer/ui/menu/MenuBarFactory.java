@@ -1061,8 +1061,7 @@ public final class MenuBarFactory {
         JMenuItem majItem = createMenuItem("Mise à jour…", KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK,e -> {
             // feedback immédiat facultatif
             java.awt.Toolkit.getDefaultToolkit().beep();
-            // vérification asynchrone + dialogues
-            UpdateChecker.checkNow(ctx); // ctx : ton EditorApi (ex: EditorFrame)
+            UpdateChecker.checkNow(ctx);
         });
         majItem.getAccessibleContext().setAccessibleDescription("Vérifier s’il existe une nouvelle version.");
         

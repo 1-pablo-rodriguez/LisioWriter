@@ -46,7 +46,7 @@ public class LisioWriter extends writer.ui.EditorFrame {
 		            }else {
 		            	new ChargeNouveauFichier(frame,"Nouveau Fichier");
 		            }
-		            
+
 		            // 4) Affichage fenêtre de bienvenue
 		            new bienvenueAffichage(frame);
 	            });
