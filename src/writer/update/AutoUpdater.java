@@ -46,14 +46,8 @@ public final class AutoUpdater {
 
         // Champs tolérants aux variantes de clé
         String version  = extract(json, "\"version\"\\s*:\\s*\"([^\"]+)\"");
-        String notes    = coalesce(
-                extract(json, "\"releaseNotes\"\\s*:\\s*\"([^\"]*)\""),
-                extract(json, "\"notes\"\\s*:\\s*\"([^\"]*)\"")
-        );
-        String url      = coalesce(
-                extract(json, "\"url\"\\s*:\\s*\"([^\"]+)\""),
-                extract(json, "\"downloadUrl\"\\s*:\\s*\"([^\"]+)\"")
-        );
+        String notes = extract(json, "\"releaseNotes\"\\s*:\\s*\"([^\"]*)\"");
+        String url = extract(json, "\"url\"\\s*:\\s*\"([^\"]+)\"");
         String channel  = extract(json, "\"channel\"\\s*:\\s*\"([^\"]+)\"");
         String sha256   = extract(json, "\"sha256\"\\s*:\\s*\"([^\"]+)\"");
         Long   size     = extractLong(json, "\"size\"\\s*:\\s*(\\d+)");
