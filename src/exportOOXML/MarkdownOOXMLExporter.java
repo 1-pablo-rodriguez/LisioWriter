@@ -63,7 +63,13 @@ public final class MarkdownOOXMLExporter {
     
     private static final Pattern LINK = Pattern.compile("@\\[([^:]+?):\\s*(https?://[^\\]]+)\\]");
 
+    // --- Images markdown à ignorer (inline, référence, ou forme « bare ») ---
+    private static final Pattern IMG_ANY_WITH_WS =
+        Pattern.compile("(?m)[ \\t]*!\\[[^\\]]*\\](?:\\([^)]*\\)|\\[[^\\]]*\\])?[ \\t]*");
+
+    
     private enum ListKind { NONE, ORDERED, UNORDERED }
+    
 
     // ---------- API ----------
     /** Exporte la chaîne « LisioWriter-Markdown » vers un .docx. */
@@ -81,7 +87,16 @@ public final class MarkdownOOXMLExporter {
             IntBox footBox = new IntBox(1);
 
             src = BrailleCleaner.clean(src);
-            String[] lines = src.replace("\r\n", "\n").replace('\r', '\n').split("\n", -1);
+
+	         // 1) Retire toutes les images markdown en une seule passe
+	         src = IMG_ANY_WITH_WS.matcher(src).replaceAll(" ");
+	
+	         // 2) Harmonise les espaces sans toucher aux retours ligne
+	         src = src.replaceAll(" {2,}", " ");      // compresse les doubles espaces
+	         src = src.replaceAll("(?m)[ \\t]+$", ""); // trim à droite, ligne par ligne
+	
+	         // 3) Normalise les fins de ligne et split
+	         String[] lines = src.replace("\r\n", "\n").replace('\r', '\n').split("\n", -1);
 
             for (int i = 0; i < lines.length; i++) {
                 String rawLine = lines[i];
