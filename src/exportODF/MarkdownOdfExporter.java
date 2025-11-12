@@ -69,13 +69,12 @@ public final class MarkdownOdfExporter {
     private static final String SPAN_EXPOSANT     = "BW_Span_Exposant";
     private static final String SPAN_INDICE = "BW_Span_Indice";
     
-    
+    // sippression d'image
     // Variante qui englobe les espaces autour pour éviter des doubles espaces résiduels
     //supprime ![Logo], ![img](a/b/c.png), ![img][logo], Bonjour ![icone] monde
     private static final Pattern IMG_ANY_WITH_WS =
         Pattern.compile("(?m)[ \\t]*!\\[[^\\]]*\\](?:\\([^)]*\\)|\\[[^\\]]*\\])?[ \\t]*");
 
-    
 
     private enum ListKind { NONE, ORDERED, UNORDERED }
     
