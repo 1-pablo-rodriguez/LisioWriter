@@ -38,6 +38,12 @@ public class NormalizingTextPane extends javax.swing.JTextPane {
    	 super.replaceSelection(content);
     }
 
+    @Override
+    public boolean getScrollableTracksViewportWidth() {
+        // Désactive le suivi de la largeur du viewport → pas de wrap visuel
+        return false;
+    }
+    
     /**
      * Nettoie le Document courant en remplaçant son contenu par une version
      * normalisée (CR/CRLF -> LF). Utile pour rendre offsets et modelToView

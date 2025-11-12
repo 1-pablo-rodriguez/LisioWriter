@@ -3,7 +3,7 @@ package writer.ui.editor;
 import javax.swing.text.*;
 
 @SuppressWarnings("serial")
-public final class WrapEditorKit extends StyledEditorKit {
+public final class WrapEditorKit2 extends StyledEditorKit {
     private final ViewFactory defaultFactory = new WrapColumnFactory();
     @Override public ViewFactory getViewFactory() { return defaultFactory; }
 

@@ -66,7 +66,8 @@ public class EditorFrame extends JFrame implements EditorApi {
     private SpellCheckLT spell;
     private BookmarkManager bookmarks;
     // --- Motif unique : "#<niveau>. <texte>" strictement en début de ligne ---
-  	private static final Pattern HEADING_PATTERN = Pattern.compile("^#([1-6])\\.\\s+(.+?)\\s*$");
+  	private static final Pattern HEADING_PATTERN = Pattern.compile("^(?:⠿\\s*)?#([1-6])\\.\\s*(.+?)\\s*$", Pattern.MULTILINE);
+
   	
   	// Détecte une image au format ![Image : description]
   	@SuppressWarnings("unused")
@@ -89,7 +90,6 @@ public class EditorFrame extends JFrame implements EditorApi {
 
   	// === Drapeau pour suspendre l'enregistrement de l'historique ===
    	private volatile boolean undoSuspended = false;
-
 
     // === CONSTRUCTEUR ===
     public EditorFrame() {
@@ -213,7 +213,7 @@ public class EditorFrame extends JFrame implements EditorApi {
         this.editorPane.getActionMap().put("bw-smart-backspace",
             new writer.ui.editor.SmartBackspaceAction(editorPane, defaultBackspace));
         
-        // Filtre automatique pour que toute tabulation soit ue comme [Tab] dans l'éditeur.
+        // Filtre automatique pour que toute tabulation soit une comme [Tab] dans l'éditeur.
         enableCopyPasteVisibleTabs.enableVisibleTabs(this.editorPane);
 
         // --- BARRE DE MENUS ---
@@ -234,14 +234,10 @@ public class EditorFrame extends JFrame implements EditorApi {
     	editorPane.setNavigationFilter(
     		    new writer.ui.editor.NoGapAcrossBrailleNavigationFilter(
     		        editorPane,
-    		        editorPane.getNavigationFilter()   // délégué (peut être null, c'est ok)
+    		        editorPane.getNavigationFilter() 
     		    )
     		);
     	
-    	// --- empêche le caret à être en position zéro et entre \n
-    	javax.swing.text.NavigationFilter current = editorPane.getNavigationFilter();
-    	editorPane.setNavigationFilter(new writer.ui.editor.NoGapAcrossBrailleNavigationFilter(editorPane, current));
-
     	// --- Remapper Home pour aller au début logique (1 au lieu de 0)
     	editorPane.getInputMap().put(
     		    javax.swing.KeyStroke.getKeyStroke("HOME"),
@@ -256,17 +252,6 @@ public class EditorFrame extends JFrame implements EditorApi {
     		
 		// --- Ajoute les raccourcis clavier ---
     	new writer.ui.editor.KeyboardShortcutManager(this, this.editorPane).installShortcuts();
-
-    	// Listener sur la position du caret
-    	editorPane.addCaretListener(ev ->
-    	    javax.swing.SwingUtilities.invokeLater(() -> {
-    	        try {
-    	            if (editorPane.getDocument().getLength() > 0 && editorPane.getCaretPosition() == 0) {
-    	                editorPane.setCaretPosition(1);
-    	            }
-    	        } catch (Exception ignore) {}
-    	    })
-    	);
     	
     	// --- Mise à jour du titre de la fenêtre si modifier ---
     	updateWindowTitle();
@@ -290,7 +275,6 @@ public class EditorFrame extends JFrame implements EditorApi {
      	// récupérer action par défaut comme fallback (optionnel)
   	    EnterBrailleInsertAction brailleEnter = EnterBrailleInsertAction.createWithDefaultFallback(editorPane, false);
   	    editorPane.getActionMap().put(javax.swing.text.DefaultEditorKit.insertBreakAction, brailleEnter);
- 	    
 
   	    // Remappe BACK_SPACE vers notre action intelligente
         this.editorPane.getInputMap().put(KeyStroke.getKeyStroke("BACK_SPACE"), "bw-smart-backspace");
@@ -304,9 +288,8 @@ public class EditorFrame extends JFrame implements EditorApi {
     
         // colorisation - installer le highlighter (DocumentFilter incrémental)
         javax.swing.SwingUtilities.invokeLater(() -> FastHighlighter.install( this.editorPane));
-
-        // activer la recolorisation sur déplacement de caret
-        FastHighlighter.enableCaretRecolor( this.editorPane, true);
+//        // activer la recolorisation sur déplacement de caret
+//        FastHighlighter.enableCaretRecolor( this.editorPane, true);
     
         setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
@@ -537,7 +520,6 @@ public class EditorFrame extends JFrame implements EditorApi {
  	            moveCaretToHeadingStart(next);
  	            editorPane.requestFocusInWindow();
  	        } else {
- 	            //java.awt.Toolkit.getDefaultToolkit().beep();
  	        }
  	    }
  	};
@@ -590,20 +572,62 @@ public class EditorFrame extends JFrame implements EditorApi {
 
  	//=================================
  	//=== ACCEDE AU TITRE PRECEDENT ===
-	private final javax.swing.Action actGotoPrevHeading = new AbstractAction("Titre précédent") {
+ 	private final javax.swing.Action actGotoPrevHeading = new AbstractAction("Titre précédent") {
  	    @Override public void actionPerformed(ActionEvent e) {
  	        HeadingFound prev = findEnclosingHeading();
  	        if (prev != null) {
+ 	            // On garde ta méthode commune
  	            moveCaretToHeadingStart(prev);
+ 	            // Puis on corrige la position pour entrer vraiment dans la ligne du titre
+ 	            try {
+ 	                final javax.swing.text.Document doc = editorPane.getDocument();
+ 	                final javax.swing.text.Element root = doc.getDefaultRootElement();
+ 	                int lineIdx0 = Math.max(0, Math.min(prev.paraIndex - 1, root.getElementCount() - 1));
+ 	                int start = root.getElement(lineIdx0).getStartOffset();
+ 	                int pos = logicalStartOfLine(doc, start);
+ 	                editorPane.setCaretPosition(pos);
+ 	            } catch (Exception ignore) {}
  	            editorPane.requestFocusInWindow();
- 	        } else {
- 	            //java.awt.Toolkit.getDefaultToolkit().beep();
  	        }
  	    }
  	};
 	@Override
 	public Action actGotoPrevHeading() {
 		return actGotoPrevHeading;
+	}
+	/** Avance depuis le début de la ligne jusqu’au début logique (# ou texte),
+	 * en sautant CR/LF résiduels, braille ⠿ et espaces. */
+	private int logicalStartOfLine(javax.swing.text.Document doc, int lineStart) throws Exception {
+	    int pos = lineStart;
+	    final int len = doc.getLength();
+
+	    // 1) Si on est collé à la fin de la ligne précédente, saute CR/LF
+	    if (pos > 0) {
+	        char prev = doc.getText(pos - 1, 1).charAt(0);
+	        if (prev == '\n') {
+	            // cas CRLF: ... \r\n|   (caret)
+	            if (pos > 1 && doc.getText(pos - 2, 1).charAt(0) == '\r') {
+	                // rien à faire : on est déjà après \r\n
+	            }
+	            // on est au premier char de la nouvelle ligne → ok
+	        } else if (prev == '\r') {
+	            // très rare: caret pile après \r mais avant \n (séquence en 2 temps)
+	            if (pos < len && doc.getText(pos, 1).charAt(0) == '\n') {
+	                pos++; // saute le \n
+	            }
+	        }
+	    }
+
+	    // 2) Saute le préfixe braille ⠿ et les espaces initiaux
+	    while (pos < len) {
+	        char c = doc.getText(pos, 1).charAt(0);
+	        if (c == '\u283F' /* ⠿ */ || Character.isWhitespace(c)) {
+	            pos++;
+	        } else {
+	            break;
+	        }
+	    }
+	    return pos;
 	}
 	
 	//===========================================

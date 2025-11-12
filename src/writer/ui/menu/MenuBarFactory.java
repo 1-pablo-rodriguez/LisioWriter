@@ -883,7 +883,7 @@ public final class MenuBarFactory {
 		
 		// -------- Position dans texte (F2) --------
 		JMenuItem posItem = new JMenuItem(ctx.actAnnouncePosition());
-		posItem.setText("Titre avant & après");
+		posItem.setText("Se repèrer dans le texte");
 		posItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
 		posItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
 		

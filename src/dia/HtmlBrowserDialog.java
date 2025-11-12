@@ -31,7 +31,6 @@ import org.jsoup.select.Elements;
 
 import Import.HtmlImporter;
 import writer.commandes;
-import writer.ui.EditorFrame;
 import writer.ui.editor.FastHighlighter;
 
 @SuppressWarnings("serial")
@@ -276,23 +275,23 @@ public class HtmlBrowserDialog extends JDialog {
 	                    // --- Convertir les tableaux en @t ... @/t ---
 		                convertAllTables(content);
 
-	                    // --- Convertir les liens Wikipédia et externes en format LisioWriter ---
-	                    Elements links = content.select("a[href]");
-	                    for (Element link : links) {
-	                        String href = link.attr("href").trim();
-	                        @SuppressWarnings("unused")
-							String text = link.text().trim();
-	                        if (href.isEmpty()) continue;
-	
-	                        if (href.startsWith("/wiki/")) {
-	                            String fullUrl = "https://fr.wikipedia.org" + href;
-	                            link.after(" @[lien : " + fullUrl + "]");
-	                            link.unwrap();
-	                        } else if (href.startsWith("http")) {
-	                            link.after(" @[lien : " + href + "]");
-	                            link.unwrap();
-	                        }
-	                    }
+//	                    // --- Convertir les liens Wikipédia et externes en format LisioWriter ---
+//	                    Elements links = content.select("a[href]");
+//	                    for (Element link : links) {
+//	                        String href = link.attr("href").trim();
+//	                        @SuppressWarnings("unused")
+//							String text = link.text().trim();
+//	                        if (href.isEmpty()) continue;
+//	
+//	                        if (href.startsWith("/wiki/")) {
+//	                            String fullUrl = "https://fr.wikipedia.org" + href;
+//	                            link.after(" @[lien : " + fullUrl + "]");
+//	                            link.unwrap();
+//	                        } else if (href.startsWith("http")) {
+//	                            link.after(" @[lien : " + href + "]");
+//	                            link.unwrap();
+//	                        }
+//	                    }
 	
 	                // --- Conversion finale du HTML vers le format LisioWriter ---
                     String html = content.html();
@@ -567,12 +566,6 @@ public class HtmlBrowserDialog extends JDialog {
 
 	                // caret + rehighlight
 	                editorPane.setCaretPosition(0);
-	                
-	                // --- ÉDITION SANS HISTORIQUE ---
-	                var obj = editorPane.getParent();
-	                if (obj instanceof EditorFrame frame) {
-	                	frame.runWithoutUndo(() -> FastHighlighter.rehighlightAll(editorPane));
-	                }   
 
 	                // focus retour
 	                SwingUtilities.invokeLater(editorPane::requestFocusInWindow);
