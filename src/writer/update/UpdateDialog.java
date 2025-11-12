@@ -162,6 +162,8 @@ public final class UpdateDialog extends JDialog {
                 Long size  = (info.size > 0) ? info.size : null;
                 String sha = (info.sha256 != null && !info.sha256.isBlank()) ? info.sha256 : null;
 
+                
+                
                 // Téléchargement ACCESSIBLE + callback fin
                 writer.update.DownloadDialog.startWithCallback(
                     this,
