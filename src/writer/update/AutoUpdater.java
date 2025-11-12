@@ -91,7 +91,6 @@ public final class AutoUpdater {
         if (g == null) return null;
         try { return Long.parseLong(g); } catch (Exception ignore) { return null; }
     }
-    private static String coalesce(String a, String b) { return (a != null) ? a : b; }
     private static int parseIntSafe(String s) {
         try { return Integer.parseInt(s.replaceAll("[^0-9-]", "")); }
         catch (Exception ignore) { return 0; }

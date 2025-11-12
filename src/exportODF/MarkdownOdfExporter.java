@@ -69,7 +69,14 @@ public final class MarkdownOdfExporter {
     private static final String SPAN_EXPOSANT     = "BW_Span_Exposant";
     private static final String SPAN_INDICE = "BW_Span_Indice";
     
-    
+    // Une seule regex qui couvre inline, référence et forme “bare”
+    private static final Pattern IMG_ANY =
+        Pattern.compile("!\\[[^\\]]*\\](?:\\([^)]*\\)|\\[[^\\]]*\\])?");
+
+    // Variante qui englobe les espaces autour pour éviter des doubles espaces résiduels
+    private static final Pattern IMG_ANY_WITH_WS =
+        Pattern.compile("(?m)[ \\t]*!\\[[^\\]]*\\](?:\\([^)]*\\)|\\[[^\\]]*\\])?[ \\t]*");
+
     
 
     private enum ListKind { NONE, ORDERED, UNORDERED }
@@ -92,7 +99,7 @@ public final class MarkdownOdfExporter {
         ListKind listState = ListKind.NONE;
         TextListElement currentList = null;
         
-     // ⬇️ Compteur MUTABLE pour les notes de bas de page
+        // ⬇️ Compteur MUTABLE pour les notes de bas de page
         IntBox footBox = new IntBox(1);
 
         // Compteur pour notes
@@ -100,20 +107,25 @@ public final class MarkdownOdfExporter {
 
         src = BrailleCleaner.clean(src);
         
+        // 1) Supprimer toutes les images en une seule passe
+        src = IMG_ANY_WITH_WS.matcher(src).replaceAll(" ");
+
+        // 2) Harmoniser un peu les espaces (sans toucher aux retours ligne)
+        src = src.replaceAll(" {2,}", " ");     // compresser les doubles espaces
+        src = src.replaceAll("(?m)[ \\t]+$", ""); // trim right ligne par ligne
+     
         String[] lines = src.replace("\r\n", "\n").replace('\r', '\n').split("\n", -1);
 
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
 
-            // 0) Ligne vide : on ferme une liste éventuelle et on ajoute un paragraphe vide
-         // 0) Ligne vide : on *ne* crée pas de paragraphe vide
+            // 0) Ligne vide : on *ne* crée pas de paragraphe vide
             if (line.trim().isEmpty()) {
                 // on ferme juste une liste éventuelle ; on garde un éventuel saut de page
                 if (listState != ListKind.NONE) {
                     currentList = null;
                     listState = ListKind.NONE;
                 }
-                // NE RIEN AJOUTER AU DOM ICI
                 continue;
             }
 
@@ -1068,7 +1080,9 @@ public final class MarkdownOdfExporter {
         }
     }
 
-    
 
+    
+    
+    
 
 }
