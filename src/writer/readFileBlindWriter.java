@@ -107,6 +107,9 @@ public class readFileBlindWriter {
                     // colorisation
                     FastHighlighter.rehighlightAll(editorComp); // une passe globale, optionnelle
 
+                    // vide l'historique
+                    parent.clearUndoHistory();
+                    
                     // positionner le caret au début
                     try { editorComp.setCaretPosition(0); } catch (Exception ignore) {}
    

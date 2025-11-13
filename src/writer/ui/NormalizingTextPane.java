@@ -1,14 +1,23 @@
 package writer.ui;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Pattern;
+
+import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
+
 @SuppressWarnings("serial")
 public class NormalizingTextPane extends javax.swing.JTextPane {
     private static final Pattern EOL = Pattern.compile("\\r\\r?\\n|\\r");
+    
+    // Peut être null au tout début (super() pas fini) → on gère ça dans setDocument(...)
+    private List<UndoableEditListener> stickyUndoListeners = new CopyOnWriteArrayList<>();
 
+    
     private static String norm(String s) {
         return (s == null) ? null : EOL.matcher(s).replaceAll("\n");
     }
@@ -101,4 +110,42 @@ public class NormalizingTextPane extends javax.swing.JTextPane {
             });
         }
     }
+
+    @Override
+    public void setDocument(Document newDoc) {
+        // Pendant le super-constructeur, stickyUndoListeners peut être null → on fait simple.
+        if (stickyUndoListeners == null) {
+            super.setDocument(newDoc);
+            return;
+        }
+        Document old = getDocument();
+        if (old != null) {
+            for (UndoableEditListener l : stickyUndoListeners) {
+                old.removeUndoableEditListener(l);
+            }
+        }
+        super.setDocument(newDoc);
+        if (newDoc != null) {
+            for (UndoableEditListener l : stickyUndoListeners) {
+                newDoc.addUndoableEditListener(l);
+            }
+        }
+    }
+    
+    public void addStickyUndoableEditListener(UndoableEditListener l) {
+        if (l == null) return;
+        // lazy init au cas où (sécurité si constructeur super a déjà appelé setDocument)
+        if (stickyUndoListeners == null) stickyUndoListeners = new CopyOnWriteArrayList<>();
+        stickyUndoListeners.add(l);
+        Document d = getDocument();
+        if (d != null) d.addUndoableEditListener(l);
+    }
+
+    public void removeStickyUndoableEditListener(UndoableEditListener l) {
+        if (l == null) return;
+        if (stickyUndoListeners != null) stickyUndoListeners.remove(l);
+        Document d = getDocument();
+        if (d != null) d.removeUndoableEditListener(l);
+    }
+
 }

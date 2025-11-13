@@ -368,12 +368,16 @@ public final class ouvrirHTML extends JDialog {
         		
         		//parent.getEditor().getDocument().insertString(parent.getEditor().getDocument().getLength(), converted, null);
         		parent.getEditor().setText(converted);
+        		
         		// colorisation
         		FastHighlighter.rehighlightAll(parent.getEditor());
+        		
+        		 // vide l'historique
+                parent.clearUndoHistory();
+                
         		// replacer le caret au tout début :
         		parent.getEditor().setCaretPosition(0);
-        		
-        		
+
         		 // Recupération du nom du fichier
                 File nameFolder = sel.getAbsoluteFile().getParentFile(); // dossier contenant f
 

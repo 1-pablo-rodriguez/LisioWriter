@@ -67,6 +67,9 @@ public final class readFileTXT {
             // colorisation
             FastHighlighter.rehighlightAll(parent.getEditor());
             
+            // vide l'historique
+            parent.clearUndoHistory();
+            
             // initialisation des bookmarks
             parent.createNewBookmarkManager();
             

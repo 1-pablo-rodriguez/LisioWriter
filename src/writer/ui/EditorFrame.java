@@ -28,9 +28,7 @@ import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
-//import javax.swing.event.DocumentEvent;
-//import javax.swing.event.DocumentListener;
-import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.DocumentEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
 //import javax.swing.text.BadLocationException;
@@ -43,15 +41,14 @@ import writer.ParagraphHighlighter;
 import writer.WordSelectOnShiftRight;
 import writer.commandes;
 import writer.bookmark.BookmarkManager;
-import writer.editor.AutoListContinuationFilter;
 import writer.model.Affiche;
 import writer.spell.SpellCheckLT;
-import writer.ui.editor.CompositeDocumentFilter;
 import writer.ui.editor.EnterBrailleInsertAction;
 import writer.ui.editor.FastHighlighter;
 //import writer.ui.editor.WrapEditorKit;
 import writer.ui.editor.enableCopyPasteVisibleTabs;
 import writer.util.IconLoader;
+
 
 @SuppressWarnings("serial")
 public class EditorFrame extends JFrame implements EditorApi {
@@ -65,6 +62,7 @@ public class EditorFrame extends JFrame implements EditorApi {
     private boolean isModified = false;
     private SpellCheckLT spell;
     private BookmarkManager bookmarks;
+    
     // --- Motif unique : "#<niveau>. <texte>" strictement en début de ligne ---
   	private static final Pattern HEADING_PATTERN = Pattern.compile("^(?:⠿\\s*)?#([1-6])\\.\\s*(.+?)\\s*$", Pattern.MULTILINE);
 
@@ -90,7 +88,42 @@ public class EditorFrame extends JFrame implements EditorApi {
 
   	// === Drapeau pour suspendre l'enregistrement de l'historique ===
    	private volatile boolean undoSuspended = false;
+   	
+   	// Mémo de l’état précédent pour éviter les setEnabled inutiles
+   	private boolean prevCanUndo = false;
+   	private boolean prevCanRedo = false;
+   	
+   	// Cache pour éviter re-setFont/revalidate/repaint inutiles
+   	private float lastAppliedFontSize = -1f;
+   	private boolean marginsAppliedOnce = false;
 
+   	// Marges réutilisées (pas de nouvelle instance à chaque fois)
+   	private static final java.awt.Insets EDITOR_MARGINS = new java.awt.Insets(12, 24, 12, 24);
+
+	 // — KeyStrokes centralisés —
+	 // Navigation / actions fréquentes
+	 private static final KeyStroke KS_CTRL_ENTER = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK);
+	 private static final KeyStroke KS_TAB        = KeyStroke.getKeyStroke("TAB");
+	 private static final KeyStroke KS_SHIFT_TAB  = KeyStroke.getKeyStroke("shift TAB");
+	 private static final KeyStroke KS_HOME       = KeyStroke.getKeyStroke("HOME");
+	
+	 // Éditions
+	 private static final KeyStroke KS_CTRL_DEL        = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, InputEvent.CTRL_DOWN_MASK);
+	 private static final KeyStroke KS_CTRL_BSP        = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, InputEvent.CTRL_DOWN_MASK);
+	 private static final KeyStroke KS_CTRL_SHIFT_DEL  = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, InputEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK);
+	 private static final KeyStroke KS_CTRL_SHIFT_BSP  = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, InputEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK);
+	 private static final KeyStroke KS_BSP             = KeyStroke.getKeyStroke("BACK_SPACE");
+	 private static final KeyStroke KS_DEL             = KeyStroke.getKeyStroke("DELETE");
+
+	 // cache pour la mise à jour du titre de la fenêtre
+	 private String lastWindowTitle = null;
+	 
+	// Coalescing du zoom clavier (Ctrl + + / -)
+	 private int keyboardZoomAccum = 0;
+	 private javax.swing.Timer keyboardZoomTimer = null;
+
+
+	 
     // === CONSTRUCTEUR ===
     public EditorFrame() {
         super("LisioWriter");
@@ -100,20 +133,18 @@ public class EditorFrame extends JFrame implements EditorApi {
         // --- CONFIGURATION DE L'ÉDITEUR ---
         scrollPane = new JScrollPane(editorPane);
         
-        // Pour forcer le wrap vertical proprement dans le viewport :
-//        editorPane.setEditorKit(new WrapEditorKit());
-        
         getContentPane().add(scrollPane, BorderLayout.CENTER);
 
         // Attache le gestionnaire Undo/Redo de la méthode defaultUndoableEditListener
-        editorPane.getDocument().addUndoableEditListener(defaultUndoableEditListener);
-
+        editorPane.addStickyUndoableEditListener(defaultUndoableEditListener);
+        
         // --- ICON APP ----
         setIconImage(IconLoader.load(Icons.APP).getImage());
 
         // --- CRÉATION DES ACTIONS ANNULER / RÉTABLIR ---
         undoAction = new AbstractAction("Annuler") {
             @Override public void actionPerformed(ActionEvent e) {
+            	System.out.println("UNDO pressed, canUndo="+undoManager.canUndo());
                 if (undoManager.canUndo()) undoManager.undo();
                 updateUndoRedoState();
             }
@@ -124,7 +155,8 @@ public class EditorFrame extends JFrame implements EditorApi {
                 updateUndoRedoState();
             }
         };
-        this.undoManager.setLimit(10000);
+        
+        this.undoManager.setLimit(Integer.getInteger("lisio.undo.limit", 2000));
         
         // ---  Correcteur en temps réel désactivé ---
         try {
@@ -148,31 +180,17 @@ public class EditorFrame extends JFrame implements EditorApi {
 		    }
 		});
         
-        // --- ZOOM au CTRL+molette ---
-        editorPane.addMouseWheelListener(e -> {
-            if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) != 0) {
-                if (e.getWheelRotation() < 0) zoomIn(); else zoomOut();
-                e.consume();
-            }
-        });
-
         // --- RACCOURCIS CLAVIER DIRECTS ---
         InputMap im = this.editorPane.getInputMap(JComponent.WHEN_FOCUSED);
         ActionMap am = this.editorPane.getActionMap();
-
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK), "Undo");
-        am.put("Undo", undoAction);
-
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK), "Redo");
-        am.put("Redo", redoAction);
         
         // --- Ouvrir lien wikipédia sous le curseur (Ctrl + Entrée) ---
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "bw-open-link");
+        im.put(KS_CTRL_ENTER, "bw-open-link");
         am.put("bw-open-link", new writer.ui.editor.OpenLinkAtCaretAction(this));
                
         // Key binding: TAB et Shift+TAB pour saisir à la place [Tab]
-        im.put(KeyStroke.getKeyStroke("TAB"), "bw-insert-tab-tag");
-        im.put(KeyStroke.getKeyStroke("shift TAB"), "bw-insert-tab-tag");
+        im.put(KS_TAB, "bw-insert-tab-tag");
+        im.put(KS_SHIFT_TAB, "bw-insert-tab-tag");
         am.put("bw-insert-tab-tag", new AbstractAction() {
             @Override public void actionPerformed(ActionEvent e) {
             	editorPane.replaceSelection("[tab] ");
@@ -180,38 +198,25 @@ public class EditorFrame extends JFrame implements EditorApi {
         });
         
         // Ctrl+Suppr -> supprimer mot en avant
-        im.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DELETE, java.awt.event.KeyEvent.CTRL_DOWN_MASK),
-              "bw-delete-next-word");
+        im.put(KS_CTRL_DEL, "bw-delete-next-word");
         am.put("bw-delete-next-word", new writer.ui.editor.DeleteNextWordAction(this.editorPane));
 
         // Ctrl+Backspace -> supprimer le mot en arrière
-        im.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_BACK_SPACE, java.awt.event.KeyEvent.CTRL_DOWN_MASK),
-              "bw-delete-prev-word");
+        im.put(KS_CTRL_BSP, "bw-delete-prev-word");
         am.put("bw-delete-prev-word", new writer.ui.editor.DeletePrevWordAction(this.editorPane));
         
         // Ctrl+Maj+Suppr -> supprimer le paragraphe courant et aller au suivant
-        im.put(KeyStroke.getKeyStroke(
-                java.awt.event.KeyEvent.VK_DELETE,
-                java.awt.event.KeyEvent.CTRL_DOWN_MASK | java.awt.event.KeyEvent.SHIFT_DOWN_MASK),
-              "bw-delete-paragraph-forward");
+        im.put(KS_CTRL_SHIFT_DEL, "bw-delete-paragraph-forward");
         am.put("bw-delete-paragraph-forward",
               new writer.ui.editor.DeleteParagraphForwardAction(this.editorPane));
         
         // Ctrl+Maj+Backspace -> supprime le paragraphe courant et va à la fin du précédent
-        im.put(KeyStroke.getKeyStroke(
-                java.awt.event.KeyEvent.VK_BACK_SPACE,
-                java.awt.event.KeyEvent.CTRL_DOWN_MASK | java.awt.event.KeyEvent.SHIFT_DOWN_MASK),
-              "bw-delete-paragraph-backward");
+        im.put(KS_CTRL_SHIFT_BSP, "bw-delete-paragraph-backward");
         am.put("bw-delete-paragraph-backward",
               new writer.ui.editor.DeleteParagraphBackwardAction(this.editorPane));
         
         // Récupère l’action Backspace par défaut (supprime le caractère précédent)
         Action defaultBackspace = this.editorPane.getActionMap().get(DefaultEditorKit.deletePrevCharAction);
-
-        // Remappe BACK_SPACE vers notre action intelligente
-        this.editorPane.getInputMap().put(KeyStroke.getKeyStroke("BACK_SPACE"), "bw-smart-backspace");
-        this.editorPane.getActionMap().put("bw-smart-backspace",
-            new writer.ui.editor.SmartBackspaceAction(editorPane, defaultBackspace));
         
         // Filtre automatique pour que toute tabulation soit une comme [Tab] dans l'éditeur.
         enableCopyPasteVisibleTabs.enableVisibleTabs(this.editorPane);
@@ -239,16 +244,14 @@ public class EditorFrame extends JFrame implements EditorApi {
     		);
     	
     	// --- Remapper Home pour aller au début logique (1 au lieu de 0)
-    	editorPane.getInputMap().put(
-    		    javax.swing.KeyStroke.getKeyStroke("HOME"),
-    		    "bw-home-safe");
-    		editorPane.getActionMap().put("bw-home-safe", new javax.swing.AbstractAction() {
-    		    @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-    		        int len = editorPane.getDocument().getLength();
-    		        int pos = (len == 0) ? 0 : 1;
-    		        editorPane.setCaretPosition(pos);
-    		    }
-    		});
+    	editorPane.getInputMap().put(KS_HOME, "bw-home-safe");
+		editorPane.getActionMap().put("bw-home-safe", new javax.swing.AbstractAction() {
+		    @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+		        int len = editorPane.getDocument().getLength();
+		        int pos = (len == 0) ? 0 : 1;
+		        editorPane.setCaretPosition(pos);
+		    }
+		});
     		
 		// --- Ajoute les raccourcis clavier ---
     	new writer.ui.editor.KeyboardShortcutManager(this, this.editorPane).installShortcuts();
@@ -277,42 +280,50 @@ public class EditorFrame extends JFrame implements EditorApi {
   	    editorPane.getActionMap().put(javax.swing.text.DefaultEditorKit.insertBreakAction, brailleEnter);
 
   	    // Remappe BACK_SPACE vers notre action intelligente
-        this.editorPane.getInputMap().put(KeyStroke.getKeyStroke("BACK_SPACE"), "bw-smart-backspace");
+  	    this.editorPane.getInputMap().put(KS_BSP, "bw-smart-backspace");
         this.editorPane.getActionMap().put("bw-smart-backspace",
             new writer.ui.editor.SmartBackspaceAction(editorPane, defaultBackspace));
         
         // Remappe Delete vers notre action intelligente
-        this.editorPane.getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "bw-smart-delete");
+        this.editorPane.getInputMap().put(KS_DEL, "bw-smart-delete");
         this.editorPane.getActionMap().put("bw-smart-delete",
             new writer.ui.editor.SmartDeleteAction(editorPane, defaultBackspace));      
     
-        // colorisation - installer le highlighter (DocumentFilter incrémental)
-        javax.swing.SwingUtilities.invokeLater(() -> FastHighlighter.install( this.editorPane));
-//        // activer la recolorisation sur déplacement de caret
-//        FastHighlighter.enableCaretRecolor( this.editorPane, true);
-    
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        // Colorisation - installer le highlighter sans invokeLater inutile
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+            FastHighlighter.install(this.editorPane);
+        } else {
+            javax.swing.SwingUtilities.invokeLater(() -> FastHighlighter.install(this.editorPane));
+        }
+
+//        editorPane.addStickyUndoableEditListener(e -> {
+//            Object ed = e.getEdit();
+//            if (ed instanceof javax.swing.text.AbstractDocument.DefaultDocumentEvent dev) {
+//                System.out.println("UE type=" + dev.getType());
+//            } else {
+//                System.out.println("UE edit=" + ed.getClass().getName());
+//            }
+//        });
+        
+     
     }
     
+    private final UndoableEditListener defaultUndoableEditListener = e -> {
+        if (undoSuspended) return;
 
-    // Méthode undo et redo
-    private final UndoableEditListener defaultUndoableEditListener = new UndoableEditListener() {
-        @Override public void undoableEditHappened(UndoableEditEvent e) {
-            // ➊ coupe l’enregistrement si le flag global de la frame est actif
-            if (undoSuspended) return;
-
-            // ➋ coupe l’enregistrement si le Document demande une suspension (FastHighlighter)
-            Object src = e.getSource();
-            if (src instanceof javax.swing.text.Document d) {
-                Object flag = d.getProperty("fh.suspendUndo");
-                if (Boolean.TRUE.equals(flag)) return;
+        Object edit = e.getEdit();
+        if (edit instanceof AbstractDocument.DefaultDocumentEvent dev) {
+            if (dev.getType() == DocumentEvent.EventType.CHANGE) {
+                // On ignore TOUT CHANGE (coloration, attributs, etc.)
+                return;
             }
-
-            undoManager.addEdit(e.getEdit());
-            updateUndoRedoState();
         }
+
+        undoManager.addEdit(e.getEdit());
+        updateUndoRedoState();
     };
-    
+
+
     // --- CONFIGURATION EDITORPANE ---
   	public void setupEditorPane() { 	    
   	    // --- Apparence & confort de saisie (on GARDE) ---
@@ -327,18 +338,29 @@ public class EditorFrame extends JFrame implements EditorApi {
   	    //editorPane.setFont(new Font("Arial", Font.PLAIN, 34));
   	    applyEditorFont();
 
-  	    // --- AJOUTE LES CLASS QUI PERMETTENT LES LISTES PUCES OU NULEROTES ---
-  	    // --- empêche insèrer quelque chose en position zéro
-  	    javax.swing.text.Document doc = editorPane.getDocument();
+	  	// --- AJOUTE LES CLASS QUI PERMETTENT LES LISTES PUCES OU NUMEROTEES ---
+	  	// --- empêche d’insérer quelque chose en position zéro
+	  	javax.swing.text.Document doc = editorPane.getDocument();
 	  	if (doc instanceof javax.swing.text.AbstractDocument ad) {
-	  	    javax.swing.text.DocumentFilter existing = ad.getDocumentFilter(); // AutoListContinuationFilter déjà posé
-	  	    writer.ui.editor.NoInsertAtZeroFilter guard = new writer.ui.editor.NoInsertAtZeroFilter();
-	  	  ad.setDocumentFilter(existing == null ? guard
-                  : new CompositeDocumentFilter(existing, guard));
+	  	    javax.swing.text.DocumentFilter guard = new writer.ui.editor.NoInsertAtZeroFilter();
+	  	    javax.swing.text.DocumentFilter auto  = new writer.editor.AutoListContinuationFilter(this.editorPane); // ← ici le bon package
+	
+	  	    javax.swing.text.DocumentFilter existing = ad.getDocumentFilter();
+	
+	  	    // Compose proprement : (existing) -> guard -> auto
+	  	    javax.swing.text.DocumentFilter composed =
+	  	        (existing == null)
+	  	            ? new writer.ui.editor.CompositeDocumentFilter(guard, auto)
+	  	            : new writer.ui.editor.CompositeDocumentFilter(
+	  	                  existing,
+	  	                  new writer.ui.editor.CompositeDocumentFilter(guard, auto)
+	  	              );
+	
+	  	    ad.setDocumentFilter(composed);
 	  	}
-  	   
+
+
   	    this.editorPane.getAccessibleContext().setAccessibleName("Zone de texte.");
-  	    ((AbstractDocument) editorPane.getDocument()).setDocumentFilter(new AutoListContinuationFilter(this.editorPane));
   	
   	}
     
@@ -368,22 +390,30 @@ public class EditorFrame extends JFrame implements EditorApi {
 	public Boolean isModifier() { return this.isModified; }
 
 	@Override
-    public void updateWindowTitle() {
-        String base = "LisioWriter";
-        String name = (commandes.nameFile != null && !commandes.nameFile.isBlank())
-                ? commandes.nameFile
-                : "Nouveau";
+	public void updateWindowTitle() {
+	    final String base = "LisioWriter";
+	    final String name = (commandes.nameFile != null && !commandes.nameFile.isBlank())
+	            ? commandes.nameFile
+	            : "Nouveau";
 
-        StringBuilder title = new StringBuilder(base).append(" — ").append(name);
+	    String folder = null;
+	    if (commandes.currentDirectory != null) {
+	        java.io.File dir = new java.io.File(commandes.currentDirectory.toString());
+	        folder = dir.getName().isBlank() ? dir.getPath() : dir.getName();
+	    }
 
-        if (commandes.currentDirectory != null) {
-            java.io.File dir = new java.io.File(commandes.currentDirectory.toString());
-            String folder = dir.getName().isBlank() ? dir.getPath() : dir.getName();
-            title.append(" (").append(folder).append(")");
-        }
-        if (isModified) title.insert(0, "*");
-        setTitle(title.toString());
-    }
+	    StringBuilder title = new StringBuilder();
+	    if (isModified) title.append('*');
+	    title.append(base).append(" — ").append(name);
+	    if (folder != null) title.append(" (").append(folder).append(')');
+
+	    String newTitle = title.toString();
+	    if (!newTitle.equals(lastWindowTitle)) {
+	        setTitle(newTitle);
+	        lastWindowTitle = newTitle;
+	    }
+	}
+
 
     @Override
     public void clearSpellHighlightsAndFocusEditor() {
@@ -419,8 +449,17 @@ public class EditorFrame extends JFrame implements EditorApi {
 
     // === UTILITAIRE ===
     private void updateUndoRedoState() {
-        this.undoAction.setEnabled(undoManager.canUndo());
-        this.redoAction.setEnabled(undoManager.canRedo());
+        boolean canUndo = undoManager.canUndo();
+        boolean canRedo = undoManager.canRedo();
+
+        if (canUndo != prevCanUndo) {
+            this.undoAction.setEnabled(canUndo);
+            prevCanUndo = canUndo;
+        }
+        if (canRedo != prevCanRedo) {
+            this.redoAction.setEnabled(canRedo);
+            prevCanRedo = canRedo;
+        }
     }
     
 	//=============================
@@ -497,7 +536,7 @@ public class EditorFrame extends JFrame implements EditorApi {
  	            javax.swing.text.Element lineEl = root.getElement(i);
  	            int start = lineEl.getStartOffset();
  	            int end   = Math.min(lineEl.getEndOffset(), doc.getLength());
- 	            String line = doc.getText(start, end - start).replaceAll("\\R$", "");
+ 	            String line = chompLine(doc.getText(start, end - start));
 
  	            java.util.regex.Matcher m = HEADING_PATTERN.matcher(line);
  	            if (m.matches()) {
@@ -542,7 +581,7 @@ public class EditorFrame extends JFrame implements EditorApi {
  	            javax.swing.text.Element lineEl = root.getElement(i);
  	            int start = lineEl.getStartOffset();
  	            int end   = Math.min(lineEl.getEndOffset(), doc.getLength());
- 	            String line = doc.getText(start, end - start).replaceAll("\\R$", "");
+ 	            String line = chompLine(doc.getText(start, end - start));
  	            java.util.regex.Matcher m = HEADING_PATTERN.matcher(line);
  	            if (m.matches()) {
  	                int lvl   = Integer.parseInt(m.group(1));
@@ -562,11 +601,10 @@ public class EditorFrame extends JFrame implements EditorApi {
  	        final javax.swing.text.Element root = doc.getDefaultRootElement();
  	        int lineIdx0 = Math.max(0, Math.min(h.paraIndex - 1, root.getElementCount() - 1));
  	        int pos = root.getElement(lineIdx0).getStartOffset();
- 	       this.editorPane.setCaretPosition(pos);
- 	        // Assure la visibilité à l’écran
- 	        @SuppressWarnings("deprecation")
-			java.awt.Rectangle r = this.editorPane.modelToView(pos);
- 	        if (r != null) this.editorPane.scrollRectToVisible(r);
+ 	        this.editorPane.setCaretPosition(pos);
+ 	        // Assure la visibilité à l’écran (API non dépréciée)
+ 	        java.awt.geom.Rectangle2D r2d = this.editorPane.modelToView2D(pos);
+ 	        if (r2d != null) this.editorPane.scrollRectToVisible(r2d.getBounds());
  	    } catch (Exception ignore) {}
  	}
 
@@ -595,40 +633,40 @@ public class EditorFrame extends JFrame implements EditorApi {
 	public Action actGotoPrevHeading() {
 		return actGotoPrevHeading;
 	}
+	
 	/** Avance depuis le début de la ligne jusqu’au début logique (# ou texte),
 	 * en sautant CR/LF résiduels, braille ⠿ et espaces. */
 	private int logicalStartOfLine(javax.swing.text.Document doc, int lineStart) throws Exception {
-	    int pos = lineStart;
 	    final int len = doc.getLength();
+	    final int blockSize = Math.min(256, len - lineStart); // lecture en bloc, suffisant pour un début de ligne
+	    if (blockSize <= 0) return lineStart;
 
-	    // 1) Si on est collé à la fin de la ligne précédente, saute CR/LF
-	    if (pos > 0) {
-	        char prev = doc.getText(pos - 1, 1).charAt(0);
-	        if (prev == '\n') {
-	            // cas CRLF: ... \r\n|   (caret)
-	            if (pos > 1 && doc.getText(pos - 2, 1).charAt(0) == '\r') {
-	                // rien à faire : on est déjà après \r\n
-	            }
-	            // on est au premier char de la nouvelle ligne → ok
-	        } else if (prev == '\r') {
-	            // très rare: caret pile après \r mais avant \n (séquence en 2 temps)
-	            if (pos < len && doc.getText(pos, 1).charAt(0) == '\n') {
-	                pos++; // saute le \n
-	            }
+	    javax.swing.text.Segment seg = new javax.swing.text.Segment();
+	    doc.getText(lineStart, blockSize, seg);
+
+	    int offset = 0;
+
+	    // 1) Corrige les fins de ligne précédentes (\r, \n, \r\n)
+	    if (lineStart > 0) {
+	        char prev = doc.getText(lineStart - 1, 1).charAt(0);
+	        if (prev == '\r' && lineStart < len) {
+	            char next = doc.getText(lineStart, 1).charAt(0);
+	            if (next == '\n') offset++; // saute le \n après un \r
 	        }
 	    }
 
-	    // 2) Saute le préfixe braille ⠿ et les espaces initiaux
-	    while (pos < len) {
-	        char c = doc.getText(pos, 1).charAt(0);
-	        if (c == '\u283F' /* ⠿ */ || Character.isWhitespace(c)) {
-	            pos++;
-	        } else {
-	            break;
-	        }
+	    // 2) Parcourt le buffer localement (très rapide)
+	    while (offset < seg.count) {
+	        char c = seg.array[seg.offset + offset];
+	        if (c == '\u283F' || Character.isWhitespace(c)) {
+	            offset++;
+	        } else break;
 	    }
-	    return pos;
+
+	    return lineStart + offset;
 	}
+
+
 	
 	//===========================================
 	// ===== Mode Affichage de l'editorPane =====
@@ -716,36 +754,25 @@ public class EditorFrame extends JFrame implements EditorApi {
 	private void applyEditorFont() {
 	    if (this.editorPane == null) return;
 
-	    // Ltaille dynamique (celle qui change avec le zoom)
-	    this.editorPane.setFont(new Font(EDITOR_FONT_FAMILY, Font.PLAIN, Math.round(this.editorFontSize)));
+	    // 1) Appliquer les marges une seule fois
+	    if (!marginsAppliedOnce) {
+	        this.editorPane.setMargin(EDITOR_MARGINS);
+	        marginsAppliedOnce = true;
+	    }
 
-	    // Marges internes pour le confort visuel
-	    this.editorPane.setMargin(new java.awt.Insets(12, 24, 12, 24));
+	    // 2) Si la taille n’a pas changé, ne rien faire (évite Font + revalidate + repaint)
+	    float size = this.editorFontSize;
+	    if (size == lastAppliedFontSize) return;
 
+	    // 3) Taille différente → nouveau Font uniquement maintenant
+	    this.editorPane.setFont(new Font(EDITOR_FONT_FAMILY, Font.PLAIN, Math.round(size)));
+	    lastAppliedFontSize = size;
+
+	    // 4) Et seulement maintenant, le rafraîchissement
 	    this.editorPane.revalidate();
 	    this.editorPane.repaint();
-
-	    // Le caret bien visible même après zoom
-//	    SwingUtilities.invokeLater(() -> ensureCaretHorizontalMargins(108, 108));
 	}
-    
-//    /** Agrandit un rectangle avec des marges et appelle scrollRectToVisible. */
-//    private void expandAndScroll(Rectangle r, int hMarginPx, int vMarginPx) {
-//        if (r == null) return;
-//
-//        // On crée un rect “coussin” pour éviter d’être collé au bord
-//        int x = Math.max(0, r.x - hMarginPx);
-//        int y = Math.max(0, r.y - vMarginPx);
-//        int w = r.width  + 2 * hMarginPx;
-//        int h = r.height + 2 * vMarginPx;
-//
-//        Rectangle padded = new Rectangle(x, y, w, h);
-//
-//        // Fait défiler la vue
-//        this.editorPane.scrollRectToVisible(padded);
-//    }
 
-	
 	/** Exécute une édition du document sans créer d’entrée d’historique. */
 	public void runWithoutUndo(Runnable edit) {
 	    Runnable task = () -> {
@@ -764,8 +791,29 @@ public class EditorFrame extends JFrame implements EditorApi {
 	        javax.swing.SwingUtilities.invokeLater(task);
 	    }
 	}
+	
+	// Supprime un unique saut de ligne final (\n, \r ou \r\n) sans regex.
+	private static String chompLine(String s) {
+	    int len = s.length();
+	    if (len == 0) return s;
+	    char last = s.charAt(len - 1);
+	    if (last == '\n') {
+	        // \r\n ?
+	        if (len >= 2 && s.charAt(len - 2) == '\r') return s.substring(0, len - 2);
+	        return s.substring(0, len - 1);
+	    } else if (last == '\r') {
+	        return s.substring(0, len - 1);
+	    }
+	    return s;
+	}
 
-
+	/** Vide proprement l’historique Undo/Redo pour libérer la mémoire. */
+	public void clearUndoHistory() {
+	    undoManager.discardAllEdits();
+	    prevCanUndo = false;
+	    prevCanRedo = false;
+	    updateUndoRedoState();
+	}
 
 	
 }

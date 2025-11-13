@@ -51,6 +51,7 @@ public class KeyboardShortcutManager {
         this.frame = frame;
         this.editorPane = editorPane;
     }
+    
 
     /** Configure tous les raccourcis clavier de LisioWriter. */
     @SuppressWarnings("serial")

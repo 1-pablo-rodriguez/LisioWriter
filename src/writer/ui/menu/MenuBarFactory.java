@@ -5,6 +5,7 @@ package writer.ui.menu;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -12,6 +13,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -225,14 +227,17 @@ public final class MenuBarFactory {
             @Override public void menuCanceled(MenuEvent e) {}
         });
     	
-    	JMenuItem undoItem = createSimpleMenuItem("Annule",e -> {
-    		ctx.getUndoAction();
+    	// Annuler
+    	JMenuItem undoItem = createMenuItem("Annuler", KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK, e -> {
+    	    Action a = ctx.getUndoAction();
+    	    if (a != null) a.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, "menu-undo"));
     	});
-    	
-    	JMenuItem redoItem = createSimpleMenuItem("Retire",e -> {
-    		ctx.getRedoAction();
-    	});
-    	   	
+
+    	// Rétablir
+    	JMenuItem redoItem = createMenuItem("Retablir", KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK, e -> {
+    	    Action a = ctx.getRedoAction();
+    	    if (a != null) a.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, "menu-redo"));
+    	});   	   	
     	
     	// Active/ désactive l'édition
    	 	JMenuItem edition = createMenuItem("Active/désactive édition", KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK, e -> {

@@ -730,6 +730,9 @@ public final class ouvrirDOCX extends JDialog {
          // colorisation
          FastHighlighter.rehighlightAll(parent.getEditor());
          
+         // vide l'historique
+         parent.clearUndoHistory();
+         
          parent.getEditor().setCaretPosition(0);
          
          commandes.nameFile = selectedFile.getName().replaceFirst("\\.docx$", "");
