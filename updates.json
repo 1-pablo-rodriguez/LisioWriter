@@ -1,8 +1,8 @@
 {
   "channel": "stable",
-  "version": "1.1.11",
-  "url": "https://github.com/1-pablo-rodriguez/LisioWriter/releases/download/untagged-fb57d136eab4d7ceb03c/Installation_LisioWriter_1.1.11.0.exe",
-  "sha256": "4f2cf61580461bbc0c923d16dc61e4f4b5a45728ed4a14c8b79bcd5bb97ad697",
-  "size": 140355804,
-  "releaseNotes": "Bug du java runtime environment 19 résolu"
+  "version": "1.1.12",
+  "url": "https://github.com/1-pablo-rodriguez/LisioWriter/releases/download/v1.1.12/Installation_LisioWriter_1.1.12.0.exe",
+  "sha256": "2192ba31734859ad9e781ccb050bde428cb979e347dc8ad1167679b499d83a23",
+  "size": 143416273,
+  "releaseNotes": ""
 }
