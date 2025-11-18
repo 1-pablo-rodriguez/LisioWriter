@@ -1,7 +1,11 @@
 package writer.ui.editor;
 
+import java.awt.Desktop;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -137,10 +141,43 @@ public final class OpenLinkAtCaretAction extends AbstractAction {
         }
         return -1;
     }
-
-    /** Ouvre via ta routine d’insertion directe. */
+   
+    /** Ouvre un lien :
+     *  - Wikipédia → import direct dans l’éditeur
+     *  - sinon     → navigateur par défaut
+     */
     private void open(String title, String url) {
-        System.out.println("Import direct Wikipédia : " + title + " → " + url);
-        dia.HtmlBrowserDialog.insertArticleDirect(editor, url);
+        if (isWikipediaUrl(url)) {
+            System.out.println("Import direct Wikipédia : " + title + " → " + url);
+            dia.HtmlBrowserDialog.insertArticleDirect(editor, url);
+        } else {
+            System.out.println("Ouverture navigateur : " + title + " → " + url);
+            openInBrowser(url);
+        }
+    }
+
+    /** Teste si l’URL est de la forme https://xx.wikipedia.org/... */
+    private boolean isWikipediaUrl(String url) {
+        if (url == null) return false;
+
+        // Si tu veux respecter *strictement* "https://??.wikipedia.org*"
+        // (2 lettres de langue exactement) :
+        // return url.matches("^https://[a-zA-Z]{2}\\.wikipedia\\.org.*$");
+
+        // Version plus souple : langue de longueur variable (fr, en, frp, zh-min-nan, etc.)
+        return url.matches("^https://[a-zA-Z-]+\\.wikipedia\\.org.*$");
+    }
+
+    /** Ouverture dans le navigateur par défaut */
+    private void openInBrowser(String url) {
+        if (!Desktop.isDesktopSupported()) {
+            System.err.println("Desktop non supporté, impossible d’ouvrir le navigateur.");
+            return;
+        }
+        try {
+            Desktop.getDesktop().browse(new URI(url));
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+        }
     }
 }
