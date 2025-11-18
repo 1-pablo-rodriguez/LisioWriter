@@ -49,9 +49,14 @@ public class NormalizingTextPane extends javax.swing.JTextPane {
 
     @Override
     public boolean getScrollableTracksViewportWidth() {
+    	// Pour forcer à prendre toute la largeur de l'éditeur
+//    	if (getParent() instanceof javax.swing.JViewport viewport) {
+//            return getUI().getPreferredSize(this).width <= viewport.getWidth();
+//        }
         // Désactive le suivi de la largeur du viewport → pas de wrap visuel
         return false;
     }
+
     
     /**
      * Nettoie le Document courant en remplaçant son contenu par une version

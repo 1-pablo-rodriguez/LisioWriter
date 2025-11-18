@@ -118,12 +118,9 @@ public class EditorFrame extends JFrame implements EditorApi {
 	 // cache pour la mise à jour du titre de la fenêtre
 	 private String lastWindowTitle = null;
 	 
-	// Coalescing du zoom clavier (Ctrl + + / -)
-	 private int keyboardZoomAccum = 0;
-	 private javax.swing.Timer keyboardZoomTimer = null;
-
-
-	 
+	// même couleur que l’éditeur
+     Color EDITOR_BG = new Color(45, 45, 45);
+	 	 
     // === CONSTRUCTEUR ===
     public EditorFrame() {
         super("LisioWriter");
@@ -134,6 +131,11 @@ public class EditorFrame extends JFrame implements EditorApi {
         scrollPane = new JScrollPane(editorPane);
         
         getContentPane().add(scrollPane, BorderLayout.CENTER);
+        scrollPane.getViewport().setBackground(EDITOR_BG);
+        scrollPane.setBackground(EDITOR_BG);
+        scrollPane.getViewport().setOpaque(true);   // par sécurité
+        getContentPane().setBackground(EDITOR_BG);  // si jamais on voit le fond de la frame
+
 
         // Attache le gestionnaire Undo/Redo de la méthode defaultUndoableEditListener
         editorPane.addStickyUndoableEditListener(defaultUndoableEditListener);
@@ -308,6 +310,7 @@ public class EditorFrame extends JFrame implements EditorApi {
      
     }
     
+    // Tous les filtres
     private final UndoableEditListener defaultUndoableEditListener = e -> {
         if (undoSuspended) return;
 
@@ -318,7 +321,6 @@ public class EditorFrame extends JFrame implements EditorApi {
                 return;
             }
         }
-
         undoManager.addEdit(e.getEdit());
         updateUndoRedoState();
     };
@@ -327,12 +329,14 @@ public class EditorFrame extends JFrame implements EditorApi {
     // --- CONFIGURATION EDITORPANE ---
   	public void setupEditorPane() { 	    
   	    // --- Apparence & confort de saisie (on GARDE) ---
-  	    this.editorPane.setForeground(Color.WHITE);
-  	    this.editorPane.setBackground(new Color(45, 45, 45));
+  		this.editorPane.setForeground(Color.WHITE);
+  		this.editorPane.setBackground(EDITOR_BG);
+  		this.editorPane.setOpaque(true);
+
 
         // Surlignage de paragraphe, style du caret, sélection par mot
         ParagraphHighlighter.install(this.editorPane);
-        CaretStyler.install(this.editorPane, new Color(255, 120, 120), 2, 500);
+        CaretStyler.install(this.editorPane, new Color(255, 80, 80), 3, 500);
         WordSelectOnShiftRight.install(this.editorPane);
 
   	    //editorPane.setFont(new Font("Arial", Font.PLAIN, 34));
