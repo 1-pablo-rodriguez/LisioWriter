@@ -148,12 +148,14 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de LisioWriter acces
 | **Ctrl+F2**     | Insérer/Supprimer un marque-page | Insère ou supprime un marque-page associé à une note.                  |
 | **F3 / Maj+F3** | Navigation par titres       | Passe rapidement au titre suivant ou au titre précédent.                   |
 | **F4 / Maj+F4** | Navigation par marque-page  | Passe rapidement au marque-page suivant ou au marque-page précédent.       |
-| **Alt+A**       | Documentation intégrée      | Ouvre la documentation interne de LisioWriter.                             |
+| **F5**          | lecture de la note du marque page | la note du marque page affiche dans une fenêtre accessible<br>à la lecture avec la barre de barille    |
 | **F6**          | Navigateur de titres        | Ouvre le navigateur pour parcourir la structure du document.               |
 | **F7 / Maj+F7** | Erreur suivante / précédente | Sélectionne le mot ou le texte suivant ou précédent<br>contenant une faute ou une erreur. |
 | **Ctrl+F7**     | Vérification du document    | Lance la vérification orthographique et grammaticale de tout le document.  |
 | **F8**          | Article Wikipédia           | Insère dans l’éditeur des articles Wikipédia structurés<br>avec leur mise en forme et leur hiérarchie. |
 | **Ctrl+F**      | Recherche                   | Outils de recherche intégrant des jokers<br> **?** remplace un caractère<br> **\*** remplace des caractères <br> **==** Case rigoureuse<br> **&&** paragraphe contenant<br> **\#\#** titre contenant<br> **%d** chiffre |
+| **Alt+A**       | Documentation intégrée      | Ouvre la documentation interne de LisioWriter.                             |
+
 
 Toutes les fonctions du logiciel sont accessibles **entièrement au clavier, sans souris**.  
 Les menus sont conçus pour être **vocalisés** et **compatibles avec les barres braille**, afin de garantir une accessibilité complète.
