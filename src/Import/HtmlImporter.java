@@ -61,7 +61,7 @@ public final class HtmlImporter {
 	        switch (tag) {
 	            case "h1": case "h2": case "h3": case "h4": case "h5": case "h6":
 	                int level = Integer.parseInt(tag.substring(1));
-	                out.append("\n#").append(level).append(". ");
+	                out.append("#").append(level).append(". ");
 	                traverseChildren(e, out, 0, null);
 	                out.append("\n");
 	                continue;
