@@ -13,8 +13,9 @@ public class enregistre {
     public enregistre(EditorFrame parent) {
    	 // Sauvegarder le texte du JEditorPane dans un fichier
     	
-    	// Mise à jour des bookmarks
-    	commandes.nodeblindWriter.removeEnfant("bookmarks");
+    	// Suppression des bookmarks
+    	commandes.nodeblindWriter.removeAllEnfantWithThisName("bookmarks");
+    	// Mise en jour des bookmarks
     	commandes.nodeblindWriter.addEnfant(parent.getBookmarks().saveToXml());
     	
        String text = parent.getEditor().getText(); // récupération du texte.
@@ -50,7 +51,7 @@ public class enregistre {
     public enregistre(String nameFile, EditorFrame parent) {
       	 // Sauvegarder le texte du JEditorPane dans un fichier
           String text = parent.getEditor().getText();
-          commandes.nodeblindWriter.removeEnfant("bookmarks");
+          commandes.nodeblindWriter.removeAllEnfantWithThisName("bookmarks");
           commandes.nodeblindWriter.addEnfant(parent.getBookmarks().saveToXml());
           commandes.contentText.getContenu().clear();
           commandes.contentText.addContenu(text);

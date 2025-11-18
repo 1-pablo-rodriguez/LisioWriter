@@ -120,7 +120,7 @@ public class KeyboardShortcutManager {
         addKeyBinding(KeyEvent.VK_F4, InputEvent.SHIFT_DOWN_MASK, "bmPrev",
         	    new AbstractAction() { public void actionPerformed(ActionEvent e) { frame.getBookmarks().goPrev(); } });
 
-        addKeyBinding(KeyEvent.VK_F2, InputEvent.CTRL_DOWN_MASK | InputEvent.ALT_DOWN_MASK, "bmEditNote",
+        addKeyBinding(KeyEvent.VK_F5, 0,"bmEditNote",
     	    new AbstractAction() {
     	        public void actionPerformed(ActionEvent e) {
     	            var bm = frame.getBookmarks();

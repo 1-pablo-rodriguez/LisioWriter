@@ -858,7 +858,7 @@ public final class MenuBarFactory {
     	});
 		
 
-		JMenuItem bmNote = createMenuItem("Marque-page note", KeyEvent.VK_F2,InputEvent.CTRL_DOWN_MASK | InputEvent.ALT_DOWN_MASK,e -> { 
+		JMenuItem bmNote = createMenuItem("Marque-page note", KeyEvent.VK_F5,0,e -> { 
 			var m = ctx.getBookmarks();                      
 		    if (m == null) {                   
 		        java.awt.Toolkit.getDefaultToolkit().beep();
