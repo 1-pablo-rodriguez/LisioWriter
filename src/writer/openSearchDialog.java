@@ -397,103 +397,90 @@ public class openSearchDialog extends JDialog {
  // Si la requête contient '?', on force le motif à correspondre à un "mot" isolé
  // (on n'acceptera pas de correspondance à l'intérieur d'un mot plus long).
     private java.util.regex.Pattern buildPattern(String q) {
-        if (q == null || q.isBlank()) return null;
-
-        // garder l'original pour détecter leading/trailing '*'
-        String orig = q;
-
-        boolean exact = false;
-        if (q.startsWith("==")) {
-            exact = true;
-            q = q.substring(2);
-            orig = orig.substring(2); // garder cohérence pour detection '*' si user a mis ==*...
-            if (q.isEmpty()) return null; // "==" seul -> rien
-        }
-
-        // === Modes "contient" ===
-        String trimmed = q.stripLeading();
-
-        // 1️⃣ Recherche dans tout le texte (paragraphes + titres)
-        if (trimmed.startsWith("&&")) {
-            String inner = java.util.regex.Pattern.quote(trimmed.substring(2).trim());
-            int flags = java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE;
-            String rx = "(?m)^(?:\\s*\\u283F\\s*)?.*" + inner + ".*$";
-            return java.util.regex.Pattern.compile(rx, flags);
-        }
-
-        // 2️⃣ Recherche uniquement dans les titres (lignes commençant par #)
-		//      Compatible avec un éventuel préfixe braille "⠿" + espaces.
-		  if (trimmed.startsWith("##")) {
-		      String inner = java.util.regex.Pattern.quote(trimmed.substring(2).trim());
-		      int flags = java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE;
-		
-		      // ⟶ (?m)  multilignes
-		      // ⟶ ^(?:\s*\u283F\s*)?   préfixe braille optionnel (avec espaces)
-		      // ⟶ \#{1,} \s*           un ou plusieurs dièses (Markdown), puis espaces
-		      // ⟶ .*inner.*$           on veut "inner" quelque part dans le titre
-		      String rx = "(?m)^(?:\\s*\\u283F\\s*)?#{1,}\\s*.*" + inner + ".*$";
-		      return java.util.regex.Pattern.compile(rx, flags);
-		  }
-
-       
-        // Classe de "caractères de mot" utilisée pour jokers et pour les lookarounds :
-        final String wordCharClass = "[\\p{L}\\p{N}'’_-]";
-
-        // détection d'étoile en début/fin (dans l'original après retrait éventuel de "==")
-        boolean origStartsWithStar = orig.startsWith("*");
-        boolean origEndsWithStar = orig.endsWith("*");
-
-        // si la requête contient '?', on force l'ancrage des deux côtés (mot de longueur définie)
-        boolean containsQuestion = q.indexOf('?') >= 0;
-
-        StringBuilder rx = new StringBuilder(q.length() * 3);
-        for (int i = 0; i < q.length(); i++) {
-            char c = q.charAt(i);
-            
-            // 🔢 Détection du joker %d (nombre de 1 à 6 chiffres)
-            if (c == '%' && i + 1 < q.length() && q.charAt(i + 1) == 'd') {
-                rx.append("[0-9]{1}");
-                i++; // saute le 'd'
-                continue;
-            }
-
-            switch (c) {
-                case '*':
-                    // zéro ou plusieurs caractères de mot
-                    rx.append(wordCharClass).append("*");
-                    break;
-                case '?':
-                    // exactement un caractère de mot
-                    rx.append(wordCharClass);
-                    break;
-                default:
-                    // échappe les caractères spéciaux regex
-                    if ("\\.^$|()[]{}+*?".indexOf(c) >= 0) rx.append('\\');
-                    rx.append(c);
-            }
-        }
-
-
-        String core = rx.toString();
-
-        // Déterminer l'ancrage à gauche/droite selon la présence de '*' en bord
-        boolean anchorLeft  = containsQuestion || !origStartsWithStar || exact;
-        boolean anchorRight = containsQuestion || !origEndsWithStar   || exact;
-
-        // Construire la regex finale avec lookarounds si nécessaire
-        StringBuilder finalRx = new StringBuilder();
-        if (anchorLeft)  finalRx.append("(?<!").append(wordCharClass).append(")");
-        finalRx.append("(?:").append(core).append(")");
-        if (anchorRight) finalRx.append("(?!").append(wordCharClass).append(")");
-
-        int flags = exact ? 0 : (java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE);
-        try {
-            return java.util.regex.Pattern.compile(finalRx.toString(), flags);
-        } catch (java.util.regex.PatternSyntaxException e) {
-            return null;
-        }
-    }
-
+	    if (q == null || q.isBlank()) return null;
+	
+	    String orig = q;
+	    boolean exact = false;
+	
+	    // == : recherche sensible à la casse
+	    if (q.startsWith("==")) {
+	        exact = true;
+	        q = q.substring(2);
+	        orig = orig.substring(2);
+	        if (q.isEmpty()) return null;
+	    }
+	
+	    String trimmed = q.stripLeading();
+	
+	    // --- Modes ligne (##, &&) inchangés ---
+	    if (trimmed.startsWith("&&")) {
+	        String inner = java.util.regex.Pattern.quote(trimmed.substring(2).trim());
+	        int flags = java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE;
+	        String rx = "(?m)^(?:\\s*\\u283F\\s*)?.*" + inner + ".*$";
+	        return java.util.regex.Pattern.compile(rx, flags);
+	    }
+	
+	    if (trimmed.startsWith("##")) {
+	        String inner = java.util.regex.Pattern.quote(trimmed.substring(2).trim());
+	        int flags = java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE;
+	        String rx = "(?m)^(?:\\s*\\u283F\\s*)?#{1,}\\s*.*" + inner + ".*$";
+	        return java.util.regex.Pattern.compile(rx, flags);
+	    }
+	
+	    // 1️⃣ Classe pour les jokers (*, ?, %d) : on garde le tiret
+	    final String WILDCARD_CHARS = "[\\p{L}\\p{N}'’_-]";
+	
+	    // 2️⃣ Classe pour les bornes de mot : SANS tiret, SANS point
+	    //    → un mot s’arrête dès qu’on tombe sur la ponctuation ou un tiret
+	    final String BOUNDARY_CHARS = "[\\p{L}\\p{N}'’_]";
+	
+	    boolean origStartsWithStar = orig.startsWith("*");
+	    boolean origEndsWithStar   = orig.endsWith("*");
+	    boolean containsQuestion   = q.indexOf('?') >= 0;
+	
+	    StringBuilder rx = new StringBuilder(q.length() * 3);
+	    for (int i = 0; i < q.length(); i++) {
+	        char c = q.charAt(i);
+	
+	        // joker %d : nombre de 1 à 6 chiffres (à adapter si tu veux plus)
+	        if (c == '%' && i + 1 < q.length() && q.charAt(i + 1) == 'd') {
+	            rx.append("[0-9]{1,6}");
+	            i++;
+	            continue;
+	        }
+	
+	        switch (c) {
+	            case '*':
+	                // zéro ou plusieurs caractères de mot (au sens large, incluant '-')
+	                rx.append(WILDCARD_CHARS).append("*");
+	                break;
+	            case '?':
+	                // exactement un caractère de mot (au sens large)
+	                rx.append(WILDCARD_CHARS);
+	                break;
+	            default:
+	                if ("\\.^$|()[]{}+*?".indexOf(c) >= 0) rx.append('\\');
+	                rx.append(c);
+	        }
+	    }
+	
+	    String core = rx.toString();
+	
+	    boolean anchorLeft  = containsQuestion || !origStartsWithStar || exact;
+	    boolean anchorRight = containsQuestion || !origEndsWithStar   || exact;
+	
+	    StringBuilder finalRx = new StringBuilder();
+	    if (anchorLeft)  finalRx.append("(?<!").append(BOUNDARY_CHARS).append(")");
+	    finalRx.append("(?:").append(core).append(")");
+	    if (anchorRight) finalRx.append("(?!").append(BOUNDARY_CHARS).append(")");
+	
+	    int flags = exact ? 0 : (java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE);
+	    try {
+	        return java.util.regex.Pattern.compile(finalRx.toString(), flags);
+	    } catch (java.util.regex.PatternSyntaxException e) {
+	        return null;
+	    }
+	}
 
 
 
