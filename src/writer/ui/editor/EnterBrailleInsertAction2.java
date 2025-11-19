@@ -10,26 +10,26 @@ import javax.swing.text.Document;
 
 /**
  * Action Entrée "braille" :
- * - Position 0 : insère "⠿\n" en tête du document. N'ajoute un ⠿ au début de la ligne suivante
- *   QUE si le document ne démarrait pas déjà par ⠿.
- * - Cas spécial : si le caret est exactement entre une fin de ligne et un ⠿,
- *   insère "⠿" au début de la ligne courante puis le séparateur d'origine,
- *   ce qui pousse le ⠿ existant au début du paragraphe suivant, en préservant \r\n si présent.
- * - Cas général : insère "\n⠿" (ou "\n⠿ ") à la position du caret.
+ * - Position 0 : insère "¶\n" en tête du document. N'ajoute un ¶ au début de la ligne suivante
+ *   QUE si le document ne démarrait pas déjà par ¶.
+ * - Cas spécial : si le caret est exactement entre une fin de ligne et un ¶,
+ *   insère "¶" au début de la ligne courante puis le séparateur d'origine,
+ *   ce qui pousse le ¶ existant au début du paragraphe suivant, en préservant \r\n si présent.
+ * - Cas général : insère "\n¶" (ou "\n¶ ") à la position du caret.
  */
 @SuppressWarnings("serial")
 public class EnterBrailleInsertAction2 extends AbstractAction {
-    private static final char   BRAILLE_CH = '\u283F';
+    private static final char   BRAILLE_CH = '\u00B6';
     private static final String BRAILLE    = String.valueOf(BRAILLE_CH);
 
     private final writer.ui.NormalizingTextPane editor;
     private final Action fallback;
-    private final String insert; // "\n⠿" ou "\n⠿ "
+    private final String insert; // "\n¶" ou "\n¶ "
 
     /**
      * @param editor composant cible (writer.ui.NormalizingTextPane)
      * @param fallback action de repli si insertion échoue (peut être null)
-     * @param withTrailingSpace true pour insérer "\n⠿ " au lieu de "\n⠿"
+     * @param withTrailingSpace true pour insérer "\n¶ " au lieu de "\n¶"
      */
     public EnterBrailleInsertAction2(writer.ui.NormalizingTextPane editor, Action fallback, boolean withTrailingSpace) {
         this.editor = editor;
@@ -62,33 +62,33 @@ public class EnterBrailleInsertAction2 extends AbstractAction {
                 final boolean withSpace = insert.endsWith(" ");
                 final String head = withSpace ? BRAILLE + " " : BRAILLE;
 
-                // Le doc commençait-il déjà par ⠿ ?
+                // Le doc commençait-il déjà par ¶ ?
                 boolean hadLeadingBraille = false;
                 if (doc.getLength() > 0) {
                     char first = doc.getText(0, 1).charAt(0);
                     hadLeadingBraille = (first == BRAILLE_CH);
                 }
 
-                // Insère "⠿\n" en tête
+                // Insère "¶\n" en tête
                 doc.insertString(0, head + "\n", null);
 
-                // Si le doc ne commençait PAS par ⠿, on ajoute ⠿ (et espace éventuel) au début de la 2e ligne
+                // Si le doc ne commençait PAS par ¶, on ajoute ¶ (et espace éventuel) au début de la 2e ligne
                 if (!hadLeadingBraille) {
-                    int secondLineStart = head.length() + 1; // après "⠿[ ]\n"
+                    int secondLineStart = head.length() + 1; // après "¶[ ]\n"
                     doc.insertString(secondLineStart, head, null);
                 }
 
-                // Place le caret après le ⠿ (et l'espace éventuel) de la 1re ligne
+                // Place le caret après le ¶ (et l'espace éventuel) de la 1re ligne
                 editor.setCaretPosition(head.length());
                 return;
             }
 
-            // 3) Cas spécial : caret entre fin de ligne et ⠿
+            // 3) Cas spécial : caret entre fin de ligne et ¶
             if (handleCaretBetweenEOLAndBraille(doc, caret)) {
                 return;
             }
 
-            // 4) Cas général : insère l'empreinte ("\n⠿" ou "\n⠿ ")
+            // 4) Cas général : insère l'empreinte ("\n¶" ou "\n¶ ")
             doc.insertString(caret, insert, null);
             editor.setCaretPosition(Math.min(doc.getLength(), caret + insert.length()));
 
@@ -100,10 +100,10 @@ public class EnterBrailleInsertAction2 extends AbstractAction {
     }
 
     /**
-     * Gère le cas "caret entre fin de ligne et ⠿".
-     * Exemple : "...\\n⠿Texte" (caret juste entre \\n et ⠿).
-     * Effet : insère "⠿[ ]" + sep (sep = "\n" ou "\r\n") avant le ⠿ existant,
-     *         ce qui pousse ce ⠿ au début du paragraphe suivant.
+     * Gère le cas "caret entre fin de ligne et ¶".
+     * Exemple : "...\\n¶Texte" (caret juste entre \\n et ¶).
+     * Effet : insère "¶[ ]" + sep (sep = "\n" ou "\r\n") avant le ¶ existant,
+     *         ce qui pousse ce ¶ au début du paragraphe suivant.
      *
      * @return true si traité, false sinon.
      */
@@ -116,7 +116,7 @@ public class EnterBrailleInsertAction2 extends AbstractAction {
         final boolean withSpace = insert.endsWith(" ");
         final String head = withSpace ? BRAILLE + " " : BRAILLE;
 
-        // --- Cas "\n⠿" (Unix) ou "\r\n⠿" (Windows) avec caret placé après \n
+        // --- Cas "\n¶" (Unix) ou "\r\n¶" (Windows) avec caret placé après \n
         if (prev == '\n' && next == BRAILLE_CH) {
             String sep = "\n";
             // Si juste avant \n il y a \r, on est en CRLF
@@ -129,7 +129,7 @@ public class EnterBrailleInsertAction2 extends AbstractAction {
             return true;
         }
 
-        // --- Variante défensive : caret juste après '\r' dans "\r\n⠿"
+        // --- Variante défensive : caret juste après '\r' dans "\r\n¶"
         if (prev == '\r' && caret + 1 < doc.getLength()) {
             String tri = doc.getText(caret - 1, Math.min(3, doc.getLength() - (caret - 1)));
             if (tri.length() == 3 && tri.charAt(0) == '\r' && tri.charAt(1) == '\n' && tri.charAt(2) == BRAILLE_CH) {

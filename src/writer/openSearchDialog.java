@@ -416,14 +416,14 @@ public class openSearchDialog extends JDialog {
 	    if (trimmed.startsWith("&&")) {
 	        String inner = java.util.regex.Pattern.quote(trimmed.substring(2).trim());
 	        int flags = java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE;
-	        String rx = "(?m)^(?:\\s*\\u283F\\s*)?.*" + inner + ".*$";
+	        String rx = "(?m)^(?:\\s*\\u00B6\\s*)?.*" + inner + ".*$";
 	        return java.util.regex.Pattern.compile(rx, flags);
 	    }
 	
 	    if (trimmed.startsWith("##")) {
 	        String inner = java.util.regex.Pattern.quote(trimmed.substring(2).trim());
 	        int flags = java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE;
-	        String rx = "(?m)^(?:\\s*\\u283F\\s*)?#{1,}\\s*.*" + inner + ".*$";
+	        String rx = "(?m)^(?:\\s*\\u00B6\\s*)?#{1,}\\s*.*" + inner + ".*$";
 	        return java.util.regex.Pattern.compile(rx, flags);
 	    }
 	
@@ -637,8 +637,8 @@ public class openSearchDialog extends JDialog {
             if (c == ' ' || c == '\t') { i++; continue; }
             break;
         }
-        // Sauter préfixe braille ⠿ + espaces
-        if (i < n && all.charAt(i) == '\u283F') {
+        // Sauter préfixe braille ¶ + espaces
+        if (i < n && all.charAt(i) == '\u00B6') {
             i++;
             while (i < n && (all.charAt(i) == ' ' || all.charAt(i) == '\t')) i++;
         }

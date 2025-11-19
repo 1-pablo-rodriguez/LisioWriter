@@ -7,12 +7,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Nettoyage des marqueurs braille ⠿ (U+283F) avant export.
+ * Nettoyage des marqueurs braille ¶ (U+283F) avant export.
  *
  * Règles :
- *  1) En début de ligne : supprime ⠿ et les blancs adjacents (espaces Unicode + tab) ;
- *     gère aussi le cas de plusieurs ⠿ consécutifs.
- *  2) Ailleurs dans la ligne : supprime uniquement le caractère ⠿.
+ *  1) En début de ligne : supprime ¶ et les blancs adjacents (espaces Unicode + tab) ;
+ *     gère aussi le cas de plusieurs ¶ consécutifs.
+ *  2) Ailleurs dans la ligne : supprime uniquement le caractère ¶.
  *
  * Toutes les méthodes sont thread-safe et sans état.
  */
@@ -21,16 +21,16 @@ public final class BrailleCleaner {
     private BrailleCleaner() {}
 
     /** Caractère braille (U+283F). */
-    public static final char BRAILLE = '\u283F';
+    public static final char BRAILLE = '\u00B6';
 
     /**
-     * En-tête de ligne : on retire un ou plusieurs blocs « blancs* ⠿ blancs* »
-     * Ex.: "  ⠿  ⠿  Titre" -> "Titre"
+     * En-tête de ligne : on retire un ou plusieurs blocs « blancs* ¶ blancs* »
+     * Ex.: "  ¶  ¶  Titre" -> "Titre"
      *
      * (?m) active le mode multi-ligne ( ^ = début de CHAQUE ligne ).
      */
     private static final Pattern LEADING_BRAILLE =
-            Pattern.compile("(?m)^(?:[\\p{Zs}\\t]*\\u283F[\\p{Zs}\\t]*)+");
+            Pattern.compile("(?m)^(?:[\\p{Zs}\\t]*\\u00B6[\\p{Zs}\\t]*)+");
 
     /** Détection simple. */
     public static boolean containsBraille(String s) {
@@ -49,16 +49,16 @@ public final class BrailleCleaner {
     }
 
     /**
-     * Nettoyage + comptage des ⠿ supprimés.
+     * Nettoyage + comptage des ¶ supprimés.
      * Utile pour journaliser ou vérifier l'effet du pré-traitement.
      */
     public static Result cleanAndCount(String src) {
         if (src == null || src.isEmpty()) return new Result(src, 0, 0);
 
-        // Compte total ⠿ avant nettoyage
+        // Compte total ¶ avant nettoyage
         int totalBefore = countChar(src, BRAILLE);
 
-        // Compte ⠿ situés dans les segments "début de ligne" (supprimés avec espaces adjacents)
+        // Compte ¶ situés dans les segments "début de ligne" (supprimés avec espaces adjacents)
         int headCount = 0;
         Matcher m = LEADING_BRAILLE.matcher(src);
         while (m.find()) {
@@ -69,7 +69,7 @@ public final class BrailleCleaner {
         String leadingCleaned = m.replaceAll("");
         String fullyCleaned = leadingCleaned.replace(String.valueOf(BRAILLE), "");
 
-        // Les ⠿ restants en milieu de ligne retirés = total - headCount - restants (qui doit être 0 après replace)
+        // Les ¶ restants en milieu de ligne retirés = total - headCount - restants (qui doit être 0 après replace)
         int totalAfter = countChar(fullyCleaned, BRAILLE); // doit être 0, par principe
         int middleCount = Math.max(0, (totalBefore - headCount - totalAfter));
 
@@ -119,9 +119,9 @@ public final class BrailleCleaner {
     public static final class Result {
         /** Chaîne nettoyée. */
         public final String cleaned;
-        /** Nombre de ⠿ supprimés en tête de ligne (avec blancs). */
+        /** Nombre de ¶ supprimés en tête de ligne (avec blancs). */
         public final int removedAtLineStart;
-        /** Nombre de ⠿ supprimés ailleurs dans les lignes. */
+        /** Nombre de ¶ supprimés ailleurs dans les lignes. */
         public final int removedInLine;
 
         public Result(String cleaned, int removedAtLineStart, int removedInLine) {
@@ -130,7 +130,7 @@ public final class BrailleCleaner {
             this.removedInLine = removedInLine;
         }
 
-        /** Total ⠿ supprimés. */
+        /** Total ¶ supprimés. */
         public int totalRemoved() { return removedAtLineStart + removedInLine; }
 
         @Override public String toString() {

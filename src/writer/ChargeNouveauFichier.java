@@ -13,7 +13,7 @@ import writer.ui.NormalizingTextPane;
 public class ChargeNouveauFichier {
 
 	public ChargeNouveauFichier(EditorFrame parent, String nameFile) {
-		final String newText  = "⠿" ;
+		final String newText  = "¶" ;
         SwingUtilities.invokeLater(() -> {
         	
         	commandes.nameFile = nameFile;

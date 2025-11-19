@@ -61,7 +61,7 @@ public class navigateurT1 extends JFrame{
 	// Montre uniquement la branche du nœud ciblé (ancêtres + lui + ses descendants)
 	private Integer focusedBranch = null;
 	
-	// garde la ligne EXACTE telle qu'extraite du document (inclut ⠿ si présent)
+	// garde la ligne EXACTE telle qu'extraite du document (inclut ¶ si présent)
 	private java.util.List<String> titresRawLines = new java.util.ArrayList<>();
 
     int selectedIndex = 0;
@@ -308,12 +308,12 @@ public class navigateurT1 extends JFrame{
 	
 	    if (text == null || text.isEmpty()) return;
 	
-	    // Pattern qui accepte un préfixe braille optionnel (⠿ U+283F)
-	    Pattern pattern = Pattern.compile("(?m)^(?:\\s*\\u283F\\s*)?\\s*#[1-5]\\..*$");
+	    // Pattern qui accepte un préfixe braille optionnel (¶ U+283F)
+	    Pattern pattern = Pattern.compile("(?m)^(?:\\s*\\u00B6\\s*)?\\s*#[1-5]\\..*$");
 	    Matcher matcher = pattern.matcher(text);
 	
 	    while (matcher.find()) {
-	        String rawLine = matcher.group();                    // la ligne telle qu'elle est dans le doc (avec ⠿ si présent)
+	        String rawLine = matcher.group();                    // la ligne telle qu'elle est dans le doc (avec ¶ si présent)
 	        // position locale du '#'
 	        int localHash = rawLine.indexOf('#');
 	        if (localHash < 0) continue;
@@ -321,10 +321,10 @@ public class navigateurT1 extends JFrame{
 	        int caretPos = matcher.start() + localHash;         // offset du '#' dans le document
 	
 	        // cleaned = sans préfixe braille (pour toutes les comparaisons)
-	        String cleaned = rawLine.replaceFirst("^\\s*(?:\\u283F\\s*)?", "").trim();
+	        String cleaned = rawLine.replaceFirst("^\\s*(?:\\u00B6\\s*)?", "").trim();
 	
 	        titresRawLines.add(rawLine);
-	        titresOrdre.add(cleaned);          // version "utilisable" (sans ⠿)
+	        titresOrdre.add(cleaned);          // version "utilisable" (sans ¶)
 	        titresOffsets.add(caretPos);
 	        titresNiveaux.add(niveauDuTitre(cleaned)); // utilise cleaned
 	        allTitles.append(cleaned).append(System.lineSeparator());
@@ -966,7 +966,7 @@ public class navigateurT1 extends JFrame{
 		private static String keyOf(String s) {
 		    if (s == null) return "";
 		    // enlève préfixe braille facultatif et espaces initiaux
-		    return s.replaceFirst("^\\s*(?:\\u283F\\s*)?", "").replaceFirst("^\\s+", "");
+		    return s.replaceFirst("^\\s*(?:\\u00B6\\s*)?", "").replaceFirst("^\\s+", "");
 		}
 
 		// visible si H1 ou si tous ses ancêtres sont dans expanded
@@ -1252,8 +1252,8 @@ public class navigateurT1 extends JFrame{
 		    String bloc = contenu.substring(start, end);
 
 		    // Vérifier si on peut encore augmenter (aucun titre niveau 5 dans le bloc)
-		    // accepte un préfixe ⠿ optionnel avant le '#'
-		    Pattern p = Pattern.compile("(?m)^(?:\\s*\\u283F\\s*)?\\s*#([1-5])\\..*$");
+		    // accepte un préfixe ¶ optionnel avant le '#'
+		    Pattern p = Pattern.compile("(?m)^(?:\\s*\\u00B6\\s*)?\\s*#([1-5])\\..*$");
 		    Matcher m = p.matcher(bloc);
 		    int maxInBloc = 0;
 		    while (m.find()) {
@@ -1271,8 +1271,8 @@ public class navigateurT1 extends JFrame{
 		    boolean wasExpanded = expanded.contains(idx);
 
 		    // Construire une version du bloc avec tous les niveaux +1
-		    // préserve également le préfixe (espaces + éventuel ⠿)
-		    Pattern pLine = Pattern.compile("(?m)^(\\s*(?:\\u283F\\s*)?)#([1-5])(\\.)(.*)$");
+		    // préserve également le préfixe (espaces + éventuel ¶)
+		    Pattern pLine = Pattern.compile("(?m)^(\\s*(?:\\u00B6\\s*)?)#([1-5])(\\.)(.*)$");
 		    Matcher ml = pLine.matcher(bloc);
 		    StringBuffer sbBloc = new StringBuffer();
 		    while (ml.find()) {
@@ -1332,7 +1332,7 @@ public class navigateurT1 extends JFrame{
 		    // Retrouver l’index du titre modifié (sa ligne a changé de #n. en #(n+1).)
 		    // prendre la première ligne du blocShifted (la nouvelle ligne de titre)
 		    String firstLineShifted = blocShifted.split("\\R", 2)[0];
-		    String cleanedFirst = firstLineShifted.replaceFirst("^\\s*(?:\\u283F\\s*)?", "").trim();
+		    String cleanedFirst = firstLineShifted.replaceFirst("^\\s*(?:\\u00B6\\s*)?", "").trim();
 		    int newIdx = findIndexByExactLine(cleanedFirst);
 		    rebuildVisibleModel();
 
@@ -1417,7 +1417,7 @@ public class navigateurT1 extends JFrame{
 		    boolean wasExpanded = expanded.contains(idx);
 		
 		    // Construire une version du bloc avec tous les niveaux -1 (sans passer sous 1)
-		    Pattern pLine = Pattern.compile("(?m)^(\\s*(?:\\u283F\\s*)?)#([1-5])(\\.)(.*)$");
+		    Pattern pLine = Pattern.compile("(?m)^(\\s*(?:\\u00B6\\s*)?)#([1-5])(\\.)(.*)$");
 		    Matcher ml = pLine.matcher(bloc);
 		    StringBuffer sbBloc = new StringBuffer();
 		    while (ml.find()) {
@@ -1531,11 +1531,11 @@ public class navigateurT1 extends JFrame{
 
 		    // Offsets de la LIGNE de titre
 		    int start = titresOffsets.get(idx);
-		    String rawOldLine = titresRawLines.get(idx); // ligne telle qu'elle est DANS le document (avec ⠿ si présent)
+		    String rawOldLine = titresRawLines.get(idx); // ligne telle qu'elle est DANS le document (avec ¶ si présent)
 		    int lineLen = rawOldLine.length();
 
-		    // extraire le préfixe (espaces + éventuel ⠿ + espaces) pour le préserver
-		    Matcher pre = Pattern.compile("^(\\s*(?:\\u283F\\s*)?)#([1-5])\\.(.*)$", Pattern.DOTALL).matcher(rawOldLine);
+		    // extraire le préfixe (espaces + éventuel ¶ + espaces) pour le préserver
+		    Matcher pre = Pattern.compile("^(\\s*(?:\\u00B6\\s*)?)#([1-5])\\.(.*)$", Pattern.DOTALL).matcher(rawOldLine);
 		    if (!pre.find()) return; // garde-fou
 		    String prefix = pre.group(1);
 		    String tail = pre.group(3);
@@ -1596,10 +1596,10 @@ public class navigateurT1 extends JFrame{
 		
 		    String contenu = editor.getText();
 		    int start = titresOffsets.get(idx);
-		    String rawOldLine = titresRawLines.get(idx); // ligne dans le doc (avec ⠿ si présent)
+		    String rawOldLine = titresRawLines.get(idx); // ligne dans le doc (avec ¶ si présent)
 		    int lineLen = rawOldLine.length();
 		
-		    Matcher mm = Pattern.compile("^(\\s*(?:\\u283F\\s*)?)#([1-5])\\.(.*)$", Pattern.DOTALL).matcher(rawOldLine);
+		    Matcher mm = Pattern.compile("^(\\s*(?:\\u00B6\\s*)?)#([1-5])\\.(.*)$", Pattern.DOTALL).matcher(rawOldLine);
 		    if (!mm.find()) return;
 		    String leading = mm.group(1);
 		    String tail = mm.group(3);

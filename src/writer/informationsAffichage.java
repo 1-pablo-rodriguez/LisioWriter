@@ -10,7 +10,7 @@ public class informationsAffichage {
     public informationsAffichage(EditorFrame parent) {
         this.parent = parent;
         StringBuilder message = new StringBuilder(256);
-        char c = '\u283F';
+        char c = '\u00B6';
 
         try {
             Affiche vue = parent.getAffichage();
@@ -110,8 +110,8 @@ public class informationsAffichage {
                          .replace("\u200E", "")  // LRM
                          .replace("\u200F", ""); // RLM
 
-        // 2) Supprimer le préfixe braille uniquement en début de ligne (ex: "   ⠿ ")
-        String cleaned = norm.replaceAll("(?m)^\\s*\\u283F\\s*", "");
+        // 2) Supprimer le préfixe braille uniquement en début de ligne (ex: "   ¶ ")
+        String cleaned = norm.replaceAll("(?m)^\\s*\\u00B6\\s*", "");
 
         // 3) Caractères
         int charsAll = cleaned.length();

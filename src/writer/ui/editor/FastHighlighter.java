@@ -57,7 +57,7 @@ public final class FastHighlighter {
     private static final AttributeSet FMT_MARK    = style(new Color(150,150,150), false, false, false); // marqueurs gris
 
     // ---------- Regex précompilées (structure) ----------
-    private static final String BRAILLE = "\u283F";
+    private static final String BRAILLE = "\u00B6";
     private static final Pattern PT_TITLE        = Pattern.compile("(?m)^\\s*(?:" + Pattern.quote(BRAILLE) + "\\s*)?#([1-5PSps])\\.");
     private static final Pattern PT_LIST         = Pattern.compile("(?m)^\\s*(?:" + Pattern.quote(BRAILLE) + "\\s*)?-\\.");
     private static final Pattern PT_LISTNUM      = Pattern.compile("(?m)^\\s*(?:" + Pattern.quote(BRAILLE) + "\\s*)?[1-9]\\d*\\.");

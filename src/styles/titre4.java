@@ -7,10 +7,10 @@ import writer.ui.EditorApi;
 import writer.ui.text.Lines;
 
 public class titre4 {
-    private static final char BRAILLE = '\u283F';
+    private static final char BRAILLE = '\u00B6';
 
-    // ^\s*⠿\s* → capture et normalise le préfixe braille
-    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u283F\\s*");
+    // ^\s*¶\s* → capture et normalise le préfixe braille
+    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u00B6\\s*");
     // tokens à convertir en #4.
     private static final Pattern HN_5_9 = Pattern.compile("^#([5-9])\\.\\s*");
     private static final Pattern H1     = Pattern.compile("^#1\\.\\s*");
@@ -38,19 +38,19 @@ public class titre4 {
             String raw      = editor.getText(lineStart, lineEnd - lineStart);
             String lineText = raw.replaceFirst("\\R$", ""); // sans le \r?\n final
 
-            // --- Normaliser le préfixe ⠿ (colonne 0, sans espace derrière)
+            // --- Normaliser le préfixe ¶ (colonne 0, sans espace derrière)
             String after;
             Matcher mLead = LEADING_BRAILLE.matcher(lineText);
             if (mLead.find()) {
                 after = lineText.substring(mLead.end());
             } else {
-                after = lineText; // pas de ⠿ → on l’ajoutera à la reconstruction
+                after = lineText; // pas de ¶ → on l’ajoutera à la reconstruction
             }
 
             // --- Forcer / normaliser #4.
             String newAfter;
             if (after.strip().isEmpty()) {
-                // ligne contenant seulement ⠿ (+ espaces)
+                // ligne contenant seulement ¶ (+ espaces)
                 newAfter = "#4. ";
             } else if (HN_5_9.matcher(after).find()) {
                 newAfter = HN_5_9.matcher(after).replaceFirst("#4. ");
@@ -76,7 +76,7 @@ public class titre4 {
                 newAfter = after; // déjà propre
             }
 
-            // --- Recomposer avec ⠿ en tout début
+            // --- Recomposer avec ¶ en tout début
             String newLine = BRAILLE + newAfter;
 
             // Restaurer la fin de ligne d'origine

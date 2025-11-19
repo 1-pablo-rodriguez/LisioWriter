@@ -23,7 +23,7 @@ public class sautPage {
 	            
            lineText = lineText.replace("\r", "").replace("\n", "");
            
-           // il faut tenir compte du caractère braille ⠿ au début de paragraphe.
+           // il faut tenir compte du caractère braille ¶ au début de paragraphe.
            if(lineText.length()==1) {
         	   Lines.replaceRange(editor, "@saut de page\n", lineStart+1, lineEnd);
            }

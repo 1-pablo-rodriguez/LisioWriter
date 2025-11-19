@@ -7,14 +7,14 @@ import javax.swing.text.*;
 
 @SuppressWarnings("serial")
 public class EnterBrailleInsertAction extends AbstractAction {
-    private static final char   BRAILLE_CH = '\u283F';
+    private static final char   BRAILLE_CH = '\u00B6';
     private static final String BRAILLE    = String.valueOf(BRAILLE_CH);
 
     private final writer.ui.NormalizingTextPane editor;
     private final Action fallback;
-    private final boolean withSpace;
-    private final String head;   // "⠿" ou "⠿ "
-    private final String insert; // "\n⠿" ou "\n⠿ "
+    private finalu boolean withSpace;
+    private final String head;   // "¶" ou "¶ "
+    private final String insert; // "\n¶" ou "\n¶ "
 
     public EnterBrailleInsertAction(writer.ui.NormalizingTextPane editor, Action fallback, boolean withTrailingSpace) {
         this.editor = editor;
@@ -48,7 +48,7 @@ public class EnterBrailleInsertAction extends AbstractAction {
             int caret = editor.getCaretPosition();
             final int len = doc.getLength();
 
-            // 2) Début de doc : une seule insertion (⠿\n[⠿])
+            // 2) Début de doc : une seule insertion (¶\n[¶])
             if (caret == 0) {
                 boolean hadLeadingBraille = (len > 0) && (charAt(doc, 0) == BRAILLE_CH);
                 String toInsert = hadLeadingBraille ? head + "\n" : head + "\n" + head;
@@ -57,7 +57,7 @@ public class EnterBrailleInsertAction extends AbstractAction {
                 return;
             }
 
-            // 3) Caret entre fin de ligne et ⠿ (préserve CRLF)
+            // 3) Caret entre fin de ligne et ¶ (préserve CRLF)
             if (caret > 0 && caret < len) {
                 char prev = charAt(doc, caret - 1);
                 char next = charAt(doc, caret);
@@ -71,7 +71,7 @@ public class EnterBrailleInsertAction extends AbstractAction {
 
                 if (prev == '\r' && caret + 1 < len) {
                     char c0 = charAt(doc, caret);     // \n ?
-                    char c1 = (caret + 1 < len) ? charAt(doc, caret + 1) : 0; // ⠿ ?
+                    char c1 = (caret + 1 < len) ? charAt(doc, caret + 1) : 0; // ¶ ?
                     if (c0 == '\n' && c1 == BRAILLE_CH) {
                         doc.insertString(caret, head + "\r\n", null);
                         editor.setCaretPosition(caret + head.length() + 2);

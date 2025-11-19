@@ -12,12 +12,12 @@ import javax.swing.text.Document;
 /**
  * Action Backspace intelligente :
  * - supprime [tab] (si caret juste après)
- * - supprime "-." (puce) seulement si la ligne commence par ⠿, le caret doit être juste après "-." ou "-. "
- * - supprime "#N." (titres numérotés) seulement si la ligne commence par ⠿, le caret doit être juste après "#N." ou "#N. "
+ * - supprime "-." (puce) seulement si la ligne commence par ¶, le caret doit être juste après "-." ou "-. "
+ * - supprime "#N." (titres numérotés) seulement si la ligne commence par ¶, le caret doit être juste après "#N." ou "#N. "
  * - supprime "#P." / "#S." de même manière
  * - supprime les tokens "@xxx" en début de ligne (si caret juste après le token)
- * - supprime la séquence newline+⠿ ("\n⠿" ou "\r\n⠿") si le caret est juste après → joint les paragraphes
- * - empêche la suppression d'un caractère ⠿ isolé (sans newline juste avant)
+ * - supprime la séquence newline+¶ ("\n¶" ou "\r\n¶") si le caret est juste après → joint les paragraphes
+ * - empêche la suppression d'un caractère ¶ isolé (sans newline juste avant)
  * - sinon fallback (backspace par défaut)
  */
 @SuppressWarnings("serial")
@@ -26,11 +26,11 @@ public class SmartBackspaceAction extends AbstractAction {
     private final writer.ui.NormalizingTextPane editorPane;
     private final javax.swing.Action fallback;
 
-    // Pattern pour détecter une séquence "\r\n⠿[ ]" ou "\n⠿[ ]" juste avant le caret
-    private static final Pattern PREV_BRAILLE_SEQ = Pattern.compile("(?:\\r\\n|\\n)\\s*\\u283F\\s?$");
+    // Pattern pour détecter une séquence "\r\n¶[ ]" ou "\n¶[ ]" juste avant le caret
+    private static final Pattern PREV_BRAILLE_SEQ = Pattern.compile("(?:\\r\\n|\\n)\\s*\\u00B6\\s?$");
 
     // Pattern pour détecter un préfixe braille sur la ligne
-    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u283F\\s*");
+    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u00B6\\s*");
 
     // Patterns réutilisés
     private static final Pattern TITLE_WITH_SPACE = Pattern.compile("^#\\d+\\.\\s");
@@ -60,27 +60,27 @@ public class SmartBackspaceAction extends AbstractAction {
             int pos = editorPane.getCaretPosition();
             Document doc = editorPane.getDocument();
             
-            // 2a) Cas "caret entre \\n et ⠿" : si le caret est juste APRÈS le saut de ligne
-            //          et juste AVANT la marque ⠿, on supprime le groupe entier (\n⠿).
+            // 2a) Cas "caret entre \\n et ¶" : si le caret est juste APRÈS le saut de ligne
+            //          et juste AVANT la marque ¶, on supprime le groupe entier (\n¶).
             if (pos > 0 && pos < doc.getLength()) {
             	char prev = doc.getText(pos - 1, 1).charAt(0);
-            	// --- Cas simple: "\n⠿"
+            	// --- Cas simple: "\n¶"
             	if (prev == '\n') {
             		char next = doc.getText(pos, 1).charAt(0);
-            		if (next == '\u283F') { // ⠿
-            			doc.remove(pos - 1, 2);       // supprime \n + ⠿
+            		if (next == '\u00B6') { // ¶
+            			doc.remove(pos - 1, 2);       // supprime \n + ¶
             			editorPane.setCaretPosition(Math.max(0, pos - 1));
             			return;
             			}
             		}
-            	// --- Cas Windows: "\r\n⠿"
+            	// --- Cas Windows: "\r\n¶"
             	if (prev == '\r' && pos < doc.getLength()) {
-            		// on attend "\r\n⠿" à partir de pos-1
+            		// on attend "\r\n¶" à partir de pos-1
             		int remain = Math.min(3, doc.getLength() - (pos - 1));
             		if (remain >= 3) {
-            			String tri = doc.getText(pos - 1, 3); // "\r\n⠿" ?
-            			if (tri.charAt(0) == '\r' && tri.charAt(1) == '\n' && tri.charAt(2) == '\u283F') {
-            				doc.remove(pos - 1, 3);           // supprime \r + \n + ⠿
+            			String tri = doc.getText(pos - 1, 3); // "\r\n¶" ?
+            			if (tri.charAt(0) == '\r' && tri.charAt(1) == '\n' && tri.charAt(2) == '\u00B6') {
+            				doc.remove(pos - 1, 3);           // supprime \r + \n + ¶
             				editorPane.setCaretPosition(Math.max(0, pos - 1));
             				return;
             				}
@@ -88,8 +88,8 @@ public class SmartBackspaceAction extends AbstractAction {
             		}
             	}
 
-            // 2b) Si le caret est juste après une séquence newline + braille (ex: "\n⠿" ou "\r\n⠿"),
-            //    supprimer ENTIEREMENT la séquence (newline + ⠿ [+ espace opt.]) -> joint les paragraphes.
+            // 2b) Si le caret est juste après une séquence newline + braille (ex: "\n¶" ou "\r\n¶"),
+            //    supprimer ENTIEREMENT la séquence (newline + ¶ [+ espace opt.]) -> joint les paragraphes.
             if (pos > 0) {
                 int lookback = Math.min(256, pos); // fenêtre raisonnable
                 int windowStart = pos - lookback;
@@ -134,7 +134,7 @@ public class SmartBackspaceAction extends AbstractAction {
                             int tokenEndNoSpace = lineStart + leadLen + noSpaceLen;
                             int tokenEndWithSpace = lineStart + leadLen + withSpaceLen;
                             if (pos == tokenEndNoSpace || pos == tokenEndWithSpace) {
-                                // supprimer le token (sans toucher au ⠿)
+                                // supprimer le token (sans toucher au ¶)
                                 doc.remove(lineStart + leadLen, withSpaceLen);
                                 return;
                             }
@@ -202,10 +202,10 @@ public class SmartBackspaceAction extends AbstractAction {
                 // fallback après
             }
 
-            // 5) Avant fallback : si le caractère précédent est ⠿ isolé (sans newline avant) -> refuser
+            // 5) Avant fallback : si le caractère précédent est ¶ isolé (sans newline avant) -> refuser
             if (pos > 0) {
                 char prevChar = doc.getText(pos - 1, 1).charAt(0);
-                if (prevChar == '\u283F') {
+                if (prevChar == '\u00B6') {
                     boolean prevHasNewline = false;
                     if (pos - 2 >= 0) {
                         char chBefore = doc.getText(pos - 2, 1).charAt(0);

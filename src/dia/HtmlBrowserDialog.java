@@ -367,12 +367,12 @@ public class HtmlBrowserDialog extends JDialog {
 	                }
 	
 	                // caractère braille utilisé comme préfixe
-	                final char BRAILLE_MARK = '\u283F';
+	                final char BRAILLE_MARK = '\u00B6';
 
 	                // titre + contenu importé
-	                String formatted = "⠿#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
+	                String formatted = "¶#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
 
-	                // --- Préfixer les paragraphes par ⠿ mais laisser la première ligne (le titre) intacte ---
+	                // --- Préfixer les paragraphes par ¶ mais laisser la première ligne (le titre) intacte ---
 	                String transformed;
 	                try {
 	                    int firstNewline = formatted.indexOf('\n');
@@ -527,13 +527,13 @@ public class HtmlBrowserDialog extends JDialog {
 	                try { editorPane.getHighlighter().removeAllHighlights(); } catch (Exception ignore) {}
 
 	                // Prépare le contenu final (titre + contenu)
-	                final char BRAILLE_MARK = '\u283F';
-	                String formatted = "⠿#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
+	                final char BRAILLE_MARK = '\u00B6';
+	                String formatted = "¶#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
 
 	                String transformed;
 	                try {
 	                    int firstNewline = formatted.indexOf('\n');
-	                    if (firstNewline >= 0 && formatted.startsWith("⠿#1.")) {
+	                    if (firstNewline >= 0 && formatted.startsWith("¶#1.")) {
 	                        String titleLine = formatted.substring(0, firstNewline + 1);
 	                        String rest = formatted.substring(firstNewline + 1);
 	                        rest = writer.ui.editor.BraillePrefixer

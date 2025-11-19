@@ -148,7 +148,7 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de LisioWriter acces
 | **Ctrl+F2**     | Insérer/Supprimer un marque-page | Insère ou supprime un marque-page associé à une note.                  |
 | **F3 / Maj+F3** | Navigation par titres       | Passe rapidement au titre suivant ou au titre précédent.                   |
 | **F4 / Maj+F4** | Navigation par marque-page  | Passe rapidement au marque-page suivant ou au marque-page précédent.       |
-| **F5**          | lecture de la note du marque page | la note du marque page affiche dans une fenêtre accessible<br>à la lecture avec la barre de barille    |
+| **F5**          | Lecture de la note du marque-page | La note du marque page s'affiche dans une fenêtre accessible<br>à la lecture avec la barre de barille.   |
 | **F6**          | Navigateur de titres        | Ouvre le navigateur pour parcourir la structure du document.               |
 | **F7 / Maj+F7** | Erreur suivante / précédente | Sélectionne le mot ou le texte suivant ou précédent<br>contenant une faute ou une erreur. |
 | **Ctrl+F7**     | Vérification du document    | Lance la vérification orthographique et grammaticale de tout le document.  |

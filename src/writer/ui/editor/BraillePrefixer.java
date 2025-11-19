@@ -14,9 +14,9 @@ import java.util.regex.Pattern;
  */
 public final class BraillePrefixer {
 	
-	// Caractère braille et regex "commence déjà par ⠿ (après espaces éventuels)"
-    private static final char BRAILLE = '\u283F';
-    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u283F\\s*");
+	// Caractère braille et regex "commence déjà par ¶ (après espaces éventuels)"
+    private static final char BRAILLE = '\u00B6';
+    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u00B6\\s*");
 
 
     private BraillePrefixer() {}
@@ -25,7 +25,7 @@ public final class BraillePrefixer {
      * Préfixe chaque ligne non vide par {@code mark} si elle n'en est pas déjà préfixée.
      * Conserve exactement les retours à la ligne (utilise split("\n", -1)).
      *
-     * Exemple : prefixParagraphsWithBrailleMark("Ligne\n\nAutre", '\u283F')
+     * Exemple : prefixParagraphsWithBrailleMark("Ligne\n\nAutre", '\u00B6')
      *
      * @param text texte source (peut contenir \n)
      * @param mark caractère braille à insérer
@@ -59,7 +59,7 @@ public final class BraillePrefixer {
      * Si la ligne est vide, rien n'est inséré.
      *
      * Exemple :
-     * "    texte" -> "    ⠿texte"  (si mark = '\u283F')
+     * "    texte" -> "    ¶texte"  (si mark = '\u00B6')
      *
      * @param text texte source
      * @param mark caractère braille
@@ -97,8 +97,8 @@ public final class BraillePrefixer {
     
     /**
      * Méthode utilisée pour importation des fichiers docx, .odt, .txt, .html
-     * Ajoute "⠿ " au début de chaque paragraphe non vide du bloc de texte,
-     * sauf si le paragraphe commence déjà par ⠿.
+     * Ajoute "¶ " au début de chaque paragraphe non vide du bloc de texte,
+     * sauf si le paragraphe commence déjà par ¶.
      * - Conserve les lignes vides telles quelles
      * - Gère CRLF / CR / LF
      */

@@ -56,7 +56,7 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
             // ignore - si erreur on laisse counts à 0
         }
 
-        char c = '\u283F';
+        char c = '\u00B6';
 
         double pct = (totalWords == 0) ? 0.0 : (100.0 * wordsBefore / totalWords);
 
@@ -155,14 +155,14 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
 
     /**
      * Nettoie uniquement le préfixe : supprime espaces initiaux ET le caractère braille
-     * s'il est présent (ex: "   ⠿ #1. Titre" => "#1. Titre").
+     * s'il est présent (ex: "   ¶ #1. Titre" => "#1. Titre").
      *
      * Ne touche pas aux caractères braille qui se trouvent au milieu de la ligne.
      */
     private static String cleanLeadingBrailleAndSpaces(String line) {
         if (line == null) return "";
         // supprime espaces initiaux puis éventuel U+283F et espaces qui suivent
-        return line.replaceFirst("(?m)^\\s*(?:\\u283F\\s*)?", "");
+        return line.replaceFirst("(?m)^\\s*(?:\\u00B6\\s*)?", "");
     }
 
     private String formatHeadingLine(String prefix, HeadingFound h) {

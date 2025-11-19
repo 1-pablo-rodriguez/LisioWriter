@@ -64,7 +64,7 @@ public class EditorFrame extends JFrame implements EditorApi {
     private BookmarkManager bookmarks;
     
     // --- Motif unique : "#<niveau>. <texte>" strictement en début de ligne ---
-  	private static final Pattern HEADING_PATTERN = Pattern.compile("^(?:⠿\\s*)?#([1-6])\\.\\s*(.+?)\\s*$", Pattern.MULTILINE);
+  	private static final Pattern HEADING_PATTERN = Pattern.compile("^(?:¶\\s*)?#([1-6])\\.\\s*(.+?)\\s*$", Pattern.MULTILINE);
 
   	
   	// Détecte une image au format ![Image : description]
@@ -639,7 +639,7 @@ public class EditorFrame extends JFrame implements EditorApi {
 	}
 	
 	/** Avance depuis le début de la ligne jusqu’au début logique (# ou texte),
-	 * en sautant CR/LF résiduels, braille ⠿ et espaces. */
+	 * en sautant CR/LF résiduels, braille ¶ et espaces. */
 	private int logicalStartOfLine(javax.swing.text.Document doc, int lineStart) throws Exception {
 	    final int len = doc.getLength();
 	    final int blockSize = Math.min(256, len - lineStart); // lecture en bloc, suffisant pour un début de ligne
@@ -662,7 +662,7 @@ public class EditorFrame extends JFrame implements EditorApi {
 	    // 2) Parcourt le buffer localement (très rapide)
 	    while (offset < seg.count) {
 	        char c = seg.array[seg.offset + offset];
-	        if (c == '\u283F' || Character.isWhitespace(c)) {
+	        if (c == '\u00B6' || Character.isWhitespace(c)) {
 	            offset++;
 	        } else break;
 	    }

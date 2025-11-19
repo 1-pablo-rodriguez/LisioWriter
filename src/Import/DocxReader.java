@@ -57,7 +57,7 @@ public class DocxReader {
         	}
         }
         
-     // --- ⟹ post-traitement : préfixer les paragraphes avec ⠿ ---
+     // --- ⟹ post-traitement : préfixer les paragraphes avec ¶ ---
         String imported = sb.toString();
         String withBraille = BraillePrefixer.addBrailleAtParagraphStarts(imported) ; 
         

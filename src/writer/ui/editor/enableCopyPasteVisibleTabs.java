@@ -23,7 +23,7 @@ import javax.swing.text.DocumentFilter;
 
 /**
  * Utilitaire : gère le comportement "[tab]" visible, collage transformant les tabulations,
- * et ajoute le caractère braille ⠿ au début de chaque paragraphe collé (si absent).
+ * et ajoute le caractère braille ¶ au début de chaque paragraphe collé (si absent).
  *
  * Appel : enableCopyPasteVisibleTabs.enableVisibleTabs(myTextComponent);
  */
@@ -31,9 +31,9 @@ public final class enableCopyPasteVisibleTabs {
 
     private enableCopyPasteVisibleTabs() {}
 
-    // Caractère braille et regex "commence déjà par ⠿ (après espaces éventuels)"
-    private static final char BRAILLE = '\u283F';
-    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u283F\\s*");
+    // Caractère braille et regex "commence déjà par ¶ (après espaces éventuels)"
+    private static final char BRAILLE = '\u00B6';
+    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u00B6\\s*");
 
     @SuppressWarnings("serial")
     public static void enableVisibleTabs(final writer.ui.NormalizingTextPane editor) {
@@ -63,7 +63,7 @@ public final class enableCopyPasteVisibleTabs {
                     Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
                     if (cb.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
                         String s = (String) cb.getData(DataFlavor.stringFlavor);
-                        s = mapPaste(s); // \t -> [tab], puis préfixe ⠿ au début de chaque paragraphe
+                        s = mapPaste(s); // \t -> [tab], puis préfixe ¶ au début de chaque paragraphe
                         editor.replaceSelection(s);
                         return;
                     }
@@ -171,7 +171,7 @@ public final class enableCopyPasteVisibleTabs {
         }
     }
 
-    // 1) \t -> [tab]  2) préfixe braille ⠿ en tête de chaque paragraphe non vide
+    // 1) \t -> [tab]  2) préfixe braille ¶ en tête de chaque paragraphe non vide
     private static String mapPaste(String s) {
         if (s == null || s.isEmpty()) return s;
         String withTabs = mapTabs(s);
@@ -184,8 +184,8 @@ public final class enableCopyPasteVisibleTabs {
     }
 
     /**
-     * Ajoute "⠿ " au début de chaque paragraphe non vide du bloc de texte,
-     * sauf si le paragraphe commence déjà par ⠿.
+     * Ajoute "¶ " au début de chaque paragraphe non vide du bloc de texte,
+     * sauf si le paragraphe commence déjà par ¶.
      * - Conserve les lignes vides telles quelles
      * - Gère CRLF / CR / LF
      */

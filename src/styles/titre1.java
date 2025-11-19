@@ -7,10 +7,10 @@ import writer.ui.EditorApi;
 import writer.ui.text.Lines;
 
 public class titre1 {
-    private static final char BRAILLE = '\u283F';
+    private static final char BRAILLE = '\u00B6';
 
-    // ^\s*⠿\s* → capture et normalise le préfixe braille
-    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u283F\\s*");
+    // ^\s*¶\s* → capture et normalise le préfixe braille
+    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u00B6\\s*");
     // tokens de tête à convertir en #1.
     private static final Pattern HN_2_9 = Pattern.compile("^#([2-9])\\.\\s*");
     private static final Pattern HP     = Pattern.compile("^#P\\.\\s*");
@@ -37,15 +37,15 @@ public class titre1 {
             String lineText = raw.replaceFirst("\\R$", "");
 
             // --- Normalisation du préfixe braille en colonne 0 (sans espace derrière)
-            String after; // contenu après le ⠿ normalisé
+            String after; // contenu après le ¶ normalisé
             Matcher mLead = LEADING_BRAILLE.matcher(lineText);
             if (mLead.find()) {
-                after = lineText.substring(mLead.end()); // tout ce qui suit le(s) ⠿ + espaces
+                after = lineText.substring(mLead.end()); // tout ce qui suit le(s) ¶ + espaces
             } else {
-                after = lineText; // pas de ⠿ : on l’ajoutera à la reconstruction
+                after = lineText; // pas de ¶ : on l’ajoutera à la reconstruction
             }
 
-            // --- Si la ligne ne contient QUE le ⠿ (ou ⠿ + espaces), on force "#1. "
+            // --- Si la ligne ne contient QUE le ¶ (ou ¶ + espaces), on force "#1. "
             String newAfter;
             if (after.strip().isEmpty()) {
                 newAfter = "#1. ";
@@ -68,7 +68,7 @@ public class titre1 {
                 newAfter = after;
             }
 
-            // --- Recompose la ligne en forçant le ⠿ tout au début
+            // --- Recompose la ligne en forçant le ¶ tout au début
             String newLine = BRAILLE + newAfter;
 
             // Si la ligne d’origine finissait par \r?\n, on le remet

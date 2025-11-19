@@ -12,20 +12,20 @@ import javax.swing.text.Document;
 /**
  * Action Delete intelligente (touche Suppr).
  * Règle clé :
- *  - On supprime toujours un saut de ligne avec le ⠿ qui suit (et l’espace juste après ⠿ s’il existe).
- *  - On NE PEUT PAS supprimer un '\n' (ou "\r\n") s’il n’est pas suivi d’un ⠿.
- * Autres règles (comme avant) : suppression des tokens en tête si la ligne commence par ⠿, etc.
+ *  - On supprime toujours un saut de ligne avec le ¶ qui suit (et l’espace juste après ¶ s’il existe).
+ *  - On NE PEUT PAS supprimer un '\n' (ou "\r\n") s’il n’est pas suivi d’un ¶.
+ * Autres règles (comme avant) : suppression des tokens en tête si la ligne commence par ¶, etc.
  */
 @SuppressWarnings("serial")
 public class SmartDeleteAction extends AbstractAction {
 
-    private static final char BRAILLE_CH = '\u283F';
+    private static final char BRAILLE_CH = '\u00B6';
 
     private final writer.ui.NormalizingTextPane editorPane;
     private final javax.swing.Action fallback;
 
     // Pattern pour détecter un préfixe braille sur la ligne
-    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u283F\\s*");
+    private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u00B6\\s*");
 
     // Patterns réutilisés pour tokens en tête de ligne
     private static final Pattern TITLE_WITH_SPACE = Pattern.compile("^#\\d+\\.\\s");
@@ -56,12 +56,12 @@ public class SmartDeleteAction extends AbstractAction {
     	        Document doc = editorPane.getDocument();
     	        int docLen = doc.getLength();
 
-    	        // 0) ⟵ Garde-fou : caret juste APRÈS ⠿ => on supprime le caractère SUIVANT (pas ⠿)
+    	        // 0) ⟵ Garde-fou : caret juste APRÈS ¶ => on supprime le caractère SUIVANT (pas ¶)
     	        if (pos > 0 && pos <= docLen) {
     	            char prev = doc.getText(pos - 1, 1).charAt(0);
     	            if (prev == BRAILLE_CH) {
     	                if (pos >= docLen) {
-    	                    // Rien après ⠿
+    	                    // Rien après ¶
     	                    Toolkit.getDefaultToolkit().beep();
     	                    return;
     	                }
@@ -72,28 +72,28 @@ public class SmartDeleteAction extends AbstractAction {
     	                } else {
     	                    doc.remove(pos, 1);  // un seul caractère
     	                }
-    	                // Le caret reste juste après ⠿
+    	                // Le caret reste juste après ¶
     	                return;
     	            }
     	        }
 
-    	        // 2) Cas "Suppr" juste avant un saut de ligne : ON NE SUPPRIME QUE SI ⠿ SUIT IMMÉDIATEMENT
-    	        //    - Unix:  "\n⠿"
-    	        //    - Windows: "\r\n⠿"
+    	        // 2) Cas "Suppr" juste avant un saut de ligne : ON NE SUPPRIME QUE SI ¶ SUIT IMMÉDIATEMENT
+    	        //    - Unix:  "\n¶"
+    	        //    - Windows: "\r\n¶"
     	        if (pos < docLen) {
     	            // a) CRLF
     	            if (pos + 2 < docLen && doc.getText(pos, 2).equals("\r\n")) {
     	                char after = doc.getText(pos + 2, 1).charAt(0);
     	                if (after == BRAILLE_CH) {
     	                    int delStart = pos;      // sur '\r'
-    	                    int delEnd   = pos + 3;  // après ⠿
-    	                    // avaler un espace juste après ⠿ si présent
+    	                    int delEnd   = pos + 3;  // après ¶
+    	                    // avaler un espace juste après ¶ si présent
     	                    if (delEnd < docLen && doc.getText(delEnd, 1).charAt(0) == ' ') delEnd++;
     	                    doc.remove(delStart, delEnd - delStart);
     	                    editorPane.setCaretPosition(Math.max(0, delStart));
     	                    return;
     	                } else {
-    	                    // \r\n non suivi d'un ⠿ -> interdit
+    	                    // \r\n non suivi d'un ¶ -> interdit
     	                    Toolkit.getDefaultToolkit().beep();
     	                    return;
     	                }
@@ -102,20 +102,20 @@ public class SmartDeleteAction extends AbstractAction {
     	            if (doc.getText(pos, 1).charAt(0) == '\n') {
     	                if (pos + 1 < docLen && doc.getText(pos + 1, 1).charAt(0) == BRAILLE_CH) {
     	                    int delStart = pos;      // sur '\n'
-    	                    int delEnd   = pos + 2;  // après ⠿
+    	                    int delEnd   = pos + 2;  // après ¶
     	                    if (delEnd < docLen && doc.getText(delEnd, 1).charAt(0) == ' ') delEnd++;
     	                    doc.remove(delStart, delEnd - delStart);
     	                    editorPane.setCaretPosition(Math.max(0, delStart));
     	                    return;
     	                } else {
-    	                    // \n non suivi d'un ⠿ -> interdit
+    	                    // \n non suivi d'un ¶ -> interdit
     	                    Toolkit.getDefaultToolkit().beep();
     	                    return;
     	                }
     	            }
     	        }
 
-    	        // 3) Caret PLACÉ SUR le caractère ⠿
+    	        // 3) Caret PLACÉ SUR le caractère ¶
     	        if (pos < docLen) {
     	            char chAtPos = doc.getText(pos, 1).charAt(0);
     	            if (chAtPos == BRAILLE_CH) {
@@ -134,18 +134,18 @@ public class SmartDeleteAction extends AbstractAction {
     	                            nlStart = j - 1; // CRLF
     	                        }
     	                        int delStart = nlStart;
-    	                        int delEnd   = pos + 1; // après ⠿
+    	                        int delEnd   = pos + 1; // après ¶
     	                        if (delEnd < docLen && doc.getText(delEnd, 1).charAt(0) == ' ') delEnd++;
     	                        doc.remove(delStart, delEnd - delStart);
     	                        editorPane.setCaretPosition(Math.max(0, delStart));
     	                        return;
     	                    } else {
-    	                        // ⠿ isolé (pas de newline juste avant) -> interdit
+    	                        // ¶ isolé (pas de newline juste avant) -> interdit
     	                        Toolkit.getDefaultToolkit().beep();
     	                        return;
     	                    }
     	                } else {
-    	                    // début de doc et ⠿ sans newline avant -> interdit
+    	                    // début de doc et ¶ sans newline avant -> interdit
     	                    Toolkit.getDefaultToolkit().beep();
     	                    return;
     	                }
@@ -161,7 +161,7 @@ public class SmartDeleteAction extends AbstractAction {
     	            }
     	        }
 
-    	        // 5) Codes en tête de ligne (puce / titres / @token) : seulement si la ligne commence par ⠿
+    	        // 5) Codes en tête de ligne (puce / titres / @token) : seulement si la ligne commence par ¶
     	        try {
     	            int lineStart = javax.swing.text.Utilities.getRowStart(editorPane, pos);
     	            if (lineStart >= 0) {
@@ -220,7 +220,7 @@ public class SmartDeleteAction extends AbstractAction {
     	            // fallback après
     	        }
 
-    	        // 6) Dernier contrôle : si le caractère suivant est un ⠿ isolé (pas précédé d'une newline)
+    	        // 6) Dernier contrôle : si le caractère suivant est un ¶ isolé (pas précédé d'une newline)
     	        if (pos < docLen) {
     	            char nextChar = doc.getText(pos, 1).charAt(0);
     	            if (nextChar == BRAILLE_CH) {
