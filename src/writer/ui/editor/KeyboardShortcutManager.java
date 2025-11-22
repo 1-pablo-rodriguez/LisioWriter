@@ -72,7 +72,7 @@ public class KeyboardShortcutManager {
         addKeyBinding(KeyEvent.VK_LEFT, InputEvent.SHIFT_DOWN_MASK, "versGauche", new VersGauche(editorPane));
 
         addKeyBinding(KeyEvent.VK_SPACE, InputEvent.CTRL_DOWN_MASK, "sautPage", new SautPage(frame));
-        addKeyBinding(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK, "citation", new citation(frame));
+//      addKeyBinding(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK, "citation", new citation(frame));
         addKeyBinding(KeyEvent.VK_F6, 0, "navigateurT1", new ouvrirNavigateurT1(frame));
         addKeyBinding(KeyEvent.VK_F1, 0, "Informations", new informations(frame));
         addKeyBinding(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK, "rechercher", new openSearchDialog(editorPane));

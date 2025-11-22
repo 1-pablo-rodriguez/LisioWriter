@@ -12,7 +12,7 @@ public class EnterBrailleInsertAction extends AbstractAction {
 
     private final writer.ui.NormalizingTextPane editor;
     private final Action fallback;
-    private finalu boolean withSpace;
+    private final boolean withSpace;
     private final String head;   // "¶" ou "¶ "
     private final String insert; // "\n¶" ou "\n¶ "
 

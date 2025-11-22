@@ -630,7 +630,7 @@ public final class MenuBarFactory {
             new page.sautPage(ctx).appliquer();
         });
          
-        JMenuItem citationBasdePageItem = createMenuItem("Insérer une note de bas de page", KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK, e -> {
+        JMenuItem citationBasdePageItem = createMenuItem("Insérer une note de bas de page", KeyEvent.VK_K, InputEvent.CTRL_DOWN_MASK, e -> {
             System.out.println("Insertion note de bas de page");
             new writer.noteBasPage(ctx).appliquer();
         });
