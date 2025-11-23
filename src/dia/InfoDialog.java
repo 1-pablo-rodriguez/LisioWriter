@@ -177,7 +177,7 @@ public final class InfoDialog extends JDialog {
 
     public static void show(Window owner, String title, String message) {
     	StringBuilder msg = new StringBuilder();
-    	String c = "! ";
+    	String c = "Ø ";
     	msg.append(c).append(message).append(" ↓");
         msg.append("\n").append(c).append("Échap ou Entrée.");
         InfoDialog d = new InfoDialog(owner, title, msg.toString());
