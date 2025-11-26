@@ -28,7 +28,6 @@ import act.VersGauche;
 import act.VersHaut;
 import act.actCheckDoc;
 import act.actCheckWindow;
-import act.citation;
 import act.informations;
 import act.openSearchDialog;
 import act.ouvrirNavigateurT1;

@@ -56,14 +56,14 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
             // ignore - si erreur on laisse counts à 0
         }
 
-        char c = '\u00B6';
+        String c = "INF. ";
 
         double pct = (totalWords == 0) ? 0.0 : (100.0 * wordsBefore / totalWords);
 
         StringBuilder msg = new StringBuilder(256);
         msg.append(String.format("Lecture réalisée : %.1f%% (%d / %d mots).",
                 Math.rint(pct * 10.0) / 10.0, wordsBefore, totalWords) + " ↓\n");
-        msg.append(c).append("Curseur paragraphe ").append(" : ").append(caretPara);
+        msg.append(c).append("Curseur paragraphe ").append(" : ").append(caretPara).append( " ↓\n");
         msg.append(c).append(formatHeadingLine("Titre au-dessus : ", above)).append(" ↓\n");
         msg.append(c).append(formatHeadingLine("Titre suivant : ", below)).append(" ↓\n");
        

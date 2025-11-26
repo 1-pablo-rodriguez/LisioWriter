@@ -10,7 +10,7 @@ public class informationsAffichage {
     public informationsAffichage(EditorFrame parent) {
         this.parent = parent;
         StringBuilder message = new StringBuilder(256);
-        char c = '\u00B6';
+        char c = ' ';
 
         try {
             Affiche vue = parent.getAffichage();
@@ -44,23 +44,23 @@ public class informationsAffichage {
                 message.append("\n").append(c).append("Caract. (avec espaces) : ").append(all.charsAll).append(" ↓");
                 message.append("\n").append(c).append("Caract. (sans espaces) : ").append(all.charsNoSpaces).append(" ↓");
                 message.append("\n").append(c).append("DOC. & AIDES");
-                message.append("\n").append(c).append(" Documentation : ALT+A ↓");
-                message.append("\n").append(c).append(" Manuel b.book : ALT+C ↓");
-                message.append("\n").append(c).append(" Votre fichier : ALT+B ↓");
+                message.append("\n").append(c).append("Documentation : ALT+A ↓");
+                message.append("\n").append(c).append("Manuel b.book : ALT+C ↓");
+                message.append("\n").append(c).append("Votre fichier : ALT+B");
 
             } else if (vue == Affiche.DOCUMENTATION) {
                 message.append(c).append("Documentation de LisioWriter. ↓");
-                message.append("\n").append(c).append(" Touch. F6 pour naviguer•↓");
+                message.append("\n").append(c).append("Touch. F6 pour naviguer•↓");
                 message.append("\n").append(c).append("Doc. & Aides");
-                message.append("\n").append(c).append(" Documentation : ALT+A ↓");
-                message.append("\n").append(c).append(" Manuel b.book : ALT+C ↓");
-                message.append("\n").append(c).append(" Votre fichier : ALT+B ↓");
+                message.append("\n").append(c).append("Documentation : ALT+A ↓");
+                message.append("\n").append(c).append("Manuel b.book : ALT+C ↓");
+                message.append("\n").append(c).append("Votre fichier : ALT+B");
             } else if (vue == Affiche.MANUEL) {
                 message.append(c).append("Manuel du b.book. ↓");
                 message.append("\n").append(c).append("Doc. & Aides");
                 message.append("\n").append(c).append("Documentation : ALT+A ↓");
                 message.append("\n").append(c).append("Manuel b.book : ALT+C ↓");
-                message.append("\n").append(c).append("Votre fichier : ALT+B ↓");
+                message.append("\n").append(c).append("Votre fichier : ALT+B");
             }
 
         } catch (Exception ignore) {
