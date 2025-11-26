@@ -29,6 +29,7 @@ import dia.BoiteNonVoyant;
 import dia.BoiteRenameFile;
 import dia.BoiteSaveAs;
 import dia.WikipediaSearchDialog;
+import dia.WiktionarySearchDialog;
 import dia.boiteMeta;
 import dia.navigateurT1;
 import dia.ouvrirTxt;
@@ -397,11 +398,22 @@ public final class MenuBarFactory {
              }
         });
         
+        JMenuItem importWiktionaire = createMenuItem("Recherche Wiktionaire", 0, 0,e -> {
+       	 var win = ctx.getWindow();
+            if (win instanceof EditorFrame frame) {
+           		WiktionarySearchDialog.open(frame, url -> {
+           		    // callback si tu veux logguer, adapter le comportement, etc.
+           		    System.out.println("URL Wiktionnaire sélectionnée : " + url);
+           		});
+            }
+       });
+        
         ctx.addItemChangeListener(importWriter);
         ctx.addItemChangeListener(importWord);
         ctx.addItemChangeListener(importTxt);
         ctx.addItemChangeListener(importHtml);
         ctx.addItemChangeListener(importWikipedia);
+        ctx.addItemChangeListener(importWiktionaire);
  
         fileMenu.add(importWriter);
         fileMenu.add(importWord);
@@ -409,6 +421,7 @@ public final class MenuBarFactory {
         fileMenu.add(importHtml);
         fileMenu.addSeparator();
         fileMenu.add(importWikipedia);
+        fileMenu.add(importWiktionaire);
         
         return fileMenu;
     }
