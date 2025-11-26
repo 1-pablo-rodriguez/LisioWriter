@@ -88,7 +88,7 @@ public class KeyboardShortcutManager {
         addKeyBinding(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK, "toggleEdit", new ToggleEditAction(editorPane));
         addKeyBinding(KeyEvent.VK_F2, 0, "announceHeadingsAround", frame.actAnnouncePosition());
         addKeyBinding(KeyEvent.VK_F3, 0, "gotoNextHeading", frame.actGotoNextHeading());
-        addKeyBinding(KeyEvent.VK_F3, InputEvent.SHIFT_DOWN_MASK, "gotoPrevHeading", frame.actGotoPrevHeading());
+        addKeyBinding(KeyEvent.VK_F4, 0, "gotoPrevHeading", frame.actGotoPrevHeading());
 
         // === ZOOM ===
         addKeyBinding(KeyEvent.VK_PLUS, InputEvent.CTRL_DOWN_MASK, "zoomIn",
@@ -113,13 +113,13 @@ public class KeyboardShortcutManager {
         // === Marque-pages ===
         addKeyBinding(KeyEvent.VK_F2, InputEvent.CTRL_DOWN_MASK, "bmToggle", new BookmarkToggleAction(frame));
         
-        addKeyBinding(KeyEvent.VK_F4, 0, "bmNext",
+        addKeyBinding(KeyEvent.VK_F5, 0, "bmNext",
         	    new AbstractAction() { public void actionPerformed(ActionEvent e) { frame.getBookmarks().goNext(); } });
 
-        addKeyBinding(KeyEvent.VK_F4, InputEvent.SHIFT_DOWN_MASK, "bmPrev",
+        addKeyBinding(KeyEvent.VK_F5, InputEvent.CTRL_DOWN_MASK, "bmPrev",
         	    new AbstractAction() { public void actionPerformed(ActionEvent e) { frame.getBookmarks().goPrev(); } });
 
-        addKeyBinding(KeyEvent.VK_F5, 0,"bmEditNote",
+        addKeyBinding(KeyEvent.VK_T, InputEvent.CTRL_DOWN_MASK,"bmEditNote",
     	    new AbstractAction() {
     	        public void actionPerformed(ActionEvent e) {
     	            var bm = frame.getBookmarks();

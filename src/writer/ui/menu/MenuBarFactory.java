@@ -858,7 +858,7 @@ public final class MenuBarFactory {
     	});
 		
 
-		JMenuItem bmNote = createMenuItem("Marque-page note", KeyEvent.VK_F5,0,e -> { 
+		JMenuItem bmNote = createMenuItem("Marque-page note", KeyEvent.VK_T,InputEvent.CTRL_DOWN_MASK,e -> { 
 			var m = ctx.getBookmarks();                      
 		    if (m == null) {                   
 		        java.awt.Toolkit.getDefaultToolkit().beep();
@@ -901,7 +901,7 @@ public final class MenuBarFactory {
 		// -------- Titre précédent (Shift+F3) --------
 		JMenuItem prevHeadingItem = new JMenuItem(ctx.actGotoPrevHeading());
 		prevHeadingItem.setText("Titre précédent");
-		prevHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, InputEvent.SHIFT_DOWN_MASK));
+		prevHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0));
 		prevHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
 
 		 ctx.addItemChangeListener(navigateurItem);
