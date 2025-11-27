@@ -3,7 +3,7 @@ package writer.ui.editor;
 import java.util.regex.Pattern;
 
 /**
- * Utilitaires pour préfixer chaque paragraphe d'un texte avec un marqueur braille.
+ * Utilitaires pour préfixer chaque paragraphe d'un texte avec un pied de mouche.
  *
  * Fournit :
  *  - prefixParagraphsWithBrailleMark(text, mark) : ajoute le marqueur uniquement si la ligne
@@ -14,15 +14,15 @@ import java.util.regex.Pattern;
  */
 public final class BraillePrefixer {
 	
-	// Caractère braille et regex "commence déjà par ¶ (après espaces éventuels)"
-    private static final char BRAILLE = '\u00B6';
+	// Caractère pie de mouche et regex "commence déjà par ¶ (après espaces éventuels)"
+    private static final char PIEDMOUCHE = '\u00B6';
     private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u00B6\\s*");
 
 
     private BraillePrefixer() {}
 
     /**
-     * Préfixe chaque ligne non vide par {@code mark} si elle n'en est pas déjà préfixée.
+     * Préfixe chaque ligne non vide par pied de mouche si elle n'en est pas déjà préfixée.
      * Conserve exactement les retours à la ligne (utilise split("\n", -1)).
      *
      * Exemple : prefixParagraphsWithBrailleMark("Ligne\n\nAutre", '\u00B6')
@@ -31,27 +31,53 @@ public final class BraillePrefixer {
      * @param mark caractère braille à insérer
      * @return texte transformé (identique si aucune modification)
      */
-    public static String prefixParagraphsWithBrailleMark(String text, char mark) {
+    public static String prefixParagraphsWithPiedDeMouche(String text) {
         if (text == null || text.isEmpty()) return text;
+
         String[] lines = text.split("\n", -1);
         StringBuilder out = new StringBuilder(text.length() + lines.length);
-        String markStr = String.valueOf(mark);
+        String markStr = String.valueOf(PIEDMOUCHE); // le caractère ¶
 
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
+
             if (line.isEmpty()) {
+                // Ligne vide : on ne met pas de pied de mouche
                 out.append(line);
+
             } else {
                 if (!line.startsWith(markStr)) {
-                    out.append(markStr).append(line);
+                    // Pas de pied de mouche → on le rajoute avec un espace
+                    out.append(markStr).append(' ').append(line);
+
                 } else {
-                    out.append(line);
+                    // La ligne commence déjà par le pied de mouche
+                    if (line.length() == markStr.length()) {
+                        // La ligne contient seulement "¶" → on ajoute un espace après
+                        out.append(markStr).append(' ');
+                    } else {
+                        // Il y a au moins un caractère après le pied de mouche
+                        char next = line.charAt(markStr.length());
+                        if (next != ' ') {
+                            // Le caractère suivant n'est PAS un espace → on insère un espace
+                            out.append(markStr)
+                               .append(' ')
+                               .append(line.substring(markStr.length()));
+                        } else {
+                            // Il y a déjà un espace après ¶ → on laisse tel quel
+                            out.append(line);
+                        }
+                    }
                 }
             }
-            if (i < lines.length - 1) out.append('\n');
+
+            if (i < lines.length - 1) {
+                out.append('\n');
+            }
         }
         return out.toString();
     }
+
 
     /**
      * Variante qui préserve l'indentation :
@@ -113,7 +139,7 @@ public final class BraillePrefixer {
             if (LEADING_BRAILLE.matcher(line).find()) {
                 out.append(line); // déjà préfixé : ne pas dupliquer
             } else {
-                out.append(BRAILLE).append(line);
+                out.append(PIEDMOUCHE).append(' ').append(line);
             }
             if (i < lines.length - 1) out.append('\n');
         }

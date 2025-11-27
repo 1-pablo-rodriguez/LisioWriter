@@ -100,8 +100,8 @@ public final class ouvrirTxt extends JDialog {
         fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         fileList.setVisibleRowCount(18);
         fileList.setCellRenderer(new FileRenderer());
-        fileList.getAccessibleContext().setAccessibleName("Liste des dossiers et fichiers.");
-        fileList.getAccessibleContext().setAccessibleDescription("Utilisez flèches, Entrée, Espace et Retour arrière pour naviguer.");
+//        fileList.getAccessibleContext().setAccessibleName("Liste des dossiers et fichiers.");
+//        fileList.getAccessibleContext().setAccessibleDescription("Utilisez flèches, Entrée, Espace et Retour arrière pour naviguer.");
         add(new JScrollPane(fileList), BorderLayout.CENTER);       
         
         // Barre d’état
@@ -410,7 +410,7 @@ public final class ouvrirTxt extends JDialog {
         String txt = String.format("%s — %d éléments : %d dossier(s), %d fichier(s) .txt",
                 dir.getAbsolutePath(), folders + files, folders, files);
         status.setText(txt);
-        status.getAccessibleContext().setAccessibleDescription(txt);
+//        status.getAccessibleContext().setAccessibleDescription(txt);
     }
 
     private void updateStatusRoots() {
@@ -419,7 +419,7 @@ public final class ouvrirTxt extends JDialog {
         if (rs != null) for (File r : rs) roots.add(r);
         String txt = String.format("Racines système — %d lecteur(s) détecté(s).", roots.size());
         status.setText(txt);
-        status.getAccessibleContext().setAccessibleDescription(txt);
+//        status.getAccessibleContext().setAccessibleDescription(txt);
     }
 
     private static boolean isParentEntry(File f) {
@@ -477,7 +477,7 @@ public final class ouvrirTxt extends JDialog {
                 var ac = getAccessibleContext();
                 if (ac != null) {
                     ac.setAccessibleName(getText());
-                    ac.setAccessibleDescription(isSelected ? "sélectionné" : "non sélectionné");
+//                    ac.setAccessibleDescription(isSelected ? "sélectionné" : "non sélectionné");
                 }
             }
             return this;

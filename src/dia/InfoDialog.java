@@ -62,8 +62,8 @@ public final class InfoDialog extends JDialog {
         } catch (Exception ignore) { /* pas grave si absent */ }
 
         // Accessibilité
-        textArea.getAccessibleContext().setAccessibleName(title != null ? title : "Information");
-        textArea.getAccessibleContext().setAccessibleDescription("Message d'information: " + (message != null ? message : ""));
+//        textArea.getAccessibleContext().setAccessibleName(title != null ? title : "Information");
+//        textArea.getAccessibleContext().setAccessibleDescription("Message d'information: " + (message != null ? message : ""));
 
         // Texte
         textArea.setText(message != null ? message : "");

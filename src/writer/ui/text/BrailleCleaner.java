@@ -21,7 +21,7 @@ public final class BrailleCleaner {
     private BrailleCleaner() {}
 
     /** Caractère braille (U+283F). */
-    public static final char BRAILLE = '\u00B6';
+    public static final char PIEDMOUCHE = '\u00B6';
 
     /**
      * En-tête de ligne : on retire un ou plusieurs blocs « blancs* ¶ blancs* »
@@ -34,7 +34,7 @@ public final class BrailleCleaner {
 
     /** Détection simple. */
     public static boolean containsBraille(String s) {
-        return s != null && s.indexOf(BRAILLE) >= 0;
+        return s != null && s.indexOf(PIEDMOUCHE) >= 0;
     }
 
     /**
@@ -45,7 +45,7 @@ public final class BrailleCleaner {
         // 1) Débuts de lignes
         String s = LEADING_BRAILLE.matcher(src).replaceAll("");
         // 2) Occurrences restantes
-        return s.replace(String.valueOf(BRAILLE), "");
+        return s.replace(String.valueOf(PIEDMOUCHE), "");
     }
 
     /**
@@ -56,21 +56,21 @@ public final class BrailleCleaner {
         if (src == null || src.isEmpty()) return new Result(src, 0, 0);
 
         // Compte total ¶ avant nettoyage
-        int totalBefore = countChar(src, BRAILLE);
+        int totalBefore = countChar(src, PIEDMOUCHE);
 
         // Compte ¶ situés dans les segments "début de ligne" (supprimés avec espaces adjacents)
         int headCount = 0;
         Matcher m = LEADING_BRAILLE.matcher(src);
         while (m.find()) {
-            headCount += countChar(m.group(), BRAILLE);
+            headCount += countChar(m.group(), PIEDMOUCHE);
         }
 
         // Nettoie
         String leadingCleaned = m.replaceAll("");
-        String fullyCleaned = leadingCleaned.replace(String.valueOf(BRAILLE), "");
+        String fullyCleaned = leadingCleaned.replace(String.valueOf(PIEDMOUCHE), "");
 
         // Les ¶ restants en milieu de ligne retirés = total - headCount - restants (qui doit être 0 après replace)
-        int totalAfter = countChar(fullyCleaned, BRAILLE); // doit être 0, par principe
+        int totalAfter = countChar(fullyCleaned, PIEDMOUCHE); // doit être 0, par principe
         int middleCount = Math.max(0, (totalBefore - headCount - totalAfter));
 
         return new Result(fullyCleaned, headCount, middleCount);
@@ -102,7 +102,7 @@ public final class BrailleCleaner {
             // 1) tête de ligne
             String head = LEADING_BRAILLE.matcher(line).replaceAll("");
             // 2) occurrences restantes dans la ligne
-            out.add(head.replace(String.valueOf(BRAILLE), ""));
+            out.add(head.replace(String.valueOf(PIEDMOUCHE), ""));
         }
         return out;
     }

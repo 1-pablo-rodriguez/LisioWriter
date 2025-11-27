@@ -43,7 +43,7 @@ import writer.commandes;
 import writer.bookmark.BookmarkManager;
 import writer.model.Affiche;
 import writer.spell.SpellCheckLT;
-import writer.ui.editor.EnterBrailleInsertAction;
+import writer.ui.editor.EnterPiedDeMoucheInsertAction;
 import writer.ui.editor.FastHighlighter;
 //import writer.ui.editor.WrapEditorKit;
 import writer.ui.editor.enableCopyPasteVisibleTabs;
@@ -278,7 +278,7 @@ public class EditorFrame extends JFrame implements EditorApi {
      	});
 
      	// récupérer action par défaut comme fallback (optionnel)
-  	    EnterBrailleInsertAction brailleEnter = EnterBrailleInsertAction.createWithDefaultFallback(editorPane, false);
+     	EnterPiedDeMoucheInsertAction brailleEnter = EnterPiedDeMoucheInsertAction.createWithDefaultFallback(editorPane, true);
   	    editorPane.getActionMap().put(javax.swing.text.DefaultEditorKit.insertBreakAction, brailleEnter);
 
   	    // Remappe BACK_SPACE vers notre action intelligente
@@ -297,17 +297,7 @@ public class EditorFrame extends JFrame implements EditorApi {
         } else {
             javax.swing.SwingUtilities.invokeLater(() -> FastHighlighter.install(this.editorPane));
         }
-
-//        editorPane.addStickyUndoableEditListener(e -> {
-//            Object ed = e.getEdit();
-//            if (ed instanceof javax.swing.text.AbstractDocument.DefaultDocumentEvent dev) {
-//                System.out.println("UE type=" + dev.getType());
-//            } else {
-//                System.out.println("UE edit=" + ed.getClass().getName());
-//            }
-//        });
         
-     
     }
     
     // Tous les filtres

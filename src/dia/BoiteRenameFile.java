@@ -68,7 +68,7 @@ public final class BoiteRenameFile extends JDialog {
         nameField.setText(current);
         nameField.selectAll();                                    // prêt à renommer
         nameField.getAccessibleContext().setAccessibleName("Nom de fichier");
-        nameField.getAccessibleContext().setAccessibleDescription(null);
+//        nameField.getAccessibleContext().setAccessibleDescription(null);
 
         // Validation par DocumentFilter (meilleur que KeyListener)
         ((AbstractDocument) nameField.getDocument())
@@ -90,7 +90,7 @@ public final class BoiteRenameFile extends JDialog {
         cancel.setMnemonic(0);  // Alt+A
 
         ok.getAccessibleContext().setAccessibleDescription(null);
-        cancel.getAccessibleContext().setAccessibleDescription(null);
+//        cancel.getAccessibleContext().setAccessibleDescription(null);
 
         ok.addActionListener(e -> doValidateAndClose());
         cancel.addActionListener(e -> {

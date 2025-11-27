@@ -36,7 +36,7 @@ import writer.ui.editor.FastHighlighter;
 @SuppressWarnings("serial")
 public class HtmlBrowserDialog extends JDialog {
 
-    private final JButton insertBtn = new JButton("Insérer (Entrée)");
+    private final JButton insertBtn = new JButton("Charger (Entrée)");
     private final JButton closeBtn = new JButton("Fermer (Échap)");
     private final DefaultListModel<WikiResult> resultModel = new DefaultListModel<>();
     private final JList<WikiResult> resultList = new JList<>(resultModel);
@@ -54,7 +54,7 @@ public class HtmlBrowserDialog extends JDialog {
         resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         resultList.setFont(editorPane.getFont());
         resultList.getAccessibleContext().setAccessibleName("Résultats de recherche Wikipédia");
-        resultList.getAccessibleContext().setAccessibleDescription("Liste des résultats de recherche Wikipédia. Appuyez sur Entrée pour insérer.");
+//        resultList.getAccessibleContext().setAccessibleDescription("Liste des résultats de recherche Wikipédia. Appuyez sur Entrée pour insérer.");
 
         JScrollPane sc = new JScrollPane(resultList);
         sc.setPreferredSize(new Dimension(900, 600));
@@ -62,12 +62,12 @@ public class HtmlBrowserDialog extends JDialog {
 
         // === Boutons bas de fenêtre ===
         JPanel bottomPanel = new JPanel();
-        insertBtn.getAccessibleContext().setAccessibleName("Insérer");
-        insertBtn.getAccessibleContext().setAccessibleDescription("Insère l'article sélectionné dans le document.");
+        insertBtn.getAccessibleContext().setAccessibleName("Charger");
+//        insertBtn.getAccessibleContext().setAccessibleDescription("Insère l'article sélectionné dans le document.");
         bottomPanel.add(insertBtn);
 
         closeBtn.getAccessibleContext().setAccessibleName("Fermer");
-        closeBtn.getAccessibleContext().setAccessibleDescription("Ferme la fenêtre des résultats Wikipédia.");
+//        closeBtn.getAccessibleContext().setAccessibleDescription("Ferme la fenêtre des résultats Wikipédia.");
         bottomPanel.add(closeBtn);
 
         add(bottomPanel, BorderLayout.SOUTH);
@@ -365,26 +365,23 @@ public class HtmlBrowserDialog extends JDialog {
 	                    if (sel.title != null && !sel.title.isBlank())
 	                        articleTitle = sel.title;
 	                }
-	
-	                // caractère braille utilisé comme préfixe
-	                final char BRAILLE_MARK = '\u00B6';
-
+	                
 	                // titre + contenu importé
-	                String formatted = "¶#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
+	                String formatted = "¶ #1. " + articleTitle + "\n" + (converted == null ? "" : converted);
 
 	                // --- Préfixer les paragraphes par ¶ mais laisser la première ligne (le titre) intacte ---
-	                String transformed;
+	                String transformed; 
 	                try {
 	                    int firstNewline = formatted.indexOf('\n');
 	                    if (firstNewline >= 0 && formatted.startsWith("#1.")) {
 	                        String titleLine = formatted.substring(0, firstNewline + 1); // inclut '\n'
 	                        String rest = formatted.substring(firstNewline + 1);
 	                        // appelle ta nouvelle classe utilitaire
-	                        rest = writer.ui.editor.BraillePrefixer.prefixParagraphsWithBrailleMark(rest, BRAILLE_MARK);
+	                        rest = writer.ui.editor.BraillePrefixer.prefixParagraphsWithPiedDeMouche(rest);
 	                        transformed = titleLine + rest;
 	                    } else {
 	                        // pas de titre détecté : préfixer tout
-	                        transformed = writer.ui.editor.BraillePrefixer.prefixParagraphsWithBrailleMark(formatted, BRAILLE_MARK);
+	                        transformed = writer.ui.editor.BraillePrefixer.prefixParagraphsWithPiedDeMouche(formatted);
 	                    }
 	                } catch (Throwable t) {
 	                    t.printStackTrace();
@@ -527,21 +524,20 @@ public class HtmlBrowserDialog extends JDialog {
 	                try { editorPane.getHighlighter().removeAllHighlights(); } catch (Exception ignore) {}
 
 	                // Prépare le contenu final (titre + contenu)
-	                final char BRAILLE_MARK = '\u00B6';
-	                String formatted = "¶#1. " + articleTitle + "\n" + (converted == null ? "" : converted);
+	                String formatted = "¶ #1. " + articleTitle + "\n" + (converted == null ? "" : converted);
 
 	                String transformed;
 	                try {
 	                    int firstNewline = formatted.indexOf('\n');
-	                    if (firstNewline >= 0 && formatted.startsWith("¶#1.")) {
+	                    if (firstNewline >= 0 && formatted.startsWith("¶ #1.")) {
 	                        String titleLine = formatted.substring(0, firstNewline + 1);
 	                        String rest = formatted.substring(firstNewline + 1);
 	                        rest = writer.ui.editor.BraillePrefixer
-	                               .prefixParagraphsWithBrailleMark(rest, BRAILLE_MARK);
+	                               .prefixParagraphsWithPiedDeMouche(rest);
 	                        transformed = titleLine + rest;
 	                    } else {
 	                        transformed = writer.ui.editor.BraillePrefixer
-	                               .prefixParagraphsWithBrailleMark(formatted, BRAILLE_MARK);
+	                               .prefixParagraphsWithPiedDeMouche(formatted);
 	                    }
 	                } catch (Throwable t) {
 	                    t.printStackTrace();

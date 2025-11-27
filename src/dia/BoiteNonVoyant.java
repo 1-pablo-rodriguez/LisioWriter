@@ -35,13 +35,13 @@ public class BoiteNonVoyant extends JDialog {
 
         // Texte lisible par lecteurs d'écran/braille
         question.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-        question.getAccessibleContext().setAccessibleName("Question : Êtes-vous non voyant ?");
-        question.getAccessibleContext().setAccessibleDescription(
-            "Choisissez OUI pour activer les annonces et aides non voyants. Choisissez NON pour les désactiver.");
+//        question.getAccessibleContext().setAccessibleName("Question : Êtes-vous non voyant ?");
+//        question.getAccessibleContext().setAccessibleDescription(
+//            "Choisissez OUI pour activer les annonces et aides non voyants. Choisissez NON pour les désactiver.");
 
         // Bouton OUI
         btnOui.setMnemonic(0); // Alt+O
-        btnOui.getAccessibleContext().setAccessibleName("Bouton OUI, activer mode non voyant");
+//        btnOui.getAccessibleContext().setAccessibleName("Bouton OUI, activer mode non voyant");
         btnOui.addActionListener((ActionEvent e) -> {
             commandes.nonvoyant = true;
             if (parent != null) {
@@ -55,7 +55,7 @@ public class BoiteNonVoyant extends JDialog {
 
         // Bouton NON
         btnNon.setMnemonic(0); // Alt+N
-        btnNon.getAccessibleContext().setAccessibleName("Bouton NON, désactiver mode non voyant");
+//        btnNon.getAccessibleContext().setAccessibleName("Bouton NON, désactiver mode non voyant");
         btnNon.addActionListener((ActionEvent e) -> {
             commandes.nonvoyant = false;
             SwingUtilities.invokeLater(() -> {

@@ -64,9 +64,9 @@ public class openSearchDialog extends JDialog {
         field.setCaretColor(Color.BLACK);
         field.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(120, 120, 120)));
         field.getAccessibleContext().setAccessibleName("Zone de recherche");
-        field.getAccessibleContext().setAccessibleDescription(
-        	    "Appuyez sur Entrée pour lancer la recherche, ou sur espace depuis la liste pour modifier la requête."
-        	);
+//        field.getAccessibleContext().setAccessibleDescription(
+//        	    "Appuyez sur Entrée pour lancer la recherche, ou sur espace depuis la liste pour modifier la requête."
+//        	);
         
         JLabel lab = new JLabel("Rechercher :");
         lab.setFont(font);
@@ -87,8 +87,8 @@ public class openSearchDialog extends JDialog {
         resultList.setFixedCellHeight(36);
         resultList.setBorder(javax.swing.BorderFactory.createTitledBorder("Résultats"));
         resultList.getAccessibleContext().setAccessibleName("Liste des résultats");
-        resultList.getAccessibleContext().setAccessibleDescription(
-            "Liste des occurrences trouvées. Utilisez flèche haut ou bas pour parcourir. Appuyez sur Entrée pour aller à la position dans le document. Appuyez sur flèche droite pour lire le contenu du résultat.");
+//        resultList.getAccessibleContext().setAccessibleDescription(
+//            "Liste des occurrences trouvées. Utilisez flèche haut ou bas pour parcourir. Appuyez sur Entrée pour aller à la position dans le document. Appuyez sur flèche droite pour lire le contenu du résultat.");
 
         // --- Zone de lecture braille (textuelle, focusable)
         brailleArea = new javax.swing.JTextArea(3, 80);
@@ -101,8 +101,8 @@ public class openSearchDialog extends JDialog {
         brailleArea.setForeground(Color.BLACK);
         brailleArea.setBorder(javax.swing.BorderFactory.createTitledBorder("Lecture du texte"));
         brailleArea.getAccessibleContext().setAccessibleName("Zone de lecture du texte du résultat sélectionné");
-        brailleArea.getAccessibleContext().setAccessibleDescription(
-            "Utilisez flèche gauche et droite pour lire le texte. Flèche haut et bas pour changer de résultat.");
+//        brailleArea.getAccessibleContext().setAccessibleDescription(
+//            "Utilisez flèche gauche et droite pour lire le texte. Flèche haut et bas pour changer de résultat.");
 
         // --- Navigation clavier entre liste et zone braille
         InputMap rim = resultList.getInputMap(JComponent.WHEN_FOCUSED);

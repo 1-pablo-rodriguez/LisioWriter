@@ -95,9 +95,9 @@ public class boiteMeta {
         langueField.setEditable(true);
         langueField.setFont(font);
         langueField.getAccessibleContext().setAccessibleName("Langue : liste déroulante, éditable");
-        langueField.getAccessibleContext().setAccessibleDescription(
-            "Choisissez ou saisissez la langue du document, par exemple français ou anglais."
-        );
+//        langueField.getAccessibleContext().setAccessibleDescription(
+//            "Choisissez ou saisissez la langue du document, par exemple français ou anglais."
+//        );
 
         // valeur par défaut avant override par les métas (si présentes)
         langueField.setSelectedItem("français");
@@ -201,7 +201,7 @@ public class boiteMeta {
         label.setLabelFor(field);
 
         field.getAccessibleContext().setAccessibleName(labelText + " Champ d’édition de texte");
-        field.getAccessibleContext().setAccessibleDescription("Saisissez " + labelText.replace(" :", "").toLowerCase());
+//        field.getAccessibleContext().setAccessibleDescription("Saisissez " + labelText.replace(" :", "").toLowerCase());
 
         gbc.gridx = 0; gbc.gridy = y; gbc.weightx = 0.0;
         panel.add(label, gbc);
@@ -217,9 +217,9 @@ public class boiteMeta {
 		
 		// Accessibilité
 		area.getAccessibleContext().setAccessibleName(labelText + " Zone de texte multiligne");
-		area.getAccessibleContext().setAccessibleDescription(
-		"Saisissez " + labelText.replace(" :", "").toLowerCase()
-		+ ". Tab pour changer de champ. Ctrl+Entrée pour valider.");
+//		area.getAccessibleContext().setAccessibleDescription(
+//		"Saisissez " + labelText.replace(" :", "").toLowerCase()
+//		+ ". Tab pour changer de champ. Ctrl+Entrée pour valider.");
 		
 		// ≥ N lignes visibles
 		int visibleRows = Math.max(rows, 5);     // ← mets 5 (ou 6) pour bien voir le texte
@@ -264,7 +264,7 @@ public class boiteMeta {
         label.setLabelFor(comp);
 
         comp.getAccessibleContext().setAccessibleName(labelText + " Champ d’édition de texte");
-        comp.getAccessibleContext().setAccessibleDescription("Saisissez " + labelText.replace(" :", "").toLowerCase());
+//        comp.getAccessibleContext().setAccessibleDescription("Saisissez " + labelText.replace(" :", "").toLowerCase());
 
         gbc.gridx = 0; gbc.gridy = y; gbc.weightx = 0.0;
         panel.add(label, gbc);

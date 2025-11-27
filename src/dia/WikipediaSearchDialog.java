@@ -44,7 +44,7 @@ public class WikipediaSearchDialog {
         ));
         field.setPreferredSize(new Dimension(650, 60)); // agrandit la hauteur
         field.getAccessibleContext().setAccessibleName("Zone de saisie du mot-clé Wikipédia");
-        field.getAccessibleContext().setAccessibleDescription("Tapez le mot à rechercher puis appuyez sur Entrée pour lancer la recherche.");
+//        field.getAccessibleContext().setAccessibleDescription("Tapez le mot à rechercher puis appuyez sur Entrée pour lancer la recherche.");
 
         // --- Boutons bas de fenêtre ---
         JButton searchBtn = new JButton("🔍 Rechercher (Entrée)");

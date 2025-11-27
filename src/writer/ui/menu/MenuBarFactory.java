@@ -1081,8 +1081,6 @@ public final class MenuBarFactory {
             java.awt.Toolkit.getDefaultToolkit().beep();
             UpdateChecker.checkNow(ctx);
         });
-        majItem.getAccessibleContext().setAccessibleDescription("Vérifier s’il existe une nouvelle version.");
-        
 
         JMenu m = new JMenu("Affichage");
         m.setFont(new Font("Segoe UI", Font.PLAIN, 18));

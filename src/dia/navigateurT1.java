@@ -671,8 +671,8 @@ public class navigateurT1 extends JFrame{
 	    txt.setFont(bigFont);
 	    txt.setOpaque(false);
 	    txt.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8));
-	    txt.getAccessibleContext().setAccessibleName("Message de confirmation");
-	    txt.getAccessibleContext().setAccessibleDescription(message);
+//	    txt.getAccessibleContext().setAccessibleName("Message de confirmation");
+//	    txt.getAccessibleContext().setAccessibleDescription(message);
 	
 	    JScrollPane center = new JScrollPane(txt,
 	            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -708,9 +708,9 @@ public class navigateurT1 extends JFrame{
 	
 	    // Accessibilité
 	    yesBtn.getAccessibleContext().setAccessibleName("Bouton Oui");
-	    yesBtn.getAccessibleContext().setAccessibleDescription("Confirme la modification de niveau");
+//	    yesBtn.getAccessibleContext().setAccessibleDescription("Confirme la modification de niveau");
 	    noBtn.getAccessibleContext().setAccessibleName("Bouton Non");
-	    noBtn.getAccessibleContext().setAccessibleDescription("Annule la modification de niveau");
+//	    noBtn.getAccessibleContext().setAccessibleDescription("Annule la modification de niveau");
 	
 	    // Mnemonics (Alt+O / Alt+N)
 	    yesBtn.setMnemonic(KeyEvent.VK_O);

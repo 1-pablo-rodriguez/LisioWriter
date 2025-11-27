@@ -12,7 +12,7 @@ import javax.swing.text.Position.Bias;
  */
 public final class NoGapAcrossBrailleNavigationFilter extends NavigationFilter {
 
-    private static final char BRAILLE_CH = '\u00B6';
+    private static final char PIEDMOUCHE_CH = '\u00B6';
 
     private final NavigationFilter delegate;
     private final writer.ui.NormalizingTextPane editor;
@@ -50,7 +50,7 @@ public final class NoGapAcrossBrailleNavigationFilter extends NavigationFilter {
                 char prev = doc.getText(dot - 1, 1).charAt(0);
                 char next = doc.getText(dot, 1).charAt(0);
 
-                if (prev == '\n' && next == BRAILLE_CH) {
+                if (prev == '\n' && next == PIEDMOUCHE_CH) {
                     // On choisit où atterrir selon la direction:
                     // - si on vient de la droite (caret actuel >= dot), on saute AVANT le \n¶
                     // - sinon on vient de la gauche, on saute APRES le ¶

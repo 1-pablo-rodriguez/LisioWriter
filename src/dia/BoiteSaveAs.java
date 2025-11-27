@@ -88,7 +88,7 @@ public class BoiteSaveAs extends JFrame {
 	    nameField.setFont(LV_FONT_LIST);
 	    nameLabel.setLabelFor(nameField);
 	    nameField.getAccessibleContext().setAccessibleName("Nom du fichier");
-	    nameField.getAccessibleContext().setAccessibleDescription("Saisir un nom : ");
+//	    nameField.getAccessibleContext().setAccessibleDescription("Saisir un nom : ");
 
 	    namePanel.add(nameLabel, BorderLayout.WEST);
 	    namePanel.add(nameField, BorderLayout.CENTER);
@@ -253,8 +253,7 @@ public class BoiteSaveAs extends JFrame {
 	    // Accessibilité
 	    nameLabel.setLabelFor(nameField);
 	    nameField.getAccessibleContext().setAccessibleName("Nom du fichier");
-	    nameField.getAccessibleContext().setAccessibleDescription(
-	            "Saisir un nom : ");
+//	    nameField.getAccessibleContext().setAccessibleDescription("Saisir un nom : ");
 
 	    // Entrée dans le champ => clic sur Enregistrer
 	    nameField.getInputMap(JComponent.WHEN_FOCUSED)
@@ -343,7 +342,7 @@ public class BoiteSaveAs extends JFrame {
 	    String txt = String.format("%s — %d éléments : %d dossier(s), %d fichier(s) .bwr",
 	            dir.getAbsolutePath(), folders + files, folders, files);
 	    status.setText(txt);
-	    status.getAccessibleContext().setAccessibleDescription(txt);
+//	    status.getAccessibleContext().setAccessibleDescription(txt);
 	}
 
 	private void updateStatusRoots() {
@@ -360,7 +359,7 @@ public class BoiteSaveAs extends JFrame {
 	        ? String.format("Racines système — %d lecteur(s) : %s", count, details)
 	        : "Racines système — aucun lecteur détecté.";
 	    status.setText(txt);
-	    status.getAccessibleContext().setAccessibleDescription(txt);
+//	    status.getAccessibleContext().setAccessibleDescription(txt);
 	}
 
 

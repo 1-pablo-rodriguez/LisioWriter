@@ -27,7 +27,7 @@ public class commandes {
 	public static String dicFr = commandes.getPathApp + "\\dic\\fr_FR.dic";
 	public static String affFr = commandes.getPathApp + "\\dic\\fr_FR.aff";
 	
-    public static String nameFile = "new document";
+    public static String nameFile = "Nouveau document";
     public static int hash = 0;
     public static String texteDocument = "";
     

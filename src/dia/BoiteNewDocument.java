@@ -39,8 +39,8 @@ public class BoiteNewDocument  {
         JPanel panel = new JPanel();
         // Crée un champ de texte (JTextField)
         JTextField textField = new JTextField(20);
-        textField.getAccessibleContext().setAccessibleName("Zone de texte");
-        textField.getAccessibleContext().setAccessibleDescription("Tapez un nom pour le nouveau fichier.");
+//        textField.getAccessibleContext().setAccessibleName("Zone de texte");
+//        textField.getAccessibleContext().setAccessibleDescription("Tapez un nom pour le nouveau fichier.");
         
         panel.add(new JLabel("Entrez un nom de fichier :"));
         panel.add(textField);

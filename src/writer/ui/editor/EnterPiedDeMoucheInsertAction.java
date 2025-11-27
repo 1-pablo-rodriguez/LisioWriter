@@ -6,17 +6,18 @@ import javax.swing.Action;
 import javax.swing.text.*;
 
 @SuppressWarnings("serial")
-public class EnterBrailleInsertAction extends AbstractAction {
+public class EnterPiedDeMoucheInsertAction extends AbstractAction {
     private static final char   BRAILLE_CH = '\u00B6';
     private static final String BRAILLE    = String.valueOf(BRAILLE_CH);
 
     private final writer.ui.NormalizingTextPane editor;
     private final Action fallback;
-    private final boolean withSpace;
+    @SuppressWarnings("unused")
+	private final boolean withSpace;
     private final String head;   // "¶" ou "¶ "
     private final String insert; // "\n¶" ou "\n¶ "
 
-    public EnterBrailleInsertAction(writer.ui.NormalizingTextPane editor, Action fallback, boolean withTrailingSpace) {
+    public EnterPiedDeMoucheInsertAction(writer.ui.NormalizingTextPane editor, Action fallback, boolean withTrailingSpace) {
         this.editor = editor;
         this.fallback = fallback;
         this.withSpace = withTrailingSpace;
@@ -25,7 +26,7 @@ public class EnterBrailleInsertAction extends AbstractAction {
         putValue(NAME, "BrailleInsert");
     }
 
-    public EnterBrailleInsertAction(writer.ui.NormalizingTextPane editor) {
+    public EnterPiedDeMoucheInsertAction(writer.ui.NormalizingTextPane editor) {
         this(editor, null, false);
     }
 
@@ -95,8 +96,8 @@ public class EnterBrailleInsertAction extends AbstractAction {
         return s.array[s.offset];
     }
 
-    public static EnterBrailleInsertAction createWithDefaultFallback(writer.ui.NormalizingTextPane editor, boolean withTrailingSpace) {
+    public static EnterPiedDeMoucheInsertAction createWithDefaultFallback(writer.ui.NormalizingTextPane editor, boolean withTrailingSpace) {
         Action def = editor.getActionMap().get(DefaultEditorKit.insertBreakAction);
-        return new EnterBrailleInsertAction(editor, def, withTrailingSpace);
+        return new EnterPiedDeMoucheInsertAction(editor, def, withTrailingSpace);
     }
 }

@@ -105,7 +105,6 @@ public class KeyboardShortcutManager {
     	addKeyBinding(KeyEvent.VK_EQUALS, InputEvent.CTRL_DOWN_MASK, "zoomReset",
         	    new AbstractAction() { public void actionPerformed(ActionEvent e) { frame.zoomReset(); } });
 
-
         // === Vérification orthographique ===
         addKeyBinding(KeyEvent.VK_F7, InputEvent.CTRL_DOWN_MASK, "actCheckDoc", new actCheckDoc(frame));
         addKeyBinding(KeyEvent.VK_F7, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, "actCheckWindow", new actCheckWindow(frame));
