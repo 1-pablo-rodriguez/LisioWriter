@@ -12,7 +12,7 @@ public class bienvenueAffichage {
         StringBuilder message = new StringBuilder(128);
 
         writer.ui.NormalizingTextPane editorPane = frame.getEditor();
-        String c = "INF. : ";
+        String c = "INFO. : ";
         try {
         	 	String fileName = (commandes.nameFile != null && !commandes.nameFile.isBlank())
                      ? commandes.nameFile + ".bwr" : "Sans nom.bwr";

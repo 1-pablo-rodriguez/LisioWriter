@@ -56,7 +56,7 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
             // ignore - si erreur on laisse counts à 0
         }
 
-        String c = "INF. ";
+        String c = "INFO. ";
 
         double pct = (totalWords == 0) ? 0.0 : (100.0 * wordsBefore / totalWords);
 

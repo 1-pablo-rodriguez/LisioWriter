@@ -1004,21 +1004,33 @@ public final class MenuBarFactory {
         
         JMenuItem afficheDocItem = createMenuItem("Doc. LisoWriter", KeyEvent.VK_A, InputEvent.ALT_DOWN_MASK, e -> {
 	        ctx.sauvegardeTemporaire();             
-	        if (ctx instanceof EditorFrame f) f.setAffichage(Affiche.DOCUMENTATION);
-	        ctx.afficheDocumentation();
+	        if (ctx instanceof EditorFrame f) {
+	        	if(f.getAffichage() == Affiche.TEXTE){
+		        	f.setAffichage(Affiche.DOCUMENTATION);
+		        	ctx.sauvegardeTemporaire();
+		        	ctx.afficheDocumentation();
+	        	}
+	        }
         });
-        afficheDocItem.getAccessibleContext().setAccessibleName("Documentation LisioWriter");
-        
+          
         JMenuItem afficheTextItem = createMenuItem("Votre texte", KeyEvent.VK_B, InputEvent.ALT_DOWN_MASK, e -> {
-        	if (ctx instanceof EditorFrame f) f.setAffichage(Affiche.TEXTE);
-            ctx.AfficheTexte();
+        	if (ctx instanceof EditorFrame f) {
+        		if(f.getAffichage()!=Affiche.TEXTE){
+            		f.setAffichage(Affiche.TEXTE);
+            		ctx.AfficheTexte();
+        		}
+        	}
         });
-        afficheTextItem.getAccessibleContext().setAccessibleName("Basculer vers votre texte");
-       
+        
         JMenuItem afficheManuelItem = createMenuItem("Manuel b.book", KeyEvent.VK_C, InputEvent.ALT_DOWN_MASK, e -> {
             ctx.sauvegardeTemporaire();
-            if (ctx instanceof EditorFrame f) f.setAffichage(Affiche.MANUEL);
-            ctx.AfficheManuel();
+            if (ctx instanceof EditorFrame f) {
+            	if(f.getAffichage() == Affiche.TEXTE){
+                	f.setAffichage(Affiche.MANUEL);
+                	ctx.sauvegardeTemporaire();
+                	ctx.AfficheManuel();
+            	}
+            }  
         });
         afficheManuelItem.getAccessibleContext().setAccessibleName("Manuel b.book");
         

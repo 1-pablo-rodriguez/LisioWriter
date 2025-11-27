@@ -34,7 +34,8 @@ public final class InfoDialog extends JDialog {
     private final JTextArea textArea = new JTextArea();
     private final JScrollPane scroll = new JScrollPane(textArea,
             ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    // ou HORIZONTAL_SCROLLBAR_ALWAYS si tu veux la voir tout le temps
 
     // État zoom/contraste partagé entre ouvertures
     private static float zoom = 1.0f;            // 1.0 = taille de base
@@ -51,8 +52,8 @@ public final class InfoDialog extends JDialog {
         // --- Zone lisible par SR et barre braille ---
         textArea.setEditable(false);
         textArea.setFocusable(true);
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
+        textArea.setLineWrap(false);
+        textArea.setWrapStyleWord(false);
         textArea.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
         // (Optionnel) si tu as un styler de caret haut contraste :
@@ -61,9 +62,6 @@ public final class InfoDialog extends JDialog {
             styler.getMethod("applyHighVisibility", JTextArea.class).invoke(null, textArea);
         } catch (Exception ignore) { /* pas grave si absent */ }
 
-        // Accessibilité
-//        textArea.getAccessibleContext().setAccessibleName(title != null ? title : "Information");
-//        textArea.getAccessibleContext().setAccessibleDescription("Message d'information: " + (message != null ? message : ""));
 
         // Texte
         textArea.setText(message != null ? message : "");
@@ -165,8 +163,11 @@ public final class InfoDialog extends JDialog {
      
      pack(); // calcule les tailles selon la police appliquée
 
-     // Taille confortable par défaut (on peut ensuite réduire/agrandir avec Ctrl +/-)
-     setSize(new Dimension(Math.max(930, getWidth()), Math.max(630, getHeight())));
+  // largeur fixe (par ex. adaptée à la plage braille / confort écran)
+     int width  = 930;                    // choisis ta valeur "idéale"
+     int height = Math.max(630, getHeight());  // au moins 630 de haut
+
+     setSize(new Dimension(width, height));
      setLocationRelativeTo(owner);
 
      // Focus sur la zone lisible pour la braille
@@ -177,7 +178,7 @@ public final class InfoDialog extends JDialog {
 
     public static void show(Window owner, String title, String message) {
     	StringBuilder msg = new StringBuilder();
-    	String c = "INF. ";
+    	String c = "INFO. ";
     	msg.append(c).append(message).append(" ↓");
         msg.append("\n").append(c).append("Échap ou Entrée.");
         InfoDialog d = new InfoDialog(owner, title, msg.toString());

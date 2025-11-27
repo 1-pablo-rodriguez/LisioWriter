@@ -1,4 +1,5 @@
 package writer;
+import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -6,9 +7,11 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileSystemView;
 
+import writer.ui.EditorFrame;
+import writer.ui.NormalizingTextPane;
 import xml.node;
 import xml.transformeXLMtoNode;
 
@@ -200,7 +203,7 @@ public class commandes {
     
     
     // Sauvegarde temporaire du node blindWriter
-    public static void sauvFile(JTextPane editor) {
+    public static void sauvFile(NormalizingTextPane editor) {
     	commandes.texteDocument = editor.getText();
     	 sauvFile = new node();
     	 sauvFile.setNameNode("blindWriter");
@@ -224,6 +227,11 @@ public class commandes {
     	 contentText.setNameNode("contentText");
     	 contentText.addContenu(commandes.texteDocument);
     	 sauvFile.addEnfant(contentText);
+     	// Mise en jour des bookmarks
+     	Window win = SwingUtilities.getWindowAncestor(editor);
+     	if (win instanceof EditorFrame frame) {
+     		sauvFile.addEnfant(frame.getBookmarks().saveToXml());
+     	}
     }
     
     // Chargement des styles par défaut

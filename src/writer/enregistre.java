@@ -40,9 +40,11 @@ public class enregistre {
     	   
            // Écrit du contenu dans le fichier
            writer.write(text);
-           
-           commandes.hash = text.hashCode();
            commandes.texteDocument=text;
+           
+           // Hash du node
+           commandes.hash = commandes.nodeblindWriter.hashCode();
+           
        } catch (IOException e1) {
            e1.printStackTrace();
        }
@@ -70,8 +72,10 @@ public class enregistre {
               // Écrit du contenu dans le fichier
               writer.write(text);
               
-              commandes.hash = text.hashCode();
               commandes.texteDocument=text;
+              
+              // Hash du node
+              commandes.hash = commandes.nodeblindWriter.hashCode();
               
           } catch (IOException e1) {
               e1.printStackTrace();

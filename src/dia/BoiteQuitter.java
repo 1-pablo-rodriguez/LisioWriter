@@ -29,6 +29,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 
+import writer.commandes;
 import writer.enregistre;
 import writer.ui.EditorFrame;
 
@@ -108,8 +109,6 @@ public class BoiteQuitter {
         // TAB/SHIFT+TAB : transférer le focus (ne pas insérer de tab dans le texte)
         bindTabToFocusTraversal(label);
 
-
-
         JPanel center = new JPanel(new BorderLayout());
         center.setBorder(BorderFactory.createEmptyBorder(20, 24, 8, 24));
         center.setBackground(bg);
@@ -121,8 +120,10 @@ public class BoiteQuitter {
         JPanel south = new JPanel();
         south.setBorder(BorderFactory.createEmptyBorder(0, 24, 20, 24));
         south.setBackground(bg);
+        
+        if(commandes.hash!=commandes.nodeblindWriter.hashCode()) {
 
-        if (modified) {
+//        if (modified) {
             JButton saveBtn = new JButton("Enregistrer & Quitter");
             JButton discardBtn = new JButton("Quitter sans enregistrer");
             JButton cancelBtn = new JButton("Annuler");

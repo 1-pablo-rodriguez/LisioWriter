@@ -76,11 +76,11 @@ public class readFileBlindWriter {
             commandes.texteDocument = commandes.nodeblindWriter
                     .retourneFirstEnfant("contentText")
                     .getContenuAvecTousLesContenusDesEnfants();
-
+            
+            //place les pieds de mouche ou insère après le pied de mouche un espace au début de chaque paragraphe
             commandes.texteDocument = BraillePrefixer.prefixParagraphsWithPiedDeMouche(commandes.texteDocument);
             
-            
-            commandes.hash = commandes.texteDocument == null ? 0 : commandes.texteDocument.hashCode();
+            commandes.hash = commandes.nodeblindWriter == null ? 0 :  commandes.nodeblindWriter.hashCode();
 
             // --- Chargement asynchrone dans l'éditeur (exécuté sur l'EDT) ---
             final String newText = commandes.texteDocument == null ? "" : commandes.texteDocument;

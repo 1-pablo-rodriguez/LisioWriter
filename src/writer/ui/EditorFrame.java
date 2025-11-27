@@ -31,6 +31,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
+import javax.swing.text.BadLocationException;
 //import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 //import javax.swing.text.StyledDocument;
@@ -679,6 +680,8 @@ public class EditorFrame extends JFrame implements EditorApi {
 			this.editorPane.setText(commandes.nodeDocumentation.retourneFirstEnfant("contentText").getContenuAvecTousLesContenusDesEnfants());
         	this.editorPane.setCaretPosition(0);
         	commandes.nameFile = commandes.nodeDocumentation.getAttributs().get("filename");
+        	// colorisation
+            FastHighlighter.rehighlightAll(this.editorPane); // une passe globale, optionnelle
         	setModified(false);
     	}	
 	}
@@ -700,6 +703,16 @@ public class EditorFrame extends JFrame implements EditorApi {
         	}else {
         		this.editorPane.setText("");
         	}
+        	if (commandes.nodeblindWriter.retourneFirstEnfant("bookmarks") != null) {
+                commandes.bookmarks = commandes.nodeblindWriter.retourneFirstEnfant("bookmarks");
+                try {
+					getBookmarks().loadFromXml(commandes.nodeblindWriter.retourneFirstEnfant("bookmarks"));
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+				}
+        	}
+        	// colorisation
+            FastHighlighter.rehighlightAll(this.editorPane); // une passe globale, optionnelle
          	commandes.nameFile = commandes.nodeblindWriter.getAttributs().get("filename");
          	this.editorPane.setCaretPosition(positionCurseurSauv);
         	this.editorPane.getAccessibleContext().setAccessibleName("Affichage de votre texte.");
@@ -713,6 +726,8 @@ public class EditorFrame extends JFrame implements EditorApi {
 		if(affichage == Affiche.MANUEL) {
 			this.editorPane.setText(commandes.manuel.retourneFirstEnfant("contentText").getContenuAvecTousLesContenusDesEnfants());
         	commandes.nameFile = commandes.manuel.getAttributs().get("filename");
+        	// colorisation
+            FastHighlighter.rehighlightAll(this.editorPane); // une passe globale, optionnelle
         	this.editorPane.setCaretPosition(0);
         	this.editorPane.getAccessibleContext().setAccessibleName("Affichage du manuel b.bbok.");
         	setModified(false);

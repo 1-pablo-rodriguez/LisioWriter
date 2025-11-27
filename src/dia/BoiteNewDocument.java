@@ -1,213 +1,224 @@
 package dia;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Font;
 import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+
 import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import act.select_CANCEL;
 import act.select_OK;
-import writer.ChargeNouveauFichier;
 import writer.commandes;
 import writer.ui.EditorFrame;
 
-public class BoiteNewDocument  {
-	
-	private static JDialog dialog = new JDialog((Frame) null, "Créer un nouveau document", true);
-	EditorFrame parent ;
-	 
+public class BoiteNewDocument {
+
+    private final JDialog dialog;
+    private final EditorFrame parent;
+    private final JTextField textField;
+    private final JButton okButton;
+    private final JButton cancelButton;
+
+    // Caractères autorisés pour le nom de fichier
+    private static final Pattern FILENAME_PATTERN =
+            Pattern.compile("^[a-zA-Z0-9 _-]+$");
+
+    @SuppressWarnings("unused")
 	public BoiteNewDocument(EditorFrame parent) {
-		 
-		this.parent = parent;
-		
-		dialog = new JDialog((Frame) null, "Créer un nouveau document", true);
-        dialog.setLayout(new BorderLayout());
+        this.parent = parent;
+
+        // --- Création de la boîte de dialogue ---
+        Frame owner = (parent != null) ? parent : null;
+        dialog = new JDialog(owner, "Créer un nouveau document", true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        
-        // Crée un panneau pour ajouter le champ de texte
-        JPanel panel = new JPanel();
-        // Crée un champ de texte (JTextField)
-        JTextField textField = new JTextField(20);
-//        textField.getAccessibleContext().setAccessibleName("Zone de texte");
-//        textField.getAccessibleContext().setAccessibleDescription("Tapez un nom pour le nouveau fichier.");
-        
-        panel.add(new JLabel("Entrez un nom de fichier :"));
-        panel.add(textField);
-        // Ajoute le panneau à la boîte de dialogue
-        dialog.add(panel, BorderLayout.CENTER);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setResizable(false);
 
-        textField.setText("");
-        
-        // Crée une regex pour vérifier les caractères autorisés (lettres, chiffres, espaces)
-        String regex = "^[a-zA-Z0-9 _-]+$";
-        Pattern pattern = Pattern.compile(regex);
+        // --- Police agrandie pour le confort visuel ---
+        Font baseFont = new Font("Segoe UI", Font.PLAIN, 20);
+        Font titleFont = baseFont.deriveFont(Font.BOLD, 22f);
 
-        // Ajoute un KeyListener pour bloquer les caractères spéciaux lors de la saisie
-        textField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                char c = e.getKeyChar();
-                // Vérifie si le caractère saisi n'est pas valide
-                if (!pattern.matcher(Character.toString(c)).matches()) {
-                    e.consume(); // Empêche l'insertion du caractère
-                }
-            }
-            
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    // Valide la saisie lorsque la touche "Entrée" est appuyée
-                    String nameFile = textField.getText();
-                    if (nameFile.isBlank()) {
-                    	dia.InfoDialog.show(parent, "Info", "Vous devez taper un nom de ficier.");
-                    } else {
-                        new ChargeNouveauFichier(parent,nameFile );
-                        fermeture();  // Ferme la boîte de dialogue
-                    }
-                }
-            }
-        });
-        
-        // Action à exécuter lorsque le bouton OK obtient le focus
-        textField.addFocusListener(new FocusListener() {
+        // ========== Zone principale (message + champ) ==========
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+
+        // Libellé du champ
+        JLabel fieldLabel = new JLabel("Nom du fichier :");
+        fieldLabel.setFont(baseFont);
+        fieldLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Champ de saisie
+        textField = new JTextField(30);
+        textField.setFont(baseFont);
+        textField.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+
+        // Associer le label au champ (utile pour certains lecteurs d’écran)
+        fieldLabel.setLabelFor(textField);
+
+        // Entrée dans le champ = validation
+        textField.addActionListener(e -> valider());
+
+        // Focus sur le champ (utile si tu veux jouer un son ici plus tard)
+        textField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
-                //if(commandes.audioActif) new playSound(commandes.getPathApp + "/nom_nouveau_fichier.wav");
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                // Rien à faire lorsque le focus est perdu
+                // Exemple : lecture audio à l’arrivée dans le champ
+                // if (commandes.audioActif) new playSound(...);
             }
         });
 
-        // Boutons OK et Annuler
+        // Ajout des composants dans le panel principal
+        mainPanel.add(fieldLabel);
+        mainPanel.add(Box.createVerticalStrut(5));
+        mainPanel.add(textField);
+
+        dialog.add(mainPanel, BorderLayout.CENTER);
+
+        // ========== Zone des boutons ==========
         JPanel buttonPanel = new JPanel();
-        JButton okButton = new JButton("OK");
-        okButton.getAccessibleContext().setAccessibleName("OK");
-        
-        JButton cancelButton = new JButton("Annuler");
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 15, 20));
+        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+
+        okButton = new JButton("OK");
+        okButton.setFont(baseFont);
+        okButton.setMnemonic(KeyEvent.VK_O); // Alt+O
+        okButton.getAccessibleContext().setAccessibleName("Valider");
+
+        cancelButton = new JButton("Annuler");
+        cancelButton.setFont(baseFont);
+        cancelButton.setMnemonic(KeyEvent.VK_A); // Alt+A
         cancelButton.getAccessibleContext().setAccessibleName("Annuler");
-        
-        // Action à exécuter lorsque le bouton OK obtient le focus
-        okButton.addFocusListener(new FocusListener() {
+
+        // Action OK
+        okButton.addActionListener(e -> valider());
+
+        // Action Annuler
+        cancelButton.addActionListener(e -> annuler());
+
+        // Focus gained → déclenche les actions audio existantes
+        okButton.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
-                // Exécuter l'action lorsque le bouton OK obtient le focus
-                AbstractAction okFocusAction = new select_OK();
-                okFocusAction.actionPerformed(null);  // Appelle l'action directement
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                // Rien à faire lorsque le focus est perdu
+                AbstractAction action = new select_OK();
+                action.actionPerformed(null);
             }
         });
-        
-        
-        // Action pour le bouton OK
-        okButton.addActionListener(e -> {
-            String texte = textField.getText();
-            if (texte.isBlank()) {
-            	System.out.println("Création d'un document vierge impossible");
-            } else {
-            	System.out.println("Création d'un document vierge");
-                commandes.nameFile=texte;
-                commandes.hash=0;
-                parent.getEditor().setText("");
-                fermeture();
-            }
-        });
-        
-        // Entrée sur le bouton OK
-        okButton.addKeyListener(new KeyAdapter() {
-        	@Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    // Valide la saisie lorsque la touche "Entrée" est appuyée
-                    String texte = textField.getText();
-                    if (texte.isBlank()) {
-                    	System.out.println("Création d'un document vierge impossible");
-                    } else {
-                    	System.out.println("Création d'un document vierge");
-                        commandes.nameFile = texte;
-                        commandes.hash=0;
-                        parent.getEditor().setText("");
-                        fermeture();
-                    }
-                }
-        	}
-        });
 
-
-        // Action pour le bouton Annuler
-        cancelButton.addActionListener(e -> fermeture());
-        
-        // Action à exécuter lorsque le bouton OK obtient le focus
-        cancelButton.addFocusListener(new FocusListener() {
+        cancelButton.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
-                // Exécuter l'action lorsque le bouton OK obtient le focus
-                AbstractAction okFocusAction = new select_CANCEL();
-                okFocusAction.actionPerformed(null);  // Appelle l'action directement
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                // Rien à faire lorsque le focus est perdu
+                AbstractAction action = new select_CANCEL();
+                action.actionPerformed(null);
             }
         });
-        
-     // Entrée sur le bouton OK
-        cancelButton.addKeyListener(new KeyAdapter() {
-        	@Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                	fermeture();  // Ferme la boîte de dialogue
-                }
-        	}
-        });
-        
 
+        buttonPanel.add(Box.createHorizontalGlue());
         buttonPanel.add(okButton);
+        buttonPanel.add(Box.createHorizontalStrut(15));
         buttonPanel.add(cancelButton);
 
-        // Ajoute les boutons à la boîte de dialogue
         dialog.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Configure et affiche la boîte de dialogue
-        dialog.pack();
-        dialog.setLocationRelativeTo(null);
+        // ========== Raccourcis clavier globaux ==========
+        // Entrée = bouton OK par défaut
+        dialog.getRootPane().setDefaultButton(okButton);
 
-        // Assure que le JTextField a le focus quand la boîte apparaît
-        SwingUtilities.invokeLater(textField::requestFocusInWindow);
+        // Échap = Annuler partout dans la boîte de dialogue
+        dialog.getRootPane().registerKeyboardAction(
+            (ActionEvent e) -> annuler(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
+
+        // ========== Affichage ==========
+        dialog.pack();
+        dialog.setLocationRelativeTo(parent);
+        dialog.setAlwaysOnTop(true);
+
+        // Donne le focus au champ de texte dès l’ouverture
+        SwingUtilities.invokeLater(() -> textField.requestFocusInWindow());
 
         dialog.setVisible(true);
-        dialog.setAlwaysOnTop(true);
-        dialog.toFront();
-	}
-	
-	/** 
-	 * fermeture de la dialog
-	 */
-	private void fermeture() {
-		if (parent != null) {
+    }
+
+    /**
+     * Validation du nom de fichier et création du document.
+     */
+    private void valider() {
+        String name = textField.getText().trim();
+
+        if (name.isEmpty()) {
+            InfoDialog.show(parent, "Nom de fichier manquant",
+                    "Tu dois saisir un nom pour le nouveau fichier.");
+            textField.requestFocusInWindow();
+            return;
+        }
+
+        // Vérifie les caractères autorisés
+        if (!FILENAME_PATTERN.matcher(name).matches()) {
+            InfoDialog.show(parent, "Nom de fichier invalide",
+                    "Le nom de fichier ne peut contenir que des lettres, des chiffres,\n"
+                    + "des espaces, des tirets et des tirets bas.");
+            textField.requestFocusInWindow();
+            return;
+        }
+
+        // Ici, tu peux choisir :
+        // - soit la logique actuelle (document vierge),
+        // - soit appeler une classe qui crée/charge un fichier physique.
+        //
+        // Version "document vierge" (comme ton code de bouton OK) :
+        System.out.println("Création d'un document vierge : " + name);
+        commandes.nameFile = name;
+        commandes.hash = 0;
+
+        if (parent != null && parent.getEditor() != null) {
+            parent.getEditor().setText("¶ ");
+            parent.getEditor().setCaretPosition(2);
+        }
+
+        fermer();
+    }
+
+    /**
+     * Annulation simple.
+     */
+    private void annuler() {
+        fermer();
+    }
+
+    /**
+     * Fermeture de la boîte de dialogue + retour du focus à l'éditeur.
+     */
+    private void fermer() {
+        if (parent != null) {
             SwingUtilities.invokeLater(() -> {
-                parent.requestFocus();              // redonne le focus à la frame
-                parent.getEditor().requestFocusInWindow(); // et au JTextArea
+                parent.requestFocus();
+                if (parent.getEditor() != null) {
+                    parent.getEditor().requestFocusInWindow();
+                }
             });
         }
-		dialog.dispose();
-	}
+        dialog.dispose();
+    }
 }
-
