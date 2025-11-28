@@ -393,7 +393,7 @@ public final class MenuBarFactory {
         	 var win = ctx.getWindow();
              if (win instanceof EditorFrame frame) {
             	 WikipediaSearchDialog.open(frame, url -> {
-            		    new dia.HtmlBrowserDialog(frame, frame.getEditor(), url);
+            		    new dia.HtmlBrowserDialog_WIKIPEDIA(frame, frame.getEditor(), url);
             		});
              }
         });
@@ -840,7 +840,7 @@ public final class MenuBarFactory {
         });
     	
     	
-    	JMenuItem navigateurItem = createMenuItem("Navigateur", KeyEvent.VK_F6, 0, e -> {
+    	JMenuItem navigateurItem = createMenuItem("Navigateur de titre", KeyEvent.VK_F6, 0, e -> {
     		writer.spell.SpellCheckLT spell = ctx.getSpell();
     		if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
     		 var win = ctx.getWindow();

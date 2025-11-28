@@ -12,7 +12,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 
-import writer.ui.editor.BraillePrefixer;
+import writer.ui.editor.PiedDeMouchePrefixer;
 
 /**
 * Convertit un document HTML en markup "lisioWriter".
@@ -38,7 +38,7 @@ public final class HtmlImporter {
      Element body = doc.body();
      StringBuilder out = new StringBuilder();
      traverseChildren(body, out, 0, null);
-     String text = BraillePrefixer.addBrailleAtParagraphStarts(out.toString());
+     String text = PiedDeMouchePrefixer.addPiedDeMoucheAtParagraphStarts(out.toString());
      return tidyOutput(text);
  }
 

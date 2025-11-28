@@ -32,28 +32,29 @@ import org.jsoup.select.Elements;
 import Import.HtmlImporter;
 import writer.commandes;
 import writer.ui.editor.FastHighlighter;
+import writer.ui.text.CorrectionSynthase;
 
 @SuppressWarnings("serial")
-public class HtmlBrowserDialog extends JDialog {
+public class HtmlBrowserDialog_WIKTIONAIRE extends JDialog {
 
     private final JButton insertBtn = new JButton("Charger (Entrée)");
     private final JButton closeBtn = new JButton("Fermer (Échap)");
     private final DefaultListModel<WikiResult> resultModel = new DefaultListModel<>();
     private final JList<WikiResult> resultList = new JList<>(resultModel);
 
-    public HtmlBrowserDialog() {
+    public HtmlBrowserDialog_WIKTIONAIRE() {
     	
     }
 
-    public HtmlBrowserDialog(JFrame owner, writer.ui.NormalizingTextPane editorPane, String searchUrl) {
-        super(owner, "Résultats Wikipédia", true);
+    public HtmlBrowserDialog_WIKTIONAIRE(JFrame owner, writer.ui.NormalizingTextPane editorPane, String searchUrl) {
+        super(owner, "Résultats Wiktionnaire", true);
         setLayout(new BorderLayout(6, 6));
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         // === Liste des résultats ===
         resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         resultList.setFont(editorPane.getFont());
-        resultList.getAccessibleContext().setAccessibleName("Résultats de recherche Wikipédia");
+        resultList.getAccessibleContext().setAccessibleName("Résultats de recherche Wiktionnaire");
 //        resultList.getAccessibleContext().setAccessibleDescription("Liste des résultats de recherche Wikipédia. Appuyez sur Entrée pour insérer.");
 
         JScrollPane sc = new JScrollPane(resultList);
@@ -195,7 +196,7 @@ public class HtmlBrowserDialog extends JDialog {
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    JOptionPane.showMessageDialog(HtmlBrowserDialog.this,
+                    JOptionPane.showMessageDialog(HtmlBrowserDialog_WIKTIONAIRE.this,
                             "Erreur : " + ex.getMessage(),
                             "Erreur de chargement",
                             JOptionPane.ERROR_MESSAGE);
@@ -275,23 +276,6 @@ public class HtmlBrowserDialog extends JDialog {
 	                    // --- Convertir les tableaux en @t ... @/t ---
 		                convertAllTables(content);
 
-//	                    // --- Convertir les liens Wikipédia et externes en format LisioWriter ---
-//	                    Elements links = content.select("a[href]");
-//	                    for (Element link : links) {
-//	                        String href = link.attr("href").trim();
-//	                        @SuppressWarnings("unused")
-//							String text = link.text().trim();
-//	                        if (href.isEmpty()) continue;
-//	
-//	                        if (href.startsWith("/wiki/")) {
-//	                            String fullUrl = "https://fr.wikipedia.org" + href;
-//	                            link.after(" @[lien : " + fullUrl + "]");
-//	                            link.unwrap();
-//	                        } else if (href.startsWith("http")) {
-//	                            link.after(" @[lien : " + href + "]");
-//	                            link.unwrap();
-//	                        }
-//	                    }
 	
 	                // --- Conversion finale du HTML vers le format LisioWriter ---
                     String html = content.html();
@@ -333,7 +317,7 @@ public class HtmlBrowserDialog extends JDialog {
 	        @Override
 	        protected void done() {
 	            if (error != null) {
-	                JOptionPane.showMessageDialog(HtmlBrowserDialog.this, "Erreur lors du chargement : " + error);
+	                JOptionPane.showMessageDialog(HtmlBrowserDialog_WIKTIONAIRE.this, "Erreur lors du chargement : " + error);
 	                return;
 	            }
 	            try {
@@ -368,7 +352,7 @@ public class HtmlBrowserDialog extends JDialog {
 	                
 	                // titre + contenu importé
 	                String formatted = "¶ #1. " + articleTitle + "\n" + (converted == null ? "" : converted);
-
+	                
 	                // --- Préfixer les paragraphes par ¶ mais laisser la première ligne (le titre) intacte ---
 	                String transformed; 
 	                try {
@@ -377,17 +361,18 @@ public class HtmlBrowserDialog extends JDialog {
 	                        String titleLine = formatted.substring(0, firstNewline + 1); // inclut '\n'
 	                        String rest = formatted.substring(firstNewline + 1);
 	                        // appelle ta nouvelle classe utilitaire
-	                        rest = writer.ui.editor.BraillePrefixer.prefixParagraphsWithPiedDeMouche(rest);
+	                        rest = writer.ui.editor.PiedDeMouchePrefixer.prefixParagraphsWithPiedDeMouche(rest);
 	                        transformed = titleLine + rest;
 	                    } else {
 	                        // pas de titre détecté : préfixer tout
-	                        transformed = writer.ui.editor.BraillePrefixer.prefixParagraphsWithPiedDeMouche(formatted);
+	                        transformed = writer.ui.editor.PiedDeMouchePrefixer.prefixParagraphsWithPiedDeMouche(formatted);
 	                    }
 	                } catch (Throwable t) {
 	                    t.printStackTrace();
 	                    transformed = formatted; // fallback
 	                }
-
+	                
+	                transformed = CorrectionSynthase.corrigerSynthase(transformed);
 	                
 	                try {
 	                    // supprime tout et insère
@@ -407,7 +392,7 @@ public class HtmlBrowserDialog extends JDialog {
 	                        try { ef.getRedoAction().setEnabled(false); } catch (Throwable ignore) {}
 	                    }
 	                } catch (Throwable ignore) {}
-
+  
 	                // positionne le caret au début de l'article
 	                editorPane.setCaretPosition(pos);
 	                
@@ -532,11 +517,11 @@ public class HtmlBrowserDialog extends JDialog {
 	                    if (firstNewline >= 0 && formatted.startsWith("¶ #1.")) {
 	                        String titleLine = formatted.substring(0, firstNewline + 1);
 	                        String rest = formatted.substring(firstNewline + 1);
-	                        rest = writer.ui.editor.BraillePrefixer
+	                        rest = writer.ui.editor.PiedDeMouchePrefixer
 	                               .prefixParagraphsWithPiedDeMouche(rest);
 	                        transformed = titleLine + rest;
 	                    } else {
-	                        transformed = writer.ui.editor.BraillePrefixer
+	                        transformed = writer.ui.editor.PiedDeMouchePrefixer
 	                               .prefixParagraphsWithPiedDeMouche(formatted);
 	                    }
 	                } catch (Throwable t) {

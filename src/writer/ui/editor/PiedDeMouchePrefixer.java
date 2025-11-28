@@ -12,14 +12,14 @@ import java.util.regex.Pattern;
  *  - prefixParagraphsWithBrailleMarkPreserveIndent(text, mark) : même chose mais si la ligne
  *    commence par des espaces/tabs, le marqueur est inséré après l'indentation.
  */
-public final class BraillePrefixer {
+public final class PiedDeMouchePrefixer {
 	
 	// Caractère pie de mouche et regex "commence déjà par ¶ (après espaces éventuels)"
     private static final char PIEDMOUCHE = '\u00B6';
     private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u00B6\\s*");
 
 
-    private BraillePrefixer() {}
+    private PiedDeMouchePrefixer() {}
 
     /**
      * Préfixe chaque ligne non vide par pied de mouche si elle n'en est pas déjà préfixée.
@@ -128,7 +128,7 @@ public final class BraillePrefixer {
      * - Conserve les lignes vides telles quelles
      * - Gère CRLF / CR / LF
      */
-    public static String addBrailleAtParagraphStarts(String text) {
+    public static String addPiedDeMoucheAtParagraphStarts(String text) {
         // normalise les fins de ligne pour itérer proprement
         String norm = text.replace("^\s?\n+", "").replace("\n\n", "\n").replace("\r+", "\n").replace('\r', '\n');
         String[] lines = norm.split("\n", -1); // -1 pour conserver les vides de fin

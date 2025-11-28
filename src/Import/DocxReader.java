@@ -17,7 +17,7 @@ import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.w3c.dom.Node;
 
-import writer.ui.editor.BraillePrefixer;
+import writer.ui.editor.PiedDeMouchePrefixer;
 
 
 
@@ -59,7 +59,7 @@ public class DocxReader {
         
      // --- ⟹ post-traitement : préfixer les paragraphes avec ¶ ---
         String imported = sb.toString();
-        String withBraille = BraillePrefixer.addBrailleAtParagraphStarts(imported) ; 
+        String withBraille = PiedDeMouchePrefixer.addPiedDeMoucheAtParagraphStarts(imported) ; 
         
         return withBraille.toString();
     }

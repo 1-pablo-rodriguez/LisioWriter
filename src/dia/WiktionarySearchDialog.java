@@ -61,9 +61,6 @@ public class WiktionarySearchDialog {
         ));
         field.setPreferredSize(new Dimension(650, 60)); // agrandit la hauteur
         field.getAccessibleContext().setAccessibleName("Zone de saisie du mot pour le Wiktionnaire");
-//        field.getAccessibleContext().setAccessibleDescription(
-//                "Tapez le mot à rechercher dans le Wiktionnaire puis appuyez sur Entrée pour lancer la recherche."
-//        );
 
         // --- Boutons bas de fenêtre ---
         JButton searchBtn = new JButton("🔍 Rechercher (Entrée)");
@@ -128,7 +125,7 @@ public class WiktionarySearchDialog {
                     }
 
                     // Navigation interne (comme pour Wikipédia)
-                    new HtmlBrowserDialog(parent, parent.getEditor(), url);
+                    new HtmlBrowserDialog_WIKTIONAIRE(parent, parent.getEditor(), url);
 
                 } catch (Exception ex) {
                     Toolkit.getDefaultToolkit().beep();

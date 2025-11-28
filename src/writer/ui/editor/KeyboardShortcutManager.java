@@ -32,7 +32,7 @@ import act.informations;
 import act.openSearchDialog;
 import act.ouvrirNavigateurT1;
 import act.textBody;
-import dia.HtmlBrowserDialog;
+import dia.HtmlBrowserDialog_WIKIPEDIA;
 import dia.WikipediaSearchDialog;
 import writer.editor.InsertUnorderedBulletAction;
 import writer.ui.EditorFrame;
@@ -132,7 +132,7 @@ public class KeyboardShortcutManager {
     	        public void actionPerformed(ActionEvent e) {
     	            SwingUtilities.invokeLater(() ->
     	                WikipediaSearchDialog.open(frame, url ->
-    	                    new HtmlBrowserDialog(frame, frame.getEditor(), url)
+    	                    new HtmlBrowserDialog_WIKIPEDIA(frame, frame.getEditor(), url)
     	                )
     	            );
     	        }

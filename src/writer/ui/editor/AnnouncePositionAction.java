@@ -10,6 +10,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.text.Element;
 
 import writer.ui.NormalizingTextPane;
+import writer.util.WordCounter;
 
 /**
  * Fenêtre permettant de se repérer dans le texte.
@@ -24,11 +25,7 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
     private static final Pattern HEADING_PATTERN =
             Pattern.compile("^#([1-6])\\.\\s+(.+?)\\s*$");
 
-    // Motif pour compter les mots : lettres + éventuellement ' ’ ou -
-    private static final Pattern WORD_PATTERN =
-            Pattern.compile("\\p{L}+(?:['’\\-]\\p{L}+)*", Pattern.UNICODE_CHARACTER_CLASS);
-
-    public AnnouncePositionAction(writer.ui.NormalizingTextPane editor) {
+   public AnnouncePositionAction(writer.ui.NormalizingTextPane editor) {
         super("Position dans le texte");
         this.editor = (NormalizingTextPane) editor;
     }
@@ -45,12 +42,12 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
         int totalWords = 0;
         int wordsBefore = 0;
         try {
-            String full = doc.getText(0, doc.getLength());
-            totalWords = countWordsIn(full);
+        	String full = doc.getText(0, doc.getLength());
+        	totalWords = WordCounter.countWords(full);
             int caretPos = Math.max(0, Math.min(editor.getCaretPosition(), full.length()));
             if (caretPos > 0 && totalWords > 0) {
                 String before = full.substring(0, caretPos);
-                wordsBefore = countWordsIn(before);
+                wordsBefore = WordCounter.countWords(before);
             }
         } catch (Exception ex) {
             // ignore - si erreur on laisse counts à 0
@@ -63,7 +60,7 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
         StringBuilder msg = new StringBuilder(256);
         msg.append(String.format("Lecture réalisée : %.1f%% (%d / %d mots).",
                 Math.rint(pct * 10.0) / 10.0, wordsBefore, totalWords) + " ↓\n");
-        msg.append(c).append("Curseur paragraphe ").append(" : ").append(caretPara).append( " ↓\n");
+        msg.append(c).append("Curseur dans le paragraphe ").append(caretPara).append( " ↓\n");
         msg.append(c).append(formatHeadingLine("Titre au-dessus : ", above)).append(" ↓\n");
         msg.append(c).append(formatHeadingLine("Titre suivant : ", below)).append(" ↓\n");
        
@@ -102,7 +99,7 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
 
             for (int i = lineIdx; i >= 0; i--) {
                 String line = lineText(doc, root.getElement(i));
-                String cleaned = cleanLeadingBrailleAndSpaces(line);
+                String cleaned = cleanLeadingPiedDeMoucheAndSpaces(line);
                 Matcher m = HEADING_PATTERN.matcher(cleaned);
                 if (m.matches()) {
                     int lvl = Integer.parseInt(m.group(1));
@@ -126,14 +123,14 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
             // Si la ligne courante est un titre, on commence la recherche APRÈS
             int startIdx = currIdx;
             String currentLine = lineText(doc, root.getElement(currIdx));
-            String currentClean = cleanLeadingBrailleAndSpaces(currentLine);
+            String currentClean = cleanLeadingPiedDeMoucheAndSpaces(currentLine);
             if (HEADING_PATTERN.matcher(currentClean).matches()) {
                 startIdx = currIdx + 1;
             }
 
             for (int i = startIdx; i < root.getElementCount(); i++) {
                 String line = lineText(doc, root.getElement(i));
-                String cleaned = cleanLeadingBrailleAndSpaces(line);
+                String cleaned = cleanLeadingPiedDeMoucheAndSpaces(line);
                 Matcher m = HEADING_PATTERN.matcher(cleaned);
                 if (m.matches()) {
                     int lvl = Integer.parseInt(m.group(1));
@@ -159,7 +156,7 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
      *
      * Ne touche pas aux caractères braille qui se trouvent au milieu de la ligne.
      */
-    private static String cleanLeadingBrailleAndSpaces(String line) {
+    private static String cleanLeadingPiedDeMoucheAndSpaces(String line) {
         if (line == null) return "";
         // supprime espaces initiaux puis éventuel U+283F et espaces qui suivent
         return line.replaceFirst("(?m)^\\s*(?:\\u00B6\\s*)?", "");
@@ -167,16 +164,8 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
 
     private String formatHeadingLine(String prefix, HeadingFound h) {
         if (h == null) return prefix + "Aucun titre détecté.";
-        char p = '¶';
-        return String.format("%s%s %s ("+p+" %d)", prefix, h.levelLabel, h.text, h.paraIndex);
+        return String.format("%s%s %s (paragraphe %d)", prefix, h.levelLabel, h.text, h.paraIndex);
     }
 
-    // ---------- comptage de mots ----------
-    private static int countWordsIn(String s) {
-        if (s == null || s.isBlank()) return 0;
-        Matcher m = WORD_PATTERN.matcher(s);
-        int c = 0;
-        while (m.find()) c++;
-        return c;
-    }
+
 }

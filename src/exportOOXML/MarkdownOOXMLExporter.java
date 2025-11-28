@@ -19,18 +19,16 @@ import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRelation;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFStyles;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTAbstractNum;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTHyperlink;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTLvl;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STNumberFormat;
 
-import writer.ui.editor.TableSyntax;
-import writer.ui.text.BrailleCleaner;
-
-import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.apache.poi.xwpf.usermodel.XWPFTableRow;
-
 import writer.commandes;
+import writer.ui.editor.TableSyntax;
+import writer.ui.text.PiedDeMoucheCleaner;
 
 public final class MarkdownOOXMLExporter {
 
@@ -86,7 +84,7 @@ public final class MarkdownOOXMLExporter {
             ListKind listState = ListKind.NONE;
             IntBox footBox = new IntBox(1);
 
-            src = BrailleCleaner.clean(src);
+            src = PiedDeMoucheCleaner.clean(src);
 
 	         // 1) Retire toutes les images markdown en une seule passe
 	         src = IMG_ANY_WITH_WS.matcher(src).replaceAll(" ");

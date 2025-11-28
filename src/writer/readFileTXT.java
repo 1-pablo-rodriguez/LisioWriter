@@ -13,8 +13,8 @@ import java.nio.file.Path;
 import javax.swing.SwingUtilities;
 
 import writer.ui.EditorFrame;
-import writer.ui.editor.BraillePrefixer;
 import writer.ui.editor.FastHighlighter;
+import writer.ui.editor.PiedDeMouchePrefixer;
 
 public final class readFileTXT {
 
@@ -62,7 +62,7 @@ public final class readFileTXT {
             }
 
             // Afficher dans l’éditeur
-            parent.getEditor().setText(texte != null ? BraillePrefixer.addBrailleAtParagraphStarts(texte) : BraillePrefixer.addBrailleAtParagraphStarts(""));
+            parent.getEditor().setText(texte != null ? PiedDeMouchePrefixer.addPiedDeMoucheAtParagraphStarts(texte) : PiedDeMouchePrefixer.addPiedDeMoucheAtParagraphStarts("¶ "));
             
             // colorisation
             FastHighlighter.rehighlightAll(parent.getEditor());

@@ -19,8 +19,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import Import.odt.style.*;
-import writer.ui.editor.BraillePrefixer;
+import Import.odt.style.TextStyle;
+import writer.ui.editor.PiedDeMouchePrefixer;
 
 
 /**
@@ -68,7 +68,7 @@ public class OdtReader {
 
         zipFile.close();
         
-        String text = BraillePrefixer.addBrailleAtParagraphStarts(result.toString());
+        String text = PiedDeMouchePrefixer.addPiedDeMoucheAtParagraphStarts(result.toString());
         return text;
     }
 

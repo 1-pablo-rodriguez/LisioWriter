@@ -16,9 +16,9 @@ import java.util.regex.Pattern;
  *
  * Toutes les méthodes sont thread-safe et sans état.
  */
-public final class BrailleCleaner {
+public final class PiedDeMoucheCleaner {
 
-    private BrailleCleaner() {}
+    private PiedDeMoucheCleaner() {}
 
     /** Caractère braille (U+283F). */
     public static final char PIEDMOUCHE = '\u00B6';

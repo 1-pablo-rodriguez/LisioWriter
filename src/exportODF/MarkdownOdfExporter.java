@@ -16,7 +16,7 @@ import org.odftoolkit.odfdom.dom.style.OdfStyleFamily;
 import org.odftoolkit.odfdom.incubator.doc.style.OdfStyle;
 import org.odftoolkit.odfdom.pkg.OdfFileDom;
 
-import writer.ui.text.BrailleCleaner;
+import writer.ui.text.PiedDeMoucheCleaner;
 
 public final class MarkdownOdfExporter {
 
@@ -102,7 +102,7 @@ public final class MarkdownOdfExporter {
         // Compteur pour notes
         int footnoteCounter = 1;
 
-        src = BrailleCleaner.clean(src);
+        src = PiedDeMoucheCleaner.clean(src);
         
         // 1) Supprimer toutes les images en une seule passe
         src = IMG_ANY_WITH_WS.matcher(src).replaceAll(" ");

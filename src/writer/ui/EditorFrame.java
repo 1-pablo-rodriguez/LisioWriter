@@ -279,8 +279,8 @@ public class EditorFrame extends JFrame implements EditorApi {
      	});
 
      	// récupérer action par défaut comme fallback (optionnel)
-     	EnterPiedDeMoucheInsertAction brailleEnter = EnterPiedDeMoucheInsertAction.createWithDefaultFallback(editorPane, true);
-  	    editorPane.getActionMap().put(javax.swing.text.DefaultEditorKit.insertBreakAction, brailleEnter);
+     	EnterPiedDeMoucheInsertAction piedDeMoucheEnter = EnterPiedDeMoucheInsertAction.createWithDefaultFallback(editorPane, true);
+  	    editorPane.getActionMap().put(javax.swing.text.DefaultEditorKit.insertBreakAction, piedDeMoucheEnter);
 
   	    // Remappe BACK_SPACE vers notre action intelligente
   	    this.editorPane.getInputMap().put(KS_BSP, "bw-smart-backspace");

@@ -11,8 +11,9 @@ import javax.swing.text.Document;
 import javax.swing.undo.UndoManager;
 
 import writer.ui.EditorFrame;
-import writer.ui.editor.BraillePrefixer;
 import writer.ui.editor.FastHighlighter;
+import writer.ui.editor.PiedDeMouchePrefixer;
+import writer.ui.text.CorrectionSynthase;
 import xml.node;
 import xml.transformeXLMtoNode;
 
@@ -78,8 +79,15 @@ public class readFileBlindWriter {
                     .getContenuAvecTousLesContenusDesEnfants();
             
             //place les pieds de mouche ou insère après le pied de mouche un espace au début de chaque paragraphe
-            commandes.texteDocument = BraillePrefixer.prefixParagraphsWithPiedDeMouche(commandes.texteDocument);
+            commandes.texteDocument = PiedDeMouchePrefixer.prefixParagraphsWithPiedDeMouche(commandes.texteDocument);
             
+            // Correction synthasique
+            commandes.texteDocument = CorrectionSynthase.corrigerSynthase(commandes.texteDocument);
+            
+            // remplace le texte corrigé dans le node nodeblindWriter
+            commandes.nodeblindWriter.retourneFirstEnfant("contentText").setContenu(0, commandes.texteDocument);
+            
+            // Enregistre le hash
             commandes.hash = commandes.nodeblindWriter == null ? 0 :  commandes.nodeblindWriter.hashCode();
 
             // --- Chargement asynchrone dans l'éditeur (exécuté sur l'EDT) ---
@@ -106,7 +114,7 @@ public class readFileBlindWriter {
                     } else {
                         // fallback : setText
                         editorComp.setText(newText);
-                    }
+                    }                    
 
                     // colorisation
                     FastHighlighter.rehighlightAll(editorComp); // une passe globale, optionnelle
@@ -117,7 +125,7 @@ public class readFileBlindWriter {
                     // positionner le caret au début
                     try { editorComp.setCaretPosition(0); } catch (Exception ignore) {}
    
-                    // rechargement des signets si présents
+                    // rechargement les marque-pages si présents
                     parent.createNewBookmarkManager();
                     if (commandes.nodeblindWriter.retourneFirstEnfant("bookmarks") != null) {
                         commandes.bookmarks = commandes.nodeblindWriter.retourneFirstEnfant("bookmarks");

@@ -427,6 +427,10 @@ private boolean nodeClose = false;
 	public String getContenu(int index) {
 		return this.contenu.get(index);
 	}
+	
+	public String setContenu(int index, String Txt) {
+		return this.contenu.set(index, Txt);
+	}
 
 	public void addContenu(String texte) {
 		this.contenu.add(texte);

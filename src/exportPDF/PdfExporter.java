@@ -29,7 +29,7 @@ import org.jsoup.nodes.Document.OutputSettings;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
 import writer.ui.editor.TableSyntax;
-import writer.ui.text.BrailleCleaner;
+import writer.ui.text.PiedDeMoucheCleaner;
 
 
 
@@ -53,7 +53,7 @@ public class PdfExporter {
     private static String applyInlineMarkers(String escaped) {
         if (escaped == null || escaped.isEmpty()) return escaped;
 
-        escaped = BrailleCleaner.clean(escaped);
+        escaped = PiedDeMoucheCleaner.clean(escaped);
         
         // combinaisons underline+bold / underline+italic
         escaped = escaped.replaceAll("(?s)_\\*(.*?)\\*_", "<u><strong>$1</strong></u>");
@@ -85,7 +85,7 @@ public class PdfExporter {
     public static String convertMarkupToHtml(String text) {
         if (text == null) return "";
 
-        text = BrailleCleaner.clean(text);
+        text = PiedDeMoucheCleaner.clean(text);
         
         StringBuilder body = new StringBuilder();
 

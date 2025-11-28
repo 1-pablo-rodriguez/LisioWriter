@@ -3,6 +3,7 @@ package writer;
 import writer.model.Affiche;
 import writer.ui.EditorFrame;
 import writer.ui.NormalizingTextPane;
+import writer.util.WordCounter;   // ← AJOUT
 
 public class informationsAffichage {
     EditorFrame parent;
@@ -38,8 +39,6 @@ public class informationsAffichage {
                 message.append("\nSTATISTIQUES ↓");
                 message.append("\n").append(c).append("Mots : ").append(all.words).append(" ↓");
                 message.append("\n").append(c).append("Phrases : ").append(all.sentences).append(" ↓");
-                // suppression de l'ancienne ligne "Paragraphes" (métrique précédente)
-                // renommer "Lignes" en "Paragraphes" : on expose ici le nombre de lignes physiques
                 message.append("\n").append(c).append("Paragraphes : ").append(all.lines).append(" ↓");
                 message.append("\n").append(c).append("Caract. (avec espaces) : ").append(all.charsAll).append(" ↓");
                 message.append("\n").append(c).append("Caract. (sans espaces) : ").append(all.charsNoSpaces).append(" ↓");
@@ -64,7 +63,6 @@ public class informationsAffichage {
             }
 
         } catch (Exception ignore) {
-            // on évite toute exception dans ce chemin d’annonce
             message = new StringBuilder("Informations indisponibles pour le moment.");
         }
 
@@ -78,13 +76,17 @@ public class informationsAffichage {
     private static final class TextStats {
         final int charsAll;         // caractères (espaces inclus)
         final int charsNoSpaces;    // caractères (sans espaces)
-        final int words;            // nb de mots (itérateur de mots)
+        final int words;            // nb de mots
         final int sentences;        // nb de phrases
-        final int lines;            // nb de lignes physiques (split sur \n)
+        final int lines;            // nb de lignes physiques
 
         TextStats(int cAll, int cNoSp, int w, int s, int l, int p) {
-            this.charsAll = cAll; this.charsNoSpaces = cNoSp;
-            this.words = w; this.sentences = s; this.lines = l;
+            this.charsAll = cAll;
+            this.charsNoSpaces = cNoSp;
+            this.words = w;
+            this.sentences = s;
+            this.lines = l;
+            // p (paragraphes sémantiques) calculé mais pas stocké pour l’instant
         }
     }
 
@@ -93,11 +95,10 @@ public class informationsAffichage {
      * - normalise quelques caractères invisibles,
      * - supprime uniquement le préfixe braille au début de chaque ligne,
      * - calcule statistiques (mots, phrases, lignes physiques, etc.).
-     *
-     * Note : on expose ici 'lines' comme nombre de lignes physiques. L'ancienne métrique
-     * "paragraphes" (sémantique) est toujours calculée mais n'est plus affichée.
      */
-    private static TextStats computeStats(javax.swing.text.Document doc, javax.swing.text.Element root) throws javax.swing.text.BadLocationException {
+    private static TextStats computeStats(javax.swing.text.Document doc, javax.swing.text.Element root)
+            throws javax.swing.text.BadLocationException {
+
         final String raw = (doc == null) ? "" : doc.getText(0, doc.getLength());
         if (raw == null || raw.isEmpty()) {
             return new TextStats(0, 0, 0, 0, 0, 0);
@@ -117,20 +118,14 @@ public class informationsAffichage {
         int charsAll = cleaned.length();
         int charsNoSpaces = cleaned.replaceAll("\\s+", "").length();
 
-        // 4) Mots (BreakIterator FR + filtrage alpha/num)
-        int words = 0;
-        java.text.BreakIterator wb = java.text.BreakIterator.getWordInstance(LOCALE_FR);
-        wb.setText(cleaned);
-        int s = wb.first();
-        for (int e = wb.next(); e != java.text.BreakIterator.DONE; s = e, e = wb.next()) {
-            if (hasAlphaNum(cleaned, s, e)) words++;
-        }
+        // 4) Mots : on utilise WordCounter pour être cohérent avec AnnouncePositionAction
+        int words = WordCounter.countWords(cleaned);
 
         // 5) Phrases (BreakIterator FR)
         int sentences = 0;
         java.text.BreakIterator sb = java.text.BreakIterator.getSentenceInstance(LOCALE_FR);
         sb.setText(cleaned);
-        s = sb.first();
+        int s = sb.first();
         for (int e = sb.next(); e != java.text.BreakIterator.DONE; s = e, e = sb.next()) {
             if (hasAlphaNum(cleaned, s, e)) sentences++;
         }
@@ -139,7 +134,7 @@ public class informationsAffichage {
         String[] linesArr = cleaned.split("\\R", -1);
         int lines = linesArr.length;
 
-        // 7) Calcul "paragraphes" sémantiques (blocs séparés par >=1 ligne vide)
+        // 7) Paragraphes sémantiques (blocs séparés par >=1 ligne vide)
         int paragraphs = 0;
         for (String block : cleaned.split("\\R{2,}")) {
             if (!block.isBlank()) paragraphs++;

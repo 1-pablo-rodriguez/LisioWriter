@@ -97,7 +97,7 @@ public class WikipediaSearchDialog {
                             + "&title=Sp%C3%A9cial%3ARecherche&profile=advanced&fulltext=1&ns0=1";
 
                     dlg.dispose();
-                    new HtmlBrowserDialog(parent, parent.getEditor(), url);
+                    new HtmlBrowserDialog_WIKIPEDIA(parent, parent.getEditor(), url);
 
                 } catch (Exception ex) {
                     Toolkit.getDefaultToolkit().beep();
