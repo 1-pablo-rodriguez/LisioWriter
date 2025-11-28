@@ -839,11 +839,11 @@ public class DocxReader {
         String tail = sb.substring(from, len);
 
         // On considère doublon si la dernière occurrence est déjà la dernière "vraie" ligne
-        if (tail.contains("@saut de page manuel")) return;
+        if (tail.contains("@saut de page")) return;
 
         // Sinon, on l'écrit proprement
         if (len > 0 && sb.charAt(len - 1) != '\n') sb.append('\n');
-        sb.append("@saut de page manuel\n");
+        sb.append("@saut de page\n");
     }
     
  // === Helpers images DOCX ===============================================

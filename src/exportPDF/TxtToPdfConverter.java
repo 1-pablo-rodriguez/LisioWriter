@@ -35,7 +35,7 @@ public class TxtToPdfConverter {
 
             for (String line : content.split("\n")) {
             	
-            	if (line.trim().equals("@saut de page manuel")) {
+            	if (line.trim().equals("@saut de page")) {
             	    contentStream.endText();
             	    contentStream.close();
 

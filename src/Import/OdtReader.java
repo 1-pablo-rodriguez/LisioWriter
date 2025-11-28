@@ -400,7 +400,7 @@ public class OdtReader {
 
                 // Détecte page break (inchangé)
                 if (hasPageBreakStyle(styleName, stylesDoc, contentDoc)) {
-                    result.append("@saut de page manuel\n");
+                    result.append("@saut de page\n");
                 }
 
                 // Détecte heading (inchangé)

@@ -156,7 +156,7 @@ public class commandes {
         
         listMotsDico.add("blindWriter");
         listMotsDico.add("LisioWriter");
-        listMotsDico.add("@saut de page manuel");
+        listMotsDico.add("@saut de page");
         listMotsDico.add("@(");
     }
     

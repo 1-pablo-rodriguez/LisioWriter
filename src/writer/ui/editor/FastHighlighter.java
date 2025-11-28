@@ -1,10 +1,20 @@
 package writer.ui.editor;
 
-import javax.swing.text.*;
-import java.awt.*;
+import java.awt.Color;
 import java.nio.CharBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.DocumentFilter;
+import javax.swing.text.Element;
+import javax.swing.text.Segment;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 /**
  * Coloration incrémentale ultra-localisée, sans new String :
@@ -64,7 +74,7 @@ public final class FastHighlighter {
     private static final Pattern PT_TAB          = Pattern.compile("(?i)\\[tab\\]");
     private static final Pattern PT_SPECIAL      = Pattern.compile("(__|_\\*|_\\^|\\*\\^|\\*\\*|\\^\\^|\\^¨|_¨|¨_|\\^\\*|\\^_|¨\\^|\\*_)");
     private static final Pattern PT_NOTE         = Pattern.compile("@\\(([^)]+)\\)");
-    private static final Pattern PT_PAGE         = Pattern.compile("(?i)@saut\\s+de\\s+page(\\s+manuel)?");
+    private static final Pattern PT_PAGE         = Pattern.compile("(?i)@saut\\s+de\\s+page(\\s+)?");
     private static final Pattern PT_LINK         = Pattern.compile("@\\[([^\\]]+?):\\s*(https?://[^\\s\\]]+)\\]");
     private static final Pattern PT_IMG          = Pattern.compile("!\\[([^\\]]*?):\\s*([^\\]]+)\\]");
     private static final Pattern PT_BRAILLE_PREF = Pattern.compile("(?m)^\\s*(" + Pattern.quote(BRAILLE) + ")");

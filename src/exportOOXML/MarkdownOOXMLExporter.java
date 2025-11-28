@@ -46,7 +46,7 @@ public final class MarkdownOOXMLExporter {
     private static final Pattern OL   = Pattern.compile("^\\s*([0-9]+)\\.\\s+(.*)$");
     private static final Pattern UL   = Pattern.compile("^\\s*-\\.(.*)$");
 
-    private static final Pattern PAGE_BREAK = Pattern.compile("^\\s*@saut\\s+de\\s+page\\s+manuel\\b.*$");
+    private static final Pattern PAGE_BREAK = Pattern.compile("^\\s*@saut\\s+de\\s+page\\s+\\b.*$");
 
     // --- Regex inline (même ordre de traitement que pour ODT) ---
     private static final Pattern BOLD_ITALIC      = Pattern.compile("\\*\\^(.+?)\\^\\*");
@@ -136,7 +136,7 @@ public final class MarkdownOOXMLExporter {
                     continue;
                 }
                 
-                // Saut de page manuel -> s'applique au paragraphe SUIVANT
+                // Saut de page -> s'applique au paragraphe SUIVANT
                 if (PAGE_BREAK.matcher(line).matches()) {
                     listState = ListKind.NONE;
                     pageBreakForNextParagraph = true;
@@ -438,25 +438,6 @@ public final class MarkdownOOXMLExporter {
 
     // --- Démo rapide (peut être supprimée) ---
     public static void main(String[] args) throws Exception {
-        String demo = String.join("\n",
-            "#P. Titre principale",
-            "#S. Sous-titre",
-            "#1. Section 1 **important** et ^^italic^^ et __souligné__ et *^fort et penché^*.",
-            "",
-            "1. liste numéroté 1",
-            "2. liste numéroté 2 @(note pour la 2)",
-            "3. liste numéroté 3",
-            "",
-            "-. liste non numéroté (puce)",
-            "-. deuxième puce",
-            "",
-            "@saut de page manuel",
-            "Paragraphe après saut de page, avec une @(note de bas de page).",
-            "Chimie : H_¨2¨_O ; Math : x^¨2¨^ + y_¨3¨_."
-        );
-        File f = new File("export_demo.docx");
-        export(demo, f);
-        System.out.println("DOCX écrit : " + f.getAbsolutePath());
     }
     
     // Ajoute si besoin un style de paragraphe basique

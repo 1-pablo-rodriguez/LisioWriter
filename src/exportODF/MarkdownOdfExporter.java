@@ -34,8 +34,7 @@ public final class MarkdownOdfExporter {
     private static final Pattern OL   = Pattern.compile("^\\s*([0-9]+)\\.\\s+(.*)$"); // liste numérotée
     private static final Pattern UL   = Pattern.compile("^\\s*-\\.(.*)$");            // liste à puces
 
-    private static final Pattern PAGE_BREAK = Pattern.compile("^\\s*@saut\\s+de\\s+page\\s+manuel\\b.*$");
-
+    private static final Pattern PAGE_BREAK = Pattern.compile("^\\s*@saut\\s+de\\s+page\\s*$");
     // --- Regex inline (on traite dans cet ordre pour éviter les conflits) ---
     // 1) gras+italic *^...^*
     private static final Pattern BOLD_ITALIC = Pattern.compile("\\*\\^(.+?)\\^\\*");
@@ -126,7 +125,7 @@ public final class MarkdownOdfExporter {
                 continue;
             }
 
-            // 1) Saut de page manuel : s’applique au paragraphe SUIVANT
+            // 1) Saut de page : s’applique au paragraphe SUIVANT
             if (PAGE_BREAK.matcher(line).matches()) {
                 // flush de liste si on était dedans
                 if (listState != ListKind.NONE) {
@@ -316,11 +315,12 @@ public final class MarkdownOdfExporter {
             }
 
             TextPElement p = odt.newParagraph();
+            p.setTextStyleNameAttribute("Text_20_body"); // alias "Text body"
             if (pageBreakForNextParagraph) {
                 applyBreakBefore(odt, p);
                 pageBreakForNextParagraph = false;
             }
-            p.setTextStyleNameAttribute("Text_20_body"); // alias "Text body"
+           
 
             // ⚠️ utilise toujours footBox (le compteur mutable déclaré en début de méthode)
             appendInlineRuns(contentDom, p, line.trim(), odt, footBox);
@@ -477,8 +477,6 @@ public final class MarkdownOdfExporter {
 
         return styleName;
     }
-
-
 
     private static void applyBreakBefore(OdfTextDocument odt, TextPElement p) throws Exception {
         // 1) Style de base déjà présent (Title / Heading / Text_20_body, etc.)
@@ -723,25 +721,7 @@ public final class MarkdownOdfExporter {
 
     // --- Démo rapide (à enlever si tu intègres dans ton app) ---
     public static void main(String[] args) throws Exception {
-        String demo = String.join("\n",
-            "#P. Titre principale",
-            "#S. Sous-titre",
-            "#1. Section 1 **important** et ^^italic^^ et __souligné__ et *^fort et penché^*.",
-            "",
-            "1. liste numéroté 1",
-            "2. liste numéroté 2 @(note pour la 2)",
-            "3. liste numéroté 3",
-            "",
-            "-. liste non numéroté (puce)",
-            "-. deuxième puce",
-            "",
-            "@saut de page manuel",
-            "Paragraphe après saut de page, avec une @(note de bas de page).",
-            "Du texte normal avec **gras**, ^^italique^^, __souligné__, _*souligné gras*_ et _^souligné italique^_.",
-            "Du texte \"Chimie : H_¨2¨_O et Mathématique x^¨2¨^ = y_¨3¨_ + 1.\""
-        );
-        export(demo, new File("export_demo.odt"));
-        System.out.println("ODT écrit : export_demo.odt");
+
     }
     
     
