@@ -46,8 +46,8 @@ public final class MarkdownOOXMLExporter {
     private static final Pattern OL   = Pattern.compile("^\\s*([0-9]+)\\.\\s+(.*)$");
     private static final Pattern UL   = Pattern.compile("^\\s*-\\.(.*)$");
 
-    private static final Pattern PAGE_BREAK = Pattern.compile("^\\s*@saut\\s+de\\s+page\\s+\\b.*$");
-
+    private static final Pattern PAGE_BREAK = Pattern.compile("^\\s*@saut\\s+de\\s+page\\s*$");
+    
     // --- Regex inline (même ordre de traitement que pour ODT) ---
     private static final Pattern BOLD_ITALIC      = Pattern.compile("\\*\\^(.+?)\\^\\*");
     private static final Pattern UNDERLINE_BOLD   = Pattern.compile("_\\*(.+?)\\*_");
