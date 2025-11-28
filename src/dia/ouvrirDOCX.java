@@ -26,6 +26,7 @@ import Import.DocxReader;
 import writer.commandes;
 import writer.ui.EditorFrame;
 import writer.ui.editor.FastHighlighter;
+import writer.util.RecentFilesManager;
 
 
 /** Boîte "Ouvrir" accessible (clavier/lecteur d’écran). */
@@ -76,6 +77,12 @@ public final class ouvrirDOCX extends JDialog {
 	
 	private EditorFrame parent;
     
+	
+	public ouvrirDOCX(EditorFrame parent, Boolean SansOuvrirFenetre) {
+		this.savedDirectory = null;
+		this.parent = parent;
+		}
+	
 	public ouvrirDOCX(EditorFrame parent){
 		super(parent);
 		this.parent = parent;
@@ -277,15 +284,7 @@ public final class ouvrirDOCX extends JDialog {
                 closeDialog(true);
             }
         });
-
-//        SwingUtilities.invokeLater(() -> {
-//            fileList.requestFocusInWindow();
-//            File dir = commandes.currentDirectory;
-//            String msg = (dir != null ? "Ouvrir — Dossier " + dir.getName() : "Ouvrir — Racine système")
-//                    + ". " + status.getText();
-//            announceHere(msg,true,true);
-//        });
-
+        
         setVisible(true);
     }
 
@@ -716,7 +715,7 @@ public final class ouvrirDOCX extends JDialog {
 	    return path;                                      // dernier recours
 	}
 
-	private void readFile(File selectedFile) throws Exception {
+	public void readFile(File selectedFile) throws Exception {
     	System.out.println("lecture d'un fichier DOCX");
     	String contenu = DocxReader.extractStructuredTextFromDocx(selectedFile.getAbsolutePath());
     	commandes.init();
@@ -737,6 +736,9 @@ public final class ouvrirDOCX extends JDialog {
          
          commandes.nameFile = selectedFile.getName().replaceFirst("\\.docx$", "");
          commandes.nomDossierCourant = selectedFile.getParentFile().getAbsolutePath();
+
+         // Ajoute dans la liste des fichiers récents
+         RecentFilesManager.addOpenedFile(selectedFile);
 
     }
 	

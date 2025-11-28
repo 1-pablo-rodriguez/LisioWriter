@@ -26,6 +26,7 @@ import Import.OdtReader;
 import writer.commandes;
 import writer.ui.EditorFrame;
 import writer.ui.editor.FastHighlighter;
+import writer.util.RecentFilesManager;
 
 
 /** Boîte "Ouvrir" accessible (clavier/lecteur d’écran). */
@@ -75,6 +76,11 @@ public final class ouvrirODT extends JDialog {
 	private static final Icon ICON_FILE   = UIManager.getIcon("FileView.fileIcon");
 	
 	private EditorFrame parent;
+	
+	public ouvrirODT(EditorFrame parent, boolean OuvreSansFenetre){
+		this.parent = parent;
+		this.savedDirectory = null;
+	}
     
 	public ouvrirODT(EditorFrame parent){
         super(parent);
@@ -716,7 +722,7 @@ public final class ouvrirODT extends JDialog {
 	    return path;                                      // dernier recours
 	}
 
-	private void readFile(File selectedFile) throws Exception {
+	public void readFile(File selectedFile) throws Exception {
     	System.out.println("lecture d'un fichier ODT");
     	String contenu = OdtReader.extractStructuredTextFromODT(selectedFile.getAbsolutePath());
     	commandes.init();
@@ -737,7 +743,9 @@ public final class ouvrirODT extends JDialog {
          
          commandes.nameFile = selectedFile.getName().replaceFirst("\\.odt$", "");
          commandes.nomDossierCourant = selectedFile.getParentFile().getAbsolutePath();
-
+         
+         // Ajoute dans la liste des fichiers récents
+         RecentFilesManager.addOpenedFile(selectedFile);
     }
 	
 	private void showSelectedFileInfo() {

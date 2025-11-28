@@ -15,6 +15,7 @@ import javax.swing.SwingUtilities;
 import writer.ui.EditorFrame;
 import writer.ui.editor.FastHighlighter;
 import writer.ui.editor.PiedDeMouchePrefixer;
+import writer.util.RecentFilesManager;
 
 public final class readFileTXT {
 
@@ -88,6 +89,13 @@ public final class readFileTXT {
          commandes.nameFile = stripExt(f.getName());        // nom du fichier (avec extension)
          commandes.nomDossierCourant = cheminDossier; // chemin du dossier
          commandes.currentDirectory = nameFolder;     // si tu l’utilises ailleurs
+
+         // Ajoute dans la liste des fichiers récents
+         RecentFilesManager.addOpenedFile(f);
+         
+         // positionner le caret au début
+         try { parent.getEditor().setCaretPosition(0); } catch (Exception ignore) {}
+
 
         });
     }

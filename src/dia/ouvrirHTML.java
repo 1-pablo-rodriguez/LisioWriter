@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,7 @@ import Import.HtmlImporter;
 import writer.commandes;
 import writer.ui.EditorFrame;
 import writer.ui.editor.FastHighlighter;
+import writer.util.RecentFilesManager;
 
 
 /** Boîte "Ouvrir" accessible (clavier/lecteur d’écran). */
@@ -75,6 +77,12 @@ public final class ouvrirHTML extends JDialog {
 	private static final Icon ICON_FILE   = UIManager.getIcon("FileView.fileIcon");
 	
 	private EditorFrame parent;
+	
+	public ouvrirHTML(EditorFrame parent, boolean OuvreSansFenetre){
+		this.parent = parent;
+		this.savedDirectory = null;
+		
+	}
     
 	public ouvrirHTML(EditorFrame parent){
 		super(parent);
@@ -278,14 +286,6 @@ public final class ouvrirHTML extends JDialog {
             }
         });
 
-//        SwingUtilities.invokeLater(() -> {
-//            fileList.requestFocusInWindow();
-//            File dir = commandes.currentDirectory;
-//            String msg = (dir != null ? "Ouvrir — Dossier " + dir.getName() : "Ouvrir — Racine système")
-//                    + ". " + status.getText();
-//            announceHere(msg,true,true);
-//        });
-
         setVisible(true);
     }
 
@@ -360,44 +360,11 @@ public final class ouvrirHTML extends JDialog {
         // Fichier .html
         if (sel.isFile() && sel.getName().toLowerCase().endsWith(".html")) {
         	try {
-        		System.out.println("Lecture du fichier .html");
-        		String converted = HtmlImporter.importFileToBlindWriter(sel, sel.getParentFile().toURI().toString());
-        		
-        		// reset des valeurs de commandes
-        		commandes.init();
-        		
-        		//parent.getEditor().getDocument().insertString(parent.getEditor().getDocument().getLength(), converted, null);
-        		parent.getEditor().setText(converted);
-        		
-        		// colorisation
-        		FastHighlighter.rehighlightAll(parent.getEditor());
-        		
-        		 // vide l'historique
-                parent.clearUndoHistory();
-                
-        		// replacer le caret au tout début :
-        		parent.getEditor().setCaretPosition(0);
-
-        		 // Recupération du nom du fichier
-                File nameFolder = sel.getAbsoluteFile().getParentFile(); // dossier contenant f
-
-	             // 1) Nom "pur" du dossier (ex: "Documents")
-	             String nomDossier = (parent != null && nameFolder.getName() != null && !nameFolder.getName().isBlank())
-	                     ? nameFolder.getName()
-	                     : (nameFolder != null ? nameFolder.getAbsolutePath() : ""); // fallback (racine: C:\ ou "/")
-	
-	             // 2) Chemin absolu du dossier (ex: "C:\Users\Moi\Documents")
-	             String cheminDossier = (nameFolder != null) ? nameFolder.getAbsolutePath() : null;
-	
-	             // Mettre à jour tes variables d’appli
-	             commandes.nameFile = stripExt(sel.getName());        // nom du fichier (avec extension)
-	             commandes.nomDossierCourant = cheminDossier; // chemin du dossier
-	             commandes.currentDirectory = nameFolder;     // si tu l’utilises ailleurs
-        		
+        		readFile(sel);
         	} catch (Exception ex) {
                 ex.printStackTrace();
             }
-                closeDialog(false);
+            closeDialog(false);
         }
     }
     
@@ -811,6 +778,48 @@ public final class ouvrirHTML extends JDialog {
 	    }
 	    if (u < 0) return String.format("%.0f octets", b);
 	    return String.format("%.1f %s", b, units[u]);
+	}
+	
+	public void readFile(File file) throws IOException {
+		System.out.println("Lecture du fichier .html");
+		String converted = HtmlImporter.importFileToBlindWriter(file, file.getParentFile().toURI().toString());
+		
+		// reset des valeurs de commandes
+		commandes.init();
+		
+		//parent.getEditor().getDocument().insertString(parent.getEditor().getDocument().getLength(), converted, null);
+		parent.getEditor().setText(converted);
+		
+		// colorisation
+		FastHighlighter.rehighlightAll(parent.getEditor());
+		
+		 // vide l'historique
+        parent.clearUndoHistory();
+        
+		// replacer le caret au tout début :
+		parent.getEditor().setCaretPosition(0);
+
+		 // Recupération du nom du fichier
+        File nameFolder = file.getAbsoluteFile().getParentFile(); // dossier contenant f
+
+//         // 1) Nom "pur" du dossier (ex: "Documents")
+//         String nomDossier = (parent != null && nameFolder.getName() != null && !nameFolder.getName().isBlank())
+//                 ? nameFolder.getName()
+//                 : (nameFolder != null ? nameFolder.getAbsolutePath() : ""); // fallback (racine: C:\ ou "/")
+
+         // 2) Chemin absolu du dossier (ex: "C:\Users\Moi\Documents")
+         String cheminDossier = (nameFolder != null) ? nameFolder.getAbsolutePath() : null;
+
+         // Mettre à jour tes variables d’appli
+         commandes.nameFile = stripExt(file.getName());        // nom du fichier (avec extension)
+         commandes.nomDossierCourant = cheminDossier; // chemin du dossier
+         commandes.currentDirectory = nameFolder;     // si tu l’utilises ailleurs
+		
+         // vide l'historique
+         parent.clearUndoHistory();
+         
+         // Ajoute dans la liste des fichiers récents
+         RecentFilesManager.addOpenedFile(file);
 	}
     
 }

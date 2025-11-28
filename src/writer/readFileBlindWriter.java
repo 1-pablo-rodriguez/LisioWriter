@@ -14,6 +14,7 @@ import writer.ui.EditorFrame;
 import writer.ui.editor.FastHighlighter;
 import writer.ui.editor.PiedDeMouchePrefixer;
 import writer.ui.text.CorrectionSynthase;
+import writer.util.RecentFilesManager;
 import xml.node;
 import xml.transformeXLMtoNode;
 
@@ -146,6 +147,8 @@ public class readFileBlindWriter {
                     try { parent.getUndoAction().setEnabled(false); } catch (Throwable ignore) {}
                     try { parent.getRedoAction().setEnabled(false); } catch (Throwable ignore) {}
 
+                    // Ajoute dans la liste des fichiers récents
+                    RecentFilesManager.addOpenedFile(selectedFile);
 
                     // final : revalidate / repaint / focus
                     editorComp.revalidate();

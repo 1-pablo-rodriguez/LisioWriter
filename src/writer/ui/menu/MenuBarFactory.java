@@ -12,6 +12,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.JMenu;
@@ -32,6 +33,9 @@ import dia.WikipediaSearchDialog;
 import dia.WiktionarySearchDialog;
 import dia.boiteMeta;
 import dia.navigateurT1;
+import dia.ouvrirDOCX;
+import dia.ouvrirHTML;
+import dia.ouvrirODT;
 import dia.ouvrirTxt;
 import exportODF.MarkdownOdfExporter;
 import exportOOXML.MarkdownOOXMLExporter;
@@ -39,10 +43,14 @@ import exportPDF.PdfExporter;
 import exporterHTML.HtmlExporter;
 import writer.commandes;
 import writer.enregistre;
+import writer.readFileBlindWriter;
+import writer.readFileTXT;
 import writer.model.Affiche;
 import writer.ui.EditorApi;
 import writer.ui.EditorFrame;
 import writer.update.UpdateChecker;
+import writer.util.RecentFilesManager;
+
 
 public final class MenuBarFactory {
 	
@@ -67,7 +75,6 @@ public final class MenuBarFactory {
         return bar;
     }
     
-    
 
     private static JMenuItem createMenuItem(String text, int key, int mod, ActionListener action) {
         JMenuItem mi = new JMenuItem(text);
@@ -84,125 +91,143 @@ public final class MenuBarFactory {
         return mi;
     }
 
+    
+    
     // Menu Fichier
-    private static JMenu menuFichier(EditorApi ctx) {
-        JMenu m = new JMenu("Fichier");
-        m.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
-        m.setMnemonic(KeyEvent.VK_F);
-        m.getAccessibleContext().setAccessibleName("Fichier");
-        m.addMenuListener(new MenuListener() {
-            @Override public void menuSelected(MenuEvent e) {
-                SwingUtilities.invokeLater(() -> {
-                    JMenu src = (JMenu) e.getSource();
-                    MenuSelectionManager msm = MenuSelectionManager.defaultManager();
-                    MenuElement[] path = msm.getSelectedPath();
-                    if (path.length >= 4 && path[path.length - 1] instanceof JMenuItem) {
-                        JMenuBar bar = (JMenuBar) src.getParent();
-                        msm.setSelectedPath(new MenuElement[] { bar, src, src.getPopupMenu() });
-                    }
-                });
-            }
-            @Override public void menuDeselected(MenuEvent e) {}
-            @Override public void menuCanceled(MenuEvent e) {}
-        });
+	private static JMenu menuFichier(EditorApi ctx) {
+	    JMenu m = new JMenu("Fichier");
+	    m.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+	    m.setMnemonic(KeyEvent.VK_F);
+	    m.getAccessibleContext().setAccessibleName("Fichier");
+	
+	    // --- Sous-menu Fichiers récents ---
+	    JMenu recentMenu = new JMenu("Fichiers récents");
+	    recentMenu.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+	    recentMenu.getAccessibleContext().setAccessibleName("Fichiers récents");
+	
+	    // Quand on ouvre le menu Fichier : on reconstruit le sous-menu
+	    m.addMenuListener(new MenuListener() {
+	        @Override public void menuSelected(MenuEvent e) {
+	            // Reconstruire les entrées de Fichiers récents
+	            rebuildRecentFilesMenu(recentMenu, ctx);
+	
+	            // Garde ton comportement actuel d'armage de menu
+	            SwingUtilities.invokeLater(() -> {
+	                JMenu src = (JMenu) e.getSource();
+	                MenuSelectionManager msm = MenuSelectionManager.defaultManager();
+	                MenuElement[] path = msm.getSelectedPath();
+	                if (path.length >= 4 && path[path.length - 1] instanceof JMenuItem) {
+	                    JMenuBar bar = (JMenuBar) src.getParent();
+	                    msm.setSelectedPath(new MenuElement[] { bar, src, src.getPopupMenu() });
+	                }
+	            });
+	        }
+	        @Override public void menuDeselected(MenuEvent e) {}
+	        @Override public void menuCanceled(MenuEvent e) {}
+	    });
+	
+	    JMenuItem createItem = createMenuItem("Nouveau", KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK, e -> {
+	        var win = ctx.getWindow();
+	        if (win instanceof EditorFrame frame) {
+	            new BoiteNewDocument(frame);
+	            ctx.setModified(false);
+	            ctx.updateWindowTitle();
+	        } else {
+	            System.err.println("Impossible d’ouvrir la boîte : la fenêtre n’est pas un EditorFrame.");
+	            Toolkit.getDefaultToolkit().beep();
+	            return;
+	        }
+	    });
+	
+	    JMenuItem openItem = createMenuItem("Ouvrir", KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK, e -> {
+	        var win = ctx.getWindow();
+	        if (win instanceof EditorFrame frame) {
+	            new dia.ouvrirBWR(frame);
+	        }
+	        ctx.setModified(false);
+	        ctx.updateWindowTitle();
+	    });
+	
+	    JMenuItem saveItem = createMenuItem("Enregistrer", KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK, e -> {
+	        var win = ctx.getWindow();
+	        if (win instanceof EditorFrame frame) {
+	            ctx.clearSpellHighlightsAndFocusEditor();
+	            new enregistre(frame);
+	            ctx.setModified(false);
+	            ctx.updateWindowTitle();
+	
+	            StringBuilder msg = new StringBuilder(128);
+	            msg.append("Fichier enregistré ↓")
+	               .append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓")
+	               .append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
+	            ctx.showInfo("Information", msg.toString());
+	        }
+	    });
+	
+	    JMenuItem saveAsItem = createMenuItem("Enregistrer sous", KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, e -> {
+	        ctx.clearSpellHighlightsAndFocusEditor();
+	        var win = ctx.getWindow();
+	        if (win instanceof EditorFrame frame) {
+	            new BoiteSaveAs(frame);
+	            ctx.setModified(false);
+	            ctx.updateWindowTitle();
+	
+	            StringBuilder msg = new StringBuilder(128);
+	            msg.append("Fichier enregistré ↓")
+	               .append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓")
+	               .append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
+	            ctx.showInfo("Information", msg.toString());
+	        }
+	    });
+	
+	    JMenuItem renameItem = createMenuItem("Renommer le fichier", KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK, e -> {
+	        ctx.clearSpellHighlightsAndFocusEditor();
+	        var win = ctx.getWindow();
+	        if (win instanceof EditorFrame frame) {
+	            new BoiteRenameFile(frame);
+	            ctx.setModified(false);
+	            ctx.updateWindowTitle();
+	        }
+	    });
+	
+	    JMenuItem metaItem = createMenuItem("Meta-données", KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK, e -> {
+	        ctx.clearSpellHighlightsAndFocusEditor();
+	        var win = ctx.getWindow();
+	        if (win instanceof EditorFrame frame) {
+	            new boiteMeta(frame);
+	        }
+	    });
+	
+	    JMenuItem quitItem = createMenuItem("Quitter", KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK, e -> {
+	        var win = ctx.getWindow();
+	        if (win instanceof EditorFrame frame) {
+	            new dia.BoiteQuitter(frame);
+	        }
+	    });
+	
+	    // les listeners d’état (conserve le comportement existant)
+	    ctx.addItemChangeListener(recentMenu);
+	    ctx.addItemChangeListener(createItem);
+	    ctx.addItemChangeListener(openItem);
+	    ctx.addItemChangeListener(saveItem);
+	    ctx.addItemChangeListener(saveAsItem);
+	    ctx.addItemChangeListener(renameItem);
+	    ctx.addItemChangeListener(metaItem);
+	    ctx.addItemChangeListener(quitItem);
 
-        JMenuItem createItem = createMenuItem("Nouveau", KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK, e -> {
-        	var win = ctx.getWindow();
-        	if (win instanceof EditorFrame frame) {
-                new BoiteNewDocument(frame);
-                ctx.setModified(false);
-                ctx.updateWindowTitle();
-            } else {
-                System.err.println("Impossible d’ouvrir la boîte : la fenêtre n’est pas un EditorFrame.");
-                Toolkit.getDefaultToolkit().beep();
-                return;
-            }
-        });
+	    m.add(createItem);
+	    m.add(openItem);
+	    m.add(recentMenu);
+	    m.addSeparator();
+	    m.add(saveItem);
+	    m.add(saveAsItem);
+	    m.addSeparator();
+	    m.add(renameItem);
+	    m.add(metaItem);
 
-        JMenuItem openItem = createMenuItem("Ouvrir", KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK, e -> {
-        	var win = ctx.getWindow();
-			if (win instanceof EditorFrame frame) {
-				 new dia.ouvrirBWR(frame);
-			}
-            ctx.setModified(false);
-            ctx.updateWindowTitle();
-        });
-
-        JMenuItem saveItem = createMenuItem("Enregistrer", KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK, e -> {
-        	var win = ctx.getWindow();
-			if (win instanceof EditorFrame frame) {
-				 ctx.clearSpellHighlightsAndFocusEditor();
-		            new enregistre(frame);
-		            ctx.setModified(false);
-		            ctx.updateWindowTitle();
-
-		            StringBuilder msg = new StringBuilder(128);
-		            msg.append("Fichier enregistré ↓")
-		               .append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓")
-		               .append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
-		            ctx.showInfo("Information", msg.toString());
-			}
-        });
-
-        JMenuItem saveAsItem = createMenuItem("Enregistrer sous", KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, e -> {
-            ctx.clearSpellHighlightsAndFocusEditor();
-            var win = ctx.getWindow();
-            if (win instanceof EditorFrame frame) {
-            	 new BoiteSaveAs(frame);
-                 ctx.setModified(false);
-                 ctx.updateWindowTitle();
-
-                 StringBuilder msg = new StringBuilder(128);
-                 msg.append("Fichier enregistré ↓")
-                    .append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓")
-                    .append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
-                 ctx.showInfo("Information", msg.toString());
-            }
-        });
-
-        JMenuItem renameItem = createMenuItem("Renommer le fichier", KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK, e -> {
-            ctx.clearSpellHighlightsAndFocusEditor();
-            var win = ctx.getWindow();
-        	if (win instanceof EditorFrame frame) {
-        		new BoiteRenameFile(frame);
-                ctx.setModified(false);
-                ctx.updateWindowTitle();
-        	} 
-        });
-
-        JMenuItem metaItem = createMenuItem("Meta-données", KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK, e -> {
-            ctx.clearSpellHighlightsAndFocusEditor();
-            var win = ctx.getWindow();
-            if (win instanceof EditorFrame frame) {
-            	new boiteMeta(frame);
-            }
-        });
-
-        JMenuItem quitItem = createMenuItem("Quitter", KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK, e -> {
-        	 var win = ctx.getWindow();
-             if (win instanceof EditorFrame frame) {
-                 new dia.BoiteQuitter(frame);
-             }
-        });
-
-        // les listeners d’état (conserve le comportement existant)
-        ctx.addItemChangeListener(createItem);
-        ctx.addItemChangeListener(openItem);
-        ctx.addItemChangeListener(saveItem);
-        ctx.addItemChangeListener(saveAsItem);
-        ctx.addItemChangeListener(renameItem);
-        ctx.addItemChangeListener(metaItem);
-        ctx.addItemChangeListener(quitItem);
-
-        m.add(createItem);
-        m.add(openItem);
-        m.add(saveItem);
-        m.add(saveAsItem);
-        m.add(renameItem);
-        m.add(metaItem);
-        m.add(quitItem);
-        return m;
-    }
+	    m.add(quitItem);
+	    return m;
+	}
 
     //Menu Edition
     private static JMenu menuEdition(EditorApi ctx) {
@@ -1126,5 +1151,88 @@ public final class MenuBarFactory {
   
         return filepreference;
     }
+    
+    
+    /** Reconstruit le menu "Fichiers récents" à partir de RecentFilesManager. */
+    private static void rebuildRecentFilesMenu(JMenu recentMenu, EditorApi ctx) {
+        recentMenu.removeAll();
+
+        List<File> recents = RecentFilesManager.getRecentFiles();
+        if (recents.isEmpty()) {
+            JMenuItem empty = new JMenuItem("(Aucun fichier récent)");
+            empty.setEnabled(false);
+            empty.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+            recentMenu.add(empty);
+            return;
+        }
+
+        int index = 1;
+        for (File f : recents) {
+            final File file = f;  // pour la lambda
+
+            String label = file.getName();
+            // si tu veux un préfixe numérique : index + ". " + file.getName()
+            JMenuItem item = new JMenuItem(label);
+            item.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+            item.setToolTipText(file.getAbsolutePath());
+
+            item.addActionListener(ev -> {
+                // ouverture du fichier récent
+                if (!file.exists()) {
+                    Toolkit.getDefaultToolkit().beep();
+                    Window owner = ctx.getWindow();
+                    dia.InfoDialog.show(owner, "Fichier introuvable",
+                            "Ce fichier n'existe plus :\n" + file.getAbsolutePath());
+                    RecentFilesManager.remove(file);
+                    rebuildRecentFilesMenu(recentMenu, ctx);
+                    return;
+                }
+
+                var win = ctx.getWindow();
+                if (win instanceof EditorFrame frame) {
+                	try {
+                	    String name = file.getName().toLowerCase(java.util.Locale.ROOT);
+
+                	    if (name.endsWith(".bwr")) {
+                	        new readFileBlindWriter(file, frame);
+                	    } else if (name.endsWith(".txt")) {
+                	    	new readFileTXT(file,frame);
+                	    } else if (name.endsWith(".odt")) {
+                	    	new ouvrirODT(frame,true).readFile(file);
+                	    } else if (name.endsWith(".docx")) {
+                	    	new ouvrirDOCX(frame, true).readFile(file);
+                	    } else if (name.endsWith(".html") || name.endsWith(".htm")) {
+                	    	new ouvrirHTML(frame, true).readFile(file);
+                	    } else {
+                	        // Extension inconnue
+                	        Toolkit.getDefaultToolkit().beep();
+                	        dia.InfoDialog.show(frame, "Extension non prise en charge",
+                	                "Impossible d’ouvrir ce fichier récent :\n"
+                	              + file.getAbsolutePath()
+                	              + "\n\nExtension non reconnue.");
+                	        return;
+                	    }
+
+                	    // Si on arrive ici, l’ouverture s’est bien passée
+                	    ctx.setModified(false);
+                	    ctx.updateWindowTitle();
+
+                	} catch (Exception ex) {
+                	    ex.printStackTrace();
+                	    Toolkit.getDefaultToolkit().beep();
+                	    dia.InfoDialog.show(frame, "Erreur d’ouverture",
+                	            "Une erreur est survenue en ouvrant le fichier :\n"
+                	          + file.getAbsolutePath()
+                	          + "\n\n" + ex.getMessage());
+                	}
+                }
+            });
+
+            recentMenu.add(item);
+            index++;
+            if (index > 40) break;
+        }
+    }
+
     
 }
