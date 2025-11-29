@@ -54,27 +54,27 @@ public class titre5 {
                 // ligne contenant seulement ¶ (+ espaces)
                 newAfter = "#5. ";
             } else if (HN_6_9.matcher(after).find()) {
-                newAfter = HN_6_9.matcher(after).replaceFirst("#5. ");
+                newAfter = HN_6_9.matcher(after).replaceFirst(" #5. ");
             } else if (H1.matcher(after).find()) {
-                newAfter = H1.matcher(after).replaceFirst("#5. ");
+                newAfter = H1.matcher(after).replaceFirst(" #5. ");
             } else if (H2.matcher(after).find()) {
-                newAfter = H2.matcher(after).replaceFirst("#5. ");
+                newAfter = H2.matcher(after).replaceFirst(" #5. ");
             } else if (H3.matcher(after).find()) {
-                newAfter = H3.matcher(after).replaceFirst("#5. ");
+                newAfter = H3.matcher(after).replaceFirst(" #5. ");
             } else if (H4.matcher(after).find()) {
-                newAfter = H4.matcher(after).replaceFirst("#5. ");
+                newAfter = H4.matcher(after).replaceFirst(" #5. ");
             } else if (HP.matcher(after).find()) {
-                newAfter = HP.matcher(after).replaceFirst("#5. ");
+                newAfter = HP.matcher(after).replaceFirst(" #5. ");
             } else if (HS.matcher(after).find()) {
-                newAfter = HS.matcher(after).replaceFirst("#5. ");
+                newAfter = HS.matcher(after).replaceFirst(" #5. ");
             } else if (BULLET.matcher(after).find()) {
-                newAfter = BULLET.matcher(after).replaceFirst("#5. ");
+                newAfter = BULLET.matcher(after).replaceFirst(" #5. ");
             } else if (H5_ANY.matcher(after).find()) {
                 // normaliser "#5." -> "#5. "
-                newAfter = H5_ANY.matcher(after).replaceFirst("#5. ");
+                newAfter = H5_ANY.matcher(after).replaceFirst(" #5. ");
             } else if (NOT_H.matcher(after).find()) {
                 // pas de balise en tête → préfixer
-                newAfter = "#5. " + after.stripLeading();
+                newAfter = " #5. " + after.stripLeading();
             } else {
                 newAfter = after; // déjà propre
             }

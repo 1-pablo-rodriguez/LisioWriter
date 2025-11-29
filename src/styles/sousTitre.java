@@ -49,17 +49,17 @@ public class sousTitre {
                 // ligne contenant seulement ¶ (+ espaces)
                 newAfter = "#S. ";
             } else if (HN_1_9.matcher(after).find()) {
-                newAfter = HN_1_9.matcher(after).replaceFirst("#S. ");
+                newAfter = HN_1_9.matcher(after).replaceFirst(" #S. ");
             } else if (HP.matcher(after).find()) {
-                newAfter = HP.matcher(after).replaceFirst("#S. ");
+                newAfter = HP.matcher(after).replaceFirst(" #S. ");
             } else if (BULLET.matcher(after).find()) {
-                newAfter = BULLET.matcher(after).replaceFirst("#S. ");
+                newAfter = BULLET.matcher(after).replaceFirst(" #S. ");
             } else if (HS_ANY.matcher(after).find()) {
                 // normaliser "#S." → "#S. "
-                newAfter = HS_ANY.matcher(after).replaceFirst("#S. ");
+                newAfter = HS_ANY.matcher(after).replaceFirst(" #S. ");
             } else if (NOT_H.matcher(after).find()) {
                 // pas de balise → on préfixe
-                newAfter = "#S. " + after.stripLeading();
+                newAfter = " #S. " + after.stripLeading();
             } else {
                 newAfter = after; // déjà propre
             }

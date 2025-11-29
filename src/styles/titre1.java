@@ -50,19 +50,19 @@ public class titre1 {
             if (after.strip().isEmpty()) {
                 newAfter = "#1. ";
             } else if (HN_2_9.matcher(after).find()) {
-                newAfter = HN_2_9.matcher(after).replaceFirst("#1. ");
+                newAfter = HN_2_9.matcher(after).replaceFirst(" #1. ");
             } else if (HP.matcher(after).find()) {
-                newAfter = HP.matcher(after).replaceFirst("#1. ");
+                newAfter = HP.matcher(after).replaceFirst(" #1. ");
             } else if (HS.matcher(after).find()) {
-                newAfter = HS.matcher(after).replaceFirst("#1. ");
+                newAfter = HS.matcher(after).replaceFirst(" #1. ");
             } else if (BULLET.matcher(after).find()) {
-                newAfter = BULLET.matcher(after).replaceFirst("#1. ");
+                newAfter = BULLET.matcher(after).replaceFirst(" #1. ");
             } else if (H1_ANY.matcher(after).find()) {
                 // normalise "#1." -> "#1. "
-                newAfter = H1_ANY.matcher(after).replaceFirst("#1. ");
+                newAfter = H1_ANY.matcher(after).replaceFirst(" #1. ");
             } else if (NOT_H.matcher(after).find()) {
                 // ne commence pas par # → on préfixe
-                newAfter = "#1. " + after.stripLeading();
+                newAfter = " #1. " + after.stripLeading();
             } else {
                 // déjà propre
                 newAfter = after;

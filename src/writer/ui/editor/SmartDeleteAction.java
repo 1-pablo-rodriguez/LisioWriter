@@ -19,7 +19,7 @@ import javax.swing.text.Document;
 @SuppressWarnings("serial")
 public class SmartDeleteAction extends AbstractAction {
 
-    private static final char BRAILLE_CH = '\u00B6';
+    private static final char PIEDDEMOUCHE_CH = '\u00B6';
 
     private final writer.ui.NormalizingTextPane editorPane;
     private final javax.swing.Action fallback;
@@ -59,7 +59,7 @@ public class SmartDeleteAction extends AbstractAction {
     	        // 0) ⟵ Garde-fou : caret juste APRÈS ¶ => on supprime le caractère SUIVANT (pas ¶)
     	        if (pos > 0 && pos <= docLen) {
     	            char prev = doc.getText(pos - 1, 1).charAt(0);
-    	            if (prev == BRAILLE_CH) {
+    	            if (prev == PIEDDEMOUCHE_CH) {
     	                if (pos >= docLen) {
     	                    // Rien après ¶
     	                    Toolkit.getDefaultToolkit().beep();
@@ -84,7 +84,7 @@ public class SmartDeleteAction extends AbstractAction {
     	            // a) CRLF
     	            if (pos + 2 < docLen && doc.getText(pos, 2).equals("\r\n")) {
     	                char after = doc.getText(pos + 2, 1).charAt(0);
-    	                if (after == BRAILLE_CH) {
+    	                if (after == PIEDDEMOUCHE_CH) {
     	                    int delStart = pos;      // sur '\r'
     	                    int delEnd   = pos + 3;  // après ¶
     	                    // avaler un espace juste après ¶ si présent
@@ -100,7 +100,7 @@ public class SmartDeleteAction extends AbstractAction {
     	            }
     	            // b) LF seul
     	            if (doc.getText(pos, 1).charAt(0) == '\n') {
-    	                if (pos + 1 < docLen && doc.getText(pos + 1, 1).charAt(0) == BRAILLE_CH) {
+    	                if (pos + 1 < docLen && doc.getText(pos + 1, 1).charAt(0) == PIEDDEMOUCHE_CH) {
     	                    int delStart = pos;      // sur '\n'
     	                    int delEnd   = pos + 2;  // après ¶
     	                    if (delEnd < docLen && doc.getText(delEnd, 1).charAt(0) == ' ') delEnd++;
@@ -118,7 +118,7 @@ public class SmartDeleteAction extends AbstractAction {
     	        // 3) Caret PLACÉ SUR le caractère ¶
     	        if (pos < docLen) {
     	            char chAtPos = doc.getText(pos, 1).charAt(0);
-    	            if (chAtPos == BRAILLE_CH) {
+    	            if (chAtPos == PIEDDEMOUCHE_CH) {
     	                // Rechercher en arrière le \n (et gérer CRLF), en sautant espaces
     	                int j = pos - 1;
     	                while (j >= 0) {
@@ -223,7 +223,7 @@ public class SmartDeleteAction extends AbstractAction {
     	        // 6) Dernier contrôle : si le caractère suivant est un ¶ isolé (pas précédé d'une newline)
     	        if (pos < docLen) {
     	            char nextChar = doc.getText(pos, 1).charAt(0);
-    	            if (nextChar == BRAILLE_CH) {
+    	            if (nextChar == PIEDDEMOUCHE_CH) {
     	                boolean prevIsNewline = false;
     	                if (pos - 1 >= 0) {
     	                    char before = doc.getText(pos - 1, 1).charAt(0);

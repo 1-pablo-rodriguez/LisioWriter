@@ -14,7 +14,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -817,14 +819,15 @@ public final class MenuBarFactory {
         return fileMenu;
     }
 
-    //Menu Naviguer
-    private static JMenu menuNaviguer(EditorApi ctx) {
-    	JMenu naviguerMenu = new JMenu("Naviguer");
-    	naviguerMenu.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
-    	naviguerMenu.setMnemonic(KeyEvent.VK_N); // Utiliser ALT+n pour ouvrir le menu
-    	naviguerMenu.getAccessibleContext().setAccessibleName("Naviguer");
+ // Menu Naviguer
+    @SuppressWarnings("serial")
+	private static JMenu menuNaviguer(EditorApi ctx) {
+        JMenu naviguerMenu = new JMenu("Naviguer");
+        naviguerMenu.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+        naviguerMenu.setMnemonic(KeyEvent.VK_N); // Utiliser ALT+n pour ouvrir le menu
+        naviguerMenu.getAccessibleContext().setAccessibleName("Naviguer");
         // Listener déclenché à l’ouverture du menu
-    	naviguerMenu.addMenuListener(new MenuListener() {
+        naviguerMenu.addMenuListener(new MenuListener() {
             @Override public void menuSelected(MenuEvent e) {
                 // Laisse Swing ouvrir le menu, puis enlève l’item armé
                 SwingUtilities.invokeLater(() -> {
@@ -844,98 +847,117 @@ public final class MenuBarFactory {
             @Override public void menuDeselected(MenuEvent e) {}
             @Override public void menuCanceled(MenuEvent e) {}
         });
-    	
-    	
-    	JMenuItem navigateurItem = createMenuItem("Navigateur de titre", KeyEvent.VK_F6, 0, e -> {
-    		writer.spell.SpellCheckLT spell = ctx.getSpell();
-    		if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
-    		 var win = ctx.getWindow();
-             if (win instanceof EditorFrame frame) {
-                 new navigateurT1(frame);
-             }
+
+        JMenuItem navigateurItem = createMenuItem("Navigateur de titre", KeyEvent.VK_F6, 0, e -> {
+            var win = ctx.getWindow();
+            if (win instanceof EditorFrame frame) {
+                new navigateurT1(frame);
+            }
         });
-    	
-    	JMenuItem rechercher = createMenuItem("Rechercher texte", KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK, e -> {
-    		writer.spell.SpellCheckLT spell = ctx.getSpell();
-    		if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
-            new writer.openSearchDialog(ctx.getEditor());
+
+        JMenuItem rechercher = createMenuItem("Rechercher texte",
+                KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK, e -> {
+                new writer.openSearchDialog(ctx.getEditor());
         });
-	
-    	//-------------- Marque page ----------------
-	
-    	JMenuItem bmToggle = createMenuItem("Marque-page (basculer)",KeyEvent.VK_F2, InputEvent.CTRL_DOWN_MASK, e -> {
-    	    var m = ctx.getBookmarks();
-    	    if (m == null) {
-    	        java.awt.Toolkit.getDefaultToolkit().beep();
-    	        return;
-    	    }
-    	    boolean added = m.toggleHere();
-    	    String message = (added ? "Marque-page ajouté." : "Marque-page supprimé.");
-    	    java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor());
-    	    dia.InfoDialog.show(owner, "Information", message);
-    	    ctx.setModified(true);
-    	});
-		
 
-		JMenuItem bmNote = createMenuItem("Marque-page note", KeyEvent.VK_T,InputEvent.CTRL_DOWN_MASK,e -> { 
-			var m = ctx.getBookmarks();                      
-		    if (m == null) {                   
-		        java.awt.Toolkit.getDefaultToolkit().beep();
-		        return;
-		    }
-		    m.editNoteForNearest(javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor()));
-			});
-		
-		
-		JMenuItem bmNext = createMenuItem("Marque-page suivant", KeyEvent.VK_F4, 0, e -> { 
-		var m = ctx.getBookmarks();                      
-		if (m == null) {                   
-		    java.awt.Toolkit.getDefaultToolkit().beep();
-		    return;
-		}
-		m.goNext(); 
-		});
-		
-		JMenuItem bmPrev = createMenuItem("Marque-page précédent", KeyEvent.VK_F4, InputEvent.SHIFT_DOWN_MASK, e -> { 
-		var m = ctx.getBookmarks();                      
-		if (m == null) {                   
-		    java.awt.Toolkit.getDefaultToolkit().beep();
-		    return;
-		}
-		m.goPrev(); 
-		});
-		
-		// -------- Position dans texte (F2) --------
-		JMenuItem posItem = new JMenuItem(ctx.actAnnouncePosition());
-		posItem.setText("Se repèrer dans le texte");
-		posItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
-		posItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
-		
-		// -------- Titre suivant (F3) --------
-		JMenuItem nextHeadingItem = new JMenuItem(ctx.actGotoNextHeading());
-		nextHeadingItem.setText("Titre suivant");
-		nextHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
-		nextHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+        JMenuItem remplacer = createMenuItem("Rechercher et remplacer texte",
+                KeyEvent.VK_H, KeyEvent.CTRL_DOWN_MASK, e -> {
+            var win = ctx.getWindow();
+            if (win instanceof EditorFrame frame) {
+                dia.openReplaceDialog.open(frame, ctx.getEditor());
+            } else {
+                dia.openReplaceDialog.open(null, ctx.getEditor());
+            }
+        });
 
-		// -------- Titre précédent (Shift+F3) --------
-		JMenuItem prevHeadingItem = new JMenuItem(ctx.actGotoPrevHeading());
-		prevHeadingItem.setText("Titre précédent");
-		prevHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0));
-		prevHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+        // On neutralise le raccourci Swing par défaut Ctrl+H dans l'éditeur
+        KeyStroke ksCtrlH = KeyStroke.getKeyStroke(KeyEvent.VK_H, KeyEvent.CTRL_DOWN_MASK);
+        ctx.getEditor().getInputMap(JComponent.WHEN_FOCUSED)
+                .put(ksCtrlH, "none");
 
-		 ctx.addItemChangeListener(navigateurItem);
-		 ctx.addItemChangeListener(rechercher);
-		 ctx.addItemChangeListener(bmToggle);
-		 ctx.addItemChangeListener(bmNote);
-		 ctx.addItemChangeListener(bmNext);
-		 ctx.addItemChangeListener(bmPrev);
-		 ctx.addItemChangeListener(posItem);
-		 ctx.addItemChangeListener(nextHeadingItem);
-		 ctx.addItemChangeListener(prevHeadingItem);
-        
+
+        //-------------- Marque page ----------------
+
+        JMenuItem bmToggle = createMenuItem("Marque-page (basculer)",
+                KeyEvent.VK_F2, InputEvent.CTRL_DOWN_MASK, e -> {
+            var m = ctx.getBookmarks();
+            if (m == null) {
+                java.awt.Toolkit.getDefaultToolkit().beep();
+                return;
+            }
+            boolean added = m.toggleHere();
+            String message = (added ? "Marque-page ajouté." : "Marque-page supprimé.");
+            java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor());
+            dia.InfoDialog.show(owner, "Information", message);
+            ctx.setModified(true);
+        });
+
+        JMenuItem bmNote = createMenuItem("Marque-page note",
+                KeyEvent.VK_T, InputEvent.CTRL_DOWN_MASK, e -> {
+            var m = ctx.getBookmarks();
+            if (m == null) {
+                java.awt.Toolkit.getDefaultToolkit().beep();
+                return;
+            }
+            m.editNoteForNearest(javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor()));
+        });
+
+        JMenuItem bmNext = createMenuItem("Marque-page suivant",
+                KeyEvent.VK_F4, 0, e -> {
+            var m = ctx.getBookmarks();
+            if (m == null) {
+                java.awt.Toolkit.getDefaultToolkit().beep();
+                return;
+            }
+            m.goNext();
+        });
+
+        JMenuItem bmPrev = createMenuItem("Marque-page précédent",
+                KeyEvent.VK_F4, InputEvent.SHIFT_DOWN_MASK, e -> {
+            var m = ctx.getBookmarks();
+            if (m == null) {
+                java.awt.Toolkit.getDefaultToolkit().beep();
+                return;
+            }
+            m.goPrev();
+        });
+
+        // -------- Position dans texte (F2) --------
+        JMenuItem posItem = new JMenuItem(ctx.actAnnouncePosition());
+        posItem.setText("Se repèrer dans le texte");
+        posItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
+        posItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+
+        // -------- Titre suivant (F3) --------
+        JMenuItem nextHeadingItem = new JMenuItem(ctx.actGotoNextHeading());
+        nextHeadingItem.setText("Titre suivant");
+        nextHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
+        nextHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+
+        // -------- Titre précédent (Shift+F3 ?) --------
+        JMenuItem prevHeadingItem = new JMenuItem(ctx.actGotoPrevHeading());
+        prevHeadingItem.setText("Titre précédent");
+        // (Tu as mis F4 ici, à vérifier par rapport à ta doc clavier)
+        prevHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0));
+        prevHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+
+        // --- listeners d’activation / désactivation suivant le contexte ---
+        ctx.addItemChangeListener(navigateurItem);
+        ctx.addItemChangeListener(rechercher);
+        ctx.addItemChangeListener(remplacer);   // <<< on ajoute le nouveau
+        ctx.addItemChangeListener(bmToggle);
+        ctx.addItemChangeListener(bmNote);
+        ctx.addItemChangeListener(bmNext);
+        ctx.addItemChangeListener(bmPrev);
+        ctx.addItemChangeListener(posItem);
+        ctx.addItemChangeListener(nextHeadingItem);
+        ctx.addItemChangeListener(prevHeadingItem);
+
+        // --- construction du menu ---
         naviguerMenu.add(navigateurItem);
         naviguerMenu.addSeparator();
         naviguerMenu.add(rechercher);
+        naviguerMenu.add(remplacer);
         naviguerMenu.addSeparator();
         naviguerMenu.add(bmToggle);
         naviguerMenu.add(bmNote);
@@ -946,8 +968,7 @@ public final class MenuBarFactory {
         naviguerMenu.add(nextHeadingItem);
         naviguerMenu.add(prevHeadingItem);
 
-	
-	return naviguerMenu;
+        return naviguerMenu;
     }
 
     // Menu Sources pour réaliser une bibilographie

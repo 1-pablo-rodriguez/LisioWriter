@@ -52,23 +52,22 @@ public class titre2 {
                 // Ligne contenant seulement ¶ (et espaces) → ¶#2. 
                 newAfter = "#2. ";
             } else if (HN_3_9.matcher(after).find()) {
-                newAfter = HN_3_9.matcher(after).replaceFirst("#2. ");
+                newAfter = HN_3_9.matcher(after).replaceFirst(" #2. ");
             } else if (H1.matcher(after).find()) {
-                newAfter = H1.matcher(after).replaceFirst("#2. ");
+                newAfter = H1.matcher(after).replaceFirst(" #2. ");
             } else if (HP.matcher(after).find()) {
-                newAfter = HP.matcher(after).replaceFirst("#2. ");
+                newAfter = HP.matcher(after).replaceFirst(" #2. ");
             } else if (HS.matcher(after).find()) {
-                newAfter = HS.matcher(after).replaceFirst("#2. ");
+                newAfter = HS.matcher(after).replaceFirst(" #2. ");
             } else if (BULLET.matcher(after).find()) {
-                newAfter = BULLET.matcher(after).replaceFirst("#2. ");
+                newAfter = BULLET.matcher(after).replaceFirst(" #2. ");
             } else if (H2_ANY.matcher(after).find()) {
                 // normaliser "#2." → "#2. "
-                newAfter = H2_ANY.matcher(after).replaceFirst("#2. ");
+                newAfter = H2_ANY.matcher(after).replaceFirst(" #2. ");
             } else if (NOT_H.matcher(after).find()) {
                 // pas de balise → on préfixe
-                newAfter = "#2. " + after.stripLeading();
+                newAfter = " #2. " + after.stripLeading();
             } else {
-                // déjà propre
                 newAfter = after;
             }
 

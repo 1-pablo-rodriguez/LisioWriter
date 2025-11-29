@@ -1,352 +1,286 @@
-<blindWriter filename="documentation">
-	<styles_paragraphes>
-		<Title name="Title" police="Arial" size="18pt" alignement="center" interligne="150%" espacement_au_dessus="0.423cm" espacement_en_dessous="0.212cm" keep-with-next="always"/>
-		<Subtitle name="Subtitle" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
-		<Titre1 name="Titre1" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
-		<Titre2 name="Titre2" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
-		<Titre3 name="Titre3" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
-		<Titre4 name="Titre4" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
-		<Titre5 name="Titre5" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
-		<bodyText name="Corps de texte" police="Arial" size="14pt" alignement="justify" interligne="115%" espacement_au_dessus="0.2cm" espacement_en_dessous="0.2cm"/>
-		<Title name="Title" police="Arial" size="18pt" alignement="center" interligne="150%" espacement_au_dessus="0.423cm" espacement_en_dessous="0.212cm" keep-with-next="always"/>
-		<Subtitle name="Subtitle" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
-		<Titre1 name="Titre1" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
-		<Titre2 name="Titre2" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
-		<Titre3 name="Titre3" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
-		<Titre4 name="Titre4" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
-		<Titre5 name="Titre5" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
-		<bodyText name="Corps de texte" police="Arial" size="14pt" alignement="justify" interligne="115%" espacement_au_dessus="0.2cm" espacement_en_dessous="0.2cm"/>
-	</styles_paragraphes>
-	<styles_pages>
-		<pageDefaut entete="true" piedpage="true"/>
-		<pageTitre couverture="true"/>
-		<pageDefaut entete="true" piedpage="true"/>
-		<pageTitre couverture="true"/>
-	</styles_pages>
-	<meta>
-		<titre LeTitre="STAGE AU MUSEE DE RESISTANCE DU FORT DE BONDUES"/>
-		<sujet LeSujet="2024 - 2025"/>
-		<auteur nom="Yanis Devassine"/>
-		<coauteur nom="Yanis Devassine"/>
-		<society nom="Université d'Artois"/>
-		<date_modification date="2025-10-20T14:34:42"/>
-		<date_modification date="2025-04-24T14:37:51"/>
-		<description resume=""/>
-		<motsCles mots=""/>
-		<langue lang=""/>
-		<date_creation date="2025-10-16T19:16:00"/>
-	</meta>
-	<contentText>#P. Traitement de texte pour non-voyant et déficient visuel
-#S. Version 1.0.6 du 22 octobre 2025
-Astuce : appuyez sur F6 pour ouvrir le navigateur et décrouvrir la documentation.
-Astuce : appuyez sur F2 pour savoir dans quelle partie de la documentation vous vous trouvez.
-Astuce : appuyez sur F3 pour aller sur le titre suivant.
-Astuce : appuyez sur Maj+F3 pour aller sur le titre au-dessus.
-Astuce : appuyez sur F1 pour des informations sur la fenêtre et son usage.
-@saut de page manuel
+<blindWriter filename="documentation"><meta>/<auteur nom=""></auteur><titre LeTitre=""></titre><sujet LeSujet=""></sujet><coauteur nom="LisioWriter; ..."></coauteur><society nom=""></society><description resume=""></description><motsCles mots=""></motsCles><langue lang=""></langue><date_creation date="2025-11-29T13:06:44"></date_creation><date_modification date="2025-11-29T14:27:05"></date_modification><></></meta><styles_paragraphes><Title name="Title" police="Arial" size="18pt" alignement="center" interligne="150%" espacement_au_dessus="0.423cm" espacement_en_dessous="0.212cm" keep-with-next="always"></Title><Subtitle name="Subtitle" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Subtitle><Titre1 name="Titre1" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre1><Titre2 name="Titre2" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre2><Titre3 name="Titre3" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre3><Titre4 name="Titre4" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre4><Titre5 name="Titre5" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre5><bodyText name="Corps de texte" police="Arial" size="14pt" alignement="justify" interligne="115%" espacement_au_dessus="0.2cm" espacement_en_dessous="0.2cm"></bodyText><Title name="Title" police="Arial" size="18pt" alignement="center" interligne="150%" espacement_au_dessus="0.423cm" espacement_en_dessous="0.212cm" keep-with-next="always"></Title><Subtitle name="Subtitle" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Subtitle><Titre1 name="Titre1" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre1><Titre2 name="Titre2" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre2><Titre3 name="Titre3" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre3><Titre4 name="Titre4" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre4><Titre5 name="Titre5" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre5><bodyText name="Corps de texte" police="Arial" size="14pt" alignement="justify" interligne="115%" espacement_au_dessus="0.2cm" espacement_en_dessous="0.2cm"></bodyText><Title name="Title" police="Arial" size="18pt" alignement="center" interligne="150%" espacement_au_dessus="0.423cm" espacement_en_dessous="0.212cm" keep-with-next="always"></Title><Subtitle name="Subtitle" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Subtitle><Titre1 name="Titre1" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre1><Titre2 name="Titre2" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre2><Titre3 name="Titre3" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre3><Titre4 name="Titre4" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre4><Titre5 name="Titre5" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre5><bodyText name="Corps de texte" police="Arial" size="14pt" alignement="justify" interligne="115%" espacement_au_dessus="0.2cm" espacement_en_dessous="0.2cm"></bodyText></styles_paragraphes><styles_pages><pageDefaut entete="false" piedpage="false"></pageDefaut><pageTitre couverture="false"></pageTitre><pageDefaut entete="false" piedpage="false"></pageDefaut><pageTitre couverture="false"></pageTitre></styles_pages><contentText>¶ #P. Traitement de texte pour non-voyant et déficient visuel
+¶ #S. Version 1.1.16 du 29 novembre 2025
+¶ Astuce : appuyez sur F6 pour ouvrir le navigateur et décrouvrir la documentation.
+¶ Astuce : appuyez sur F2 pour savoir dans quelle partie de la documentation vous vous trouvez.
+¶ Astuce : appuyez sur F3 pour aller sur le titre suivant.
+¶ Astuce : appuyez sur F4 pour aller sur le titre au-dessus.
+¶ Astuce : appuyez sur F1 pour des informations sur le fichier ouvert et ses sattistique.
+¶ @saut de page
+¶ #1. Que réalise ce logiciel ?
+¶ LisioWriter doit être utilisé avec un lecteur d’écran tel que NVDA, ou Jaws, etc.
+¶ LisioWriter est l’outil idéal pour les personnes non-voyantes souhaitant rédiger des mémoires, rapports de stage ou tout autre document. Grâce à son interface entièrement pilotable au clavier, vous créez des documents professionnels.LisioWriter offre les fonctions d’un traitement de texte classique, conçues spécifiquement pour la non-vision : styles de titres hiérarchisés, styles de paragraphe, listes, notes de bas de page.
+¶ Il permet d'ouvrir des fichiers Microsoft Word, LibreOffice Writer, HTML ou un simple texte brut (.txt).
+¶ Il permet d'exporter au format ODF (LibreOffice Writer), OOXML (Microsoft Word), PDF ou HTML.
+¶ Les mise en forme des paragraphes ou des mots est visible, pour cela LisioWriter utilise des codes simples.
+¶ Vous n’avez pas besoin de les connaître par cœur : ils s’insèrent par menu ou via des raccourcis clavier.
+¶ Dans LisioWriter, chaque ligne correspond un paragraphe.
+¶ Le début de chaque paragraphe est indiqué par le caractère ¶ (pied de mouche).
+¶ Dans LisioWriter, il n’y a pas de page pendant l’édition. Les pages sont générées à l’export en fonction de chaque format d'exportation.
+¶ En résumé, LisioWriter combine la puissance d’un traitement de texte avec une interface épurée et accessible.
+¶ Le logiciel évolue régulièrement avec de nouvelles fonctions.
+¶ Il est conseillé de réaliser les mises à jour (raccourci clavier : Ctrl + U).
+¶ Commencez par découvrir la documentation avec le navigateur de titre (raccourcu clavier : F6).
+¶ Je vous conseille pour démarer avec le navigateur de développer tous les titres (Ctrl + +).
+¶ @saut de page
+¶ #1. L’intérêt de structurer son texte avec les styles de paragraphe
+¶ Structurer un texte dans LisioWriter à l’aide des styles de paragraphe présente plusieurs avantages, notamment :
+¶ -. Clarté et lisibilité : hiérarchiser les informations (titres, sous-titres, corps de texte) facilite la lecture, surtout pour les documents longs.
+¶ -. Navigation : avec une bonne structure, utilisez le navigateur (F6) pour vous déplacer entre les sections et réorganiser rapidement.
+¶ -. Consistance : un même type d’élément a toujours la même apparence (tous les titres 1 identiques, etc.).
+¶ -. Gain de temps : un raccourci suffit pour appliquer un style partout, sans formatage manuel répétitif.
+¶ #2. Pourquoi cette organisation est importante ?
+¶ Comme l’arborescence d’un ordinateur, la hiérarchie des titres vous permet de vous repérer dans le document.
+¶ Les lecteurs d’écran l’annoncent (niveau du titre), ce qui facilite l’orientation.
+¶ #2. Codage des styles dans LisioWriter
+¶ Par défaut, vos lignes sont en corps de texte (niveau hiérarchique de base).
+¶ Pour créer un titre, utilisez le code #chiffre point espace au début d’une ligne (début de paragraphe).
+¶ Exemples :
+¶ -. ¶ #1. Mon titre de chapitre
+¶ -. ¶ #2. Ma première section (dépend du chapitre précédent)
+¶ -. ¶ #3. Ma sous-section (dépend de la section précédente)
+¶ -. Jusqu'au niveau 5
+¶ #2. Comment appliquer un style sur un paragraphe ?
+¶ Tapez votre texte dans un nouveau paragraphe ou placez le curseur dans le paragraphe, puis utilisez les raccourcis clavier :
+¶ -. Ctrl + & : Titre 1 → insère le code #1. au début du paragraphe.
+¶ -. Ctrl + é : Titre 2 → insère le code #2. au début du paragraphe.
+¶ -. Ctrl + " : Titre 3 → insère le code #3. au début du paragraphe.
+¶ -. Ctrl + '  : Titre 4 → insère le code #4. au début du paragraphe. 
+¶ -. Ctrl + ( : Titre 5 → insère le code #5. au début du paragraphe.  
+¶ -. Ctrl + _ : Titre principal → insère le code #P. au début du paragraphe (réservé au titre du document).
+¶ -. Ctrl + ç : Sous-titre → insère le code #S. au début du paragraphe.
+¶ -. Ctrl + à : Corps de texte (supprime le code au début du paragraphe).
+¶ #2. Comment supprimer un style sur un paragraphe ?
+¶ Supprimer le code correspondant au style qui se trouve au début du paragraphe.Ou bien tapez au clavier sur Ctrl+à.
+¶ #2. Revenir au style par défaut (Corps de texte)
+¶ Placez le curseur dans le paragraphe, puis sélectionnez le menu Appliquer un style (Alt + U) → Corps de texte (Ctrl + à).
+¶ Ou bien,placez le curseur dans le paragraphe et utiliser le raccourci clavier Ctrl + à. Le paragraphe redevient corps de texte.
+¶ @saut de page
+¶ #1. Le navigateur
+¶ Le navigateur liste tous les titres.
+¶ Il permet de parcourir, développer ou réduire un titre, atteindre un titre, réorganiser la structure, modifier les niveaux, supprimer un titre et son contenu, et copier un titre avec son contenu dans le presse-papiers.
+¶ À l’ouverture, seuls les titres racine (souvent niveau 1) sont visibles.
+¶ #2. Navigation de base
+¶ -. Flèche Haut / Flèche Bas : se déplacer dans la liste.
+¶ -. Entrée : aller au titre dans le document (curseur placé au début du titre, défilement auto).
+¶ -. ÉCHAP : fermer le navigateur.
+¶ #2. Développer / Réduire
+¶ -. + : développer le titre sélectionné (affiche ses sous-titres).
+¶ -. − : réduire le titre sélectionné (masque ses sous-titres).
+¶ #2. Développer ou réduire tous les titres
+¶ -. Ctrl+ + (Ctrl + Plus) : tout développer (afficher tous les sous-titres de tous les titres).
+¶ -. Ctrl+ − (Ctrl + Moins ): tout réduire (masque tous les sous-titres de tous les titres).
+¶ #2. Modifier le niveau des titres
+¶ -. Flèche Droite : augmenter d’un niveau le titre seul (max niveau 5).
+¶ -. Flèche Gauche : diminuer d’un niveau le titre seul (min niveau 1).
+¶ -. Alt+Flèche Droite : augmenter d’un niveau le titre et ses sous-titres (bloc complet), max 5.
+¶ -. Alt+Flèche Gauche : diminuer d’un niveau le titre et ses sous-titres (bloc complet), min 1.
+¶ Remarque : modifier le niveau peut changer la hiérarchie (parent/enfant).
+¶ #2. Réorganiser la structure
+¶ -. Alt+Flèche Haut : déplacer le bloc vers le haut (avant le frère précédent du même niveau).
+¶ -. Alt+Flèche Bas : déplacer le bloc vers le bas (après le frère suivant du même niveau).
+¶ #2. Copier un titre et son contenu
+¶ -. Ctrl+C : copier le titre sélectionné et tout son contenu (jusqu’au prochain titre de même ou plus haut niveau) dans le presse-papiers.
+¶ Astuce : la copie n’altère pas le document. Collez le bloc où vous voulez.
+¶ #2. Suppression
+¶ -. Suppr : supprimer le titre sélectionné et tout son contenu. Une confirmation est demandée.
+¶ #2. Informations sur le Fichier et le positionnement du curseur
+¶ -. F1 : Fenêtre informations sur le fichiers et ses statistiques.
+¶ -. F2 : Fenêtre position dans le document.
+¶ (Annonces actives si la synthèse vocale est activée.)
+¶ @saut de page
+¶ #1. Appliquer les styles de paragraphe
+¶ -. Style par défaut : corps de texte (niveau de base, pas de code markdown).
+¶ -. Titre principal : Ctrl+_ → code #P (réservé au titre du document).
+¶ -. Sous-titre : Ctrl+ç → code #S.
+¶ -. Titre 1 : Ctrl+& → code 
+¶ #1.
+¶ -. Titre 2 : Ctrl+é → code 
+¶ #2.
+¶ -. Titre 3 : Ctrl+ → code 
+¶ #3.
+¶ -. Titre 4 : Ctrl+' → code 
+¶ #4.
+¶ -. Titre 5 : Ctrl+( → code 
+¶ #5.
 
-#1. Que réalise ce logiciel ?
-Il est conseillé d’utiliser LisioWriter avec un lecteur d’écran tel que NVDA. blindWriter est l’outil idéal pour les personnes non-voyantes souhaitant rédiger des mémoires, rapports de stage ou tout autre document. Grâce à son interface entièrement pilotable au clavier, vous créez des documents professionnels. Il permet d'ouvrir des fichiers Ms Word, LibreOffice Writer ou de simple texte brut.
-blindWriter offre les fonctions d’un traitement de texte classique, conçues spécifiquement pour la non-vision : styles de titres hiérarchisés, styles de paragraphe, listes, notes de bas de page (citations), bibliographie, export ODF (LibreOffice Writer) et PDF. Vous pouvez importer des fichiers LibreOffice Writer ou Microsoft Word puis les modifier dans blindWriter.
-Pour cela, le texte du document utilise des codes simples propres à blindWriter. Vous n’avez pas besoin de les connaître par cœur : ils s’insèrent par menu ou via des raccourcis clavier.
-Dans blindWriter, chaque ligne = un paragraphe. Il n’y a pas de notion de page pendant l’édition ; les pages sont générées à l’export.
-En résumé, blindWriter combine la puissance d’un traitement de texte avec une interface épurée et accessible. Le logiciel évolue régulièrement avec de nouvelles fonctions.
-Commencez par découvrir le navigateur : sélectionnez un titre et appuyez sur Entrée pour vous placer au début de ce titre. Vous pouvez aussi réorganiser (déplacer) des titres et supprimer un bloc entier.
-
-@saut de page manuel
-#1. L’intérêt de structurer son texte avec les styles de paragraphe
-Structurer un texte dans blindWriter à l’aide des styles de paragraphe présente plusieurs avantages, notamment :
--. Clarté et lisibilité : hiérarchiser les informations (titres, sous-titres, corps de texte) facilite la lecture, surtout pour les documents longs.
--. Navigation : avec une bonne structure, utilisez le navigateur (F6) pour vous déplacer entre les sections et réorganiser rapidement.
--. Consistance : un même type d’élément a toujours la même apparence (tous les titres 1 identiques, etc.).
--. Gain de temps : un raccourci suffit pour appliquer un style partout, sans formatage manuel répétitif.
--. Sommaire / Table des matières : blindWriter peut la générer automatiquement à partir des styles.
-
-#2. Pourquoi cette organisation est importante ?
-Comme l’arborescence d’un ordinateur, la hiérarchie des titres vous permet de vous repérer dans le document.
-Les lecteurs d’écran l’annoncent (niveau du titre), ce qui facilite l’orientation.
-
-#2. Codage des styles dans blindWriter
-Par défaut, vos lignes sont en corps de texte (niveau hiérarchique de base).
-Pour créer un titre, utilisez le code #chiffre. au début d’une ligne (début de paragraphe).
-Exemples :
--. #1. Mon titre de chapitre
--. #2. Ma première section (dépend du chapitre précédent)
--. #3. Ma sous-section (dépend de la section précédente)
--. ... juste au niveau 5 (#5. ) 
-
-#2. Comment appliquer un style sur un paragraphe ?
-Tapez ve texte sur une nouvelle ligne ou placez le curseur dans le paragraphe, puis utilisez :
--. Ctrl+& : Titre 1 → code #1.
--. Ctrl+é : Titre 2 → code #2.
--. Ctrl+ : Titre 3 → code #3.
--. Ctrl+' : Titre 4 → code #4.
--. Ctrl+( : Titre 5 → code #5.
--. Ctrl+_ : Titre principal → code #P (réservé au titre du document)
--. Ctrl+ç : Sous-titre → code #S
--. Ctrl+à : Corps de texte (retire le code de titre)
--. 
-#2. Comment ssupprimer un style sur un paragraphe ?
- Supprimer le code correspondant au style qui se trouve au début du paragraphe.Ou bien tapez au clavier sur Ctrl+à.
-
-#2. Revenir au style par défaut (Corps de texte)
-Placez le curseur dans un titre et tapez Ctrl+à. Le paragraphe redevient corps de texte.
-
-@saut de page manuel
-#1. Le navigateur
-Le navigateur liste tous les titres (#1. à #5.). Il permet de parcourir, développer/réduire, atteindre un titre, réorganiser la structure, modifier les niveaux, supprimer un titre et son contenu, et copier un titre avec son contenu dans le presse-papiers.
-À l’ouverture, seuls les titres racine (souvent niveau 1) sont visibles.
-#2. Navigation de base
--. Flèche Haut / Flèche Bas : se déplacer dans la liste.
--. Entrée : aller au titre dans le document (curseur placé au début du titre, défilement auto).
--. ÉCHAP : fermer le navigateur.
-#2. Développer / Réduire
--. + : développer le titre sélectionné (affiche ses sous-titres).
--. − : réduire le titre sélectionné (masque ses sous-titres).
--. Ctrl+ + (Ctrl + Plus) : tout développer (afficher uniquement tous les sous-titres du titre développé ).
--. Ctrl+ − (Ctrl + Moins ): tout réduire (masque tous les sous-titres du titre et affiche les titres de même niveau).
-#2. Modifier le niveau des titres
--. Flèche Droite : augmenter d’un niveau le titre seul (max niveau 5).
--. Flèche Gauche : diminuer d’un niveau le titre seul (min niveau 1).
--. Alt+Flèche Droite : augmenter d’un niveau le titre et ses sous-titres (bloc complet), max 5.
--. Alt+Flèche Gauche : diminuer d’un niveau le titre et ses sous-titres (bloc complet), min 1.
-Remarque : modifier le niveau peut changer la hiérarchie (parent/enfant).
-
-#2. Réorganiser la structure
--. Alt+Flèche Haut : déplacer le bloc vers le haut (avant le frère précédent du même niveau).
--. Alt+Flèche Bas : déplacer le bloc vers le bas (après le frère suivant du même niveau).
-
-#2. Copier un titre et son contenu
--. Ctrl+C : copier le titre sélectionné et tout son contenu (jusqu’au prochain titre de même ou plus haut niveau) dans le presse-papiers.
-Astuce : la copie n’altère pas le document. Collez le bloc où vous voulez.
-
-#2. Suppression
--. Suppr : supprimer le titre sélectionné et tout son contenu. Une confirmation est demandée.
-
-#2. Aide et retour vocal
--. F1 : récapitulatif (nombre total de titres, combien sont visibles, quels titres sont développés, etc.).
--. F2 : état du titre (développé/réduit/sans sous-titre), nombre de sous-titres, puis lecture du titre.
-(Annonces actives si la synthèse vocale est activée.)
-
-@saut de page manuel
-#1. Appliquer les styles de paragraphe
--. Style par défaut : corps de texte (niveau de base, pas de code markdown).
--. Titre principal : Ctrl+_ → code #P (réservé au titre du document).
--. Sous-titre : Ctrl+ç → code #S.
--. Titre 1 : Ctrl+& → code #1.
--. Titre 2 : Ctrl+é → code #2.
--. Titre 3 : Ctrl+ → code #3.
--. Titre 4 : Ctrl+' → code #4.
--. Titre 5 : Ctrl+( → code #5.
-
-@saut de page manuel
-#1. Basculer entre votre texte, la documentation blindWriter et le manuel de b.book
--. ALT+B : basculer vers votre texte (depuis la documentation blindWriter ou b.book).
--. ALT+A : basculer vers la documentation blindWriter.
--. ALT+C : basculer vers le manuel b.book.
-(Disponible aussi via le menu Documentation.)
-@saut de page manuel
-
-#1. Atteindre rapidement un titre
-Cette fonction permet de se déplacer rapidement d’un titre à un autre dans votre document sans ouvrir de boîte de dialogue.
-#2. Ouvrir le navigateur des titres
--. F6 ou Menu Naviguer → Navigateur : ouvre la liste des titres du document.
--. Dans la liste, utilisez Flèche Haut / Flèche Bas pour parcourir les titres.
--. Appuyez sur Entrée pour aller au titre sélectionné dans le texte.
--. Appuyez sur ÉCHAP pour fermer le navigateur.
-#2. Aller d’un titre à un autre sans ouvrir le navigateur
--. Maj+Flèche Haut ou Menu Naviguer → Titre précédent : aller au titre précédent dans le document.
--. Maj+Flèche Bas ou Menu Naviguer → Titre suivant : aller au titre suivant.
-Le curseur se place automatiquement au début du titre et la vue défile jusqu’à lui.
-#2. Astuce
-Vous pouvez combiner ces fonctions avec les marque-pages (Ctrl+F2) pour retrouver plus rapidement vos sections importantes.
-@saut de page manuel
-
-#1. Les marque-pages
-Les marque-pages permettent de placer des repères dans votre document pour y revenir rapidement.
-Ils sont particulièrement utiles dans les longs textes pour marquer une section à relire, un passage à corriger ou une référence à compléter.
-Chaque marque-page peut également contenir une note personnelle, lisible ultérieurement.
-#2. Insérer ou supprimer un marque-page
--. Ctrl+F2 ou Menu Naviguer → Marque-page (basculer) : insère un marque-page à la position actuelle du curseur.
--. Si un marque-page existe déjà à cet endroit, le même raccourci le supprime.
--. Après l’insertion, une fenêtre s’ouvre automatiquement pour ajouter une note au marque-page (ex. « À relire », « Vérifier citation », etc.).
--. La note est enregistrée avec le marque-page et peut être lue ou modifiée plus tard.
--. Une annonce vocale « INFO ÉCHAP. : marque-page ajouté » ou « marque-page supprimé » confirme l’action.
-#2. Naviguer entre les marque-pages
--. F2 ou Menu Naviguer → Marque-page suivant : aller au marque-page suivant dans le document.
--. Maj+F2 ou Menu Naviguer → Marque-page précédent : aller au marque-page précédent.
--. Lors du déplacement, le curseur se positionne automatiquement sur la ligne du marque-page et une annonce indique son numéro (ex. « Marque-page 2 sur 5 »).
--. Si une note est associée, elle est affichée et annoncée automatiquement.
-#2. Modifier ou supprimer une note
--. Ctrl+Maj+F2 ou Menu Naviguer →Marque-page note : ouvre la fenêtre de modification de la note.
--. Vous pouvez changer le texte de la note, la laisser vide, ou valider pour la conserver.
--. Pour supprimer uniquement la note (sans effacer le marque-page), laissez le champ vide et validez.
-#2. Gestion et persistance des marque-pages
--. Les marque-pages et leurs notes sont enregistrés automatiquement avec le document.
--. Ils sont indépendants du contenu : même si vous modifiez ou déplacez le texte, le marque-page reste attaché à la même position.
--. Lors de la réouverture du document, vos marque-pages et notes sont restaurés.
-#2. Utilisations conseillées
--. Pour mémoriser une position avant de fermer le document.
--. Pour laisser une note de révision ou un rappel sur un passage à compléter.
--. Pour placer un point de lecture si vous utilisez la lecture depuis le curseur.
-#2. Récapitulatif des raccourcis
--. Ctrl+F2 : insérer ou supprimer un marque-page.
--. F2 : aller au marque-page suivant.
--. Maj+F2 : aller au marque-page précédent.
--. Ctrl+Maj+F2 : modifier ou ajouter une note au marque-page.
-@saut de page manuel
-
-#1. Insérer un saut de page manuel
-Pour insérer un saut de page manuel, utilisez le code suivant : @saut de page manuel.
-Le paragraphe suivant commencera au début d’une nouvelle page.
-Important : ce code doit être seul sur une ligne vide, sans autre caractère ni espace.
-
-#2. Comment insérer le code « saut de page » ?
--. Placez le curseur sur une nouvelle ligne.
--. Tapez Ctrl+Espace pour insérer le saut de page.
-
-@saut de page manuel
-#1. Insérer une note de bas de page (citation)
-Appuyez sur Ctrl+N pour insérer une note de bas de page sous la forme :
-@(auteur : - titre : - année : - pages : )
-Complétez ensuite les champs (auteur, titre, année, pages) ou remplacez par le texte de votre choix.
-Exemples :
-
-@(Gabriel García Márquez - Cent ans de solitude.)
-
-@(Explications de mon choix)
-
-#2. Format recommandé (APA) pour les citations en note
--. Auteur : Nom de l’auteur, suivi d’une virgule.
--. Titre : Titre de l’œuvre en italique, suivi d’une virgule.
--. Année : Année entre parenthèses.
--. Pages : Si pertinent, numéros de pages entre parenthèses.
-
-#2. Une note de bas de page, c’est quoi ?
-C’est une information supplémentaire placée en bas de page : explication, référence, source d’une citation.
-Avec un lecteur d’écran, elle est lue comme un contenu secondaire consultable après le passage principal.
-
-@saut de page manuel
-#1. Vérifier l’orthographe et la grammaire
-La vérification détecte les fautes d’orthographe, grammaire, typographie et les mots inconnus. Elle s’applique à tout le document ou à une portion (sélection ou paragraphe courant).
-
-#2. Lancer une vérification
--. Ctrl+F7 ou Menu Édition → Vérifier tout le document : vérifier le document entier.
--. Ctrl+Maj+F7 ou Menu Édition → Vérifier la sélection / le paragraphe : vérifier la sélection, sinon le paragraphe courant.
-À la fin, une annonce indique le nombre d’éléments détectés.
-
-#2. Naviguer entre les éléments détectés
--. F7 : élément suivant (faute, alerte, suggestion).
--. Maj+F7 : élément précédent.
-À chaque déplacement, le curseur se place sur l’élément et la vue défile.
-INFO ÉCHAP. : un message bref rappelle le type de problème (fermez avec ÉCHAP).
-
-#2. Corriger, ignorer, ajouter au dictionnaire
--. Entrée (ou touche Menu / Maj+F10) sur une erreur : ouvrir les suggestions.
--. Flèche Haut/Bas pour choisir, Entrée pour appliquer.
-Options courantes : Corriger, Ignorer, Ignorer tout, Ajouter au dictionnaire.
-Astuce : après une correction, relancez Ctrl+Maj+F7 pour revérifier uniquement le paragraphe ajusté.
-
-#2. Accessibilité et annonces vocales
--. Chaque étape émet une annonce vocale (si la synthèse est activée).
--. Les messages « INFO ÉCHAP. » se ferment avec ÉCHAP ; la vérification continue.
--. Tous les raccourcis sont utilisables au clavier et compatibles NVDA.
-
-#2. Récapitulatif des raccourcis de vérification
--. Ctrl+F7 : vérifier tout le document.
--. Ctrl+Maj+F7 : vérifier la sélection / le paragraphe courant.
--. F7 / Maj+F7 : suivant / précédent.
--. Entrée (ou Menu / Maj+F10) : suggestions (corriger, ignorer, ajouter au dictionnaire).
--. ÉCHAP : fermer une info sans interrompre la vérification.
-
-@saut de page manuel
-#1. La boîte Rechercher
--. Tapez le mot ou groupe de mots à trouver. La recherche ignore la casse.
--. Entrée : occurrence suivante ; Maj+Entrée : précédente.
--. Vous pouvez aussi utiliser F3 (suivant) et Maj+F3 (précédent), ou les flèches Haut/Bas.
--. À chaque résultat, le mot est sélectionné et surligné ; le curseur se place au début et la vue défile.
--. Une fenêtre d’information affiche le contexte avec l’occurrence encadrée par des crochets (ex. : … en pri[maire], jusqu’aux …) et la position k sur N (ex. 2 sur 3). Validez OK ou fermez avec ÉCHAP.
--. En fin (ou début) de document, la recherche reprend en haut (ou en bas) et annonce Retour en haut/bas du document.
--. ÉCHAP : fermer la boîte Rechercher ; le curseur reste sur la dernière occurrence.
-
-#2. Utiliser des jokers (recherches avancées)
--. * = n’importe quelle suite de caractères (y compris vide).
-Ex. : livre* trouve livre, livres, livrer, livrée, etc.
--. ? = exactement un caractère.
-Ex. : l?vre trouve livre, lèvre.
--. Exemples utiles :
-*tion (mots finissant par tion) · réu*on (réunion, réunification s’il y a on ensuite) · doc?ment.
-Les jokers fonctionnent au début, au milieu ou à la fin du terme.
-
-#2. Conseils d’usage
--. Tapez un mot puis Entrée pour entendre le contexte du premier résultat.
--. Pour parcourir rapidement, enchaînez Entrée (ou F3).
--. Si vous ne voulez plus la fenêtre de contexte, fermez-la avec ÉCHAP ; elle se rouvrira au prochain résultat.
-
-@saut de page manuel
-
-#1. Exporter
-#2. Exporter au format ODF (Writer)
-Choisissez le menu Exporter → Exporter en .ODT.
-Le fichier sera exporté dans le dossier de travail avec le même nom que le fichier blindWriter.
-
-#2. Exporter au format PDF
-Choisissez le menu Exporter → Exporter en .PDF. 
-Le fichier sera exporté dans le dossier de travail avec le même nom que le fichier blindWriter.
-
-#2. Exporter au format HTML
-Choisissez le menu Exporter → Exporter en .HTML. 
-Le fichier sera exporté dans le dossier de travail avec le même nom que le fichier blindWriter.
-
-@saut de page manuel
-#1. Ouvrir un fichier blindWriter
-Pour ouvrir un fichier, choisissez Fichier → Ouvrir ou tapez Ctrl+O.
-Dans la boîte Ouvrir, il n’y a pas de boutons : utilisez Flèche Haut/Bas pour sélectionner, puis Entrée pour ouvrir un fichier ou entrer dans un dossier. Le dossier de travail suit automatiquement le dossier du fichier sélectionné.
-Pour remonter au dossier parent, appuyez sur la Barre d’espace.
-Pour vous positionner rapidement, tapez les premières lettres du nom.
-ÉCHAP : revenir à blindWriter sans rien ouvrir.
-
-@saut de page manuel
-#1. Formater du texte, c’est quoi ?
-Formater, c’est modifier la présentation (pas le sens). Pour un lecteur d’écran, on le comprend comme un changement d’intention ou de ton.
-Dans blindWriter, ces effets sont indiqués par des codes insérés dans le texte, par ex. gras, ^^italique^^. Le lecteur d’écran peut les signaler (voix, ton, pause).
-
-#1. Les textes en gras
-Mise en avant forte (terme clé, résultat important, consigne).
-Comment faire : sélectionnez le texte → Formatage → Gras.
-Exemple : Texte en gras
-
-#1. Les textes en italique
-Nuance de ton (citation, mot étranger, mise en relief discrète).
-Comment faire : Formatage → Italique.
-Exemple : ^^Texte en italique^^
-
-#1. Les textes soulignés
-Signal visuel/repère à mémoriser (terme, titre, exercice).
-Comment faire : Formatage → Souligner.
-Exemple : __Texte souligné__
-
-#1. Les textes soulignés et gras
-Insistance maximale (titre interne important, avertissement).
-Comment faire : Formatage → Souligner Gras.
-Exemple : _*Texte souligné et gras*_
-
-#1. Les textes soulignés et italiques
-Marque discrète et élégante (nom d’ouvrage, mot clé dans citation).
-Comment faire : Formatage → Souligner Italique.
-Exemple : _^Texte souligné et italique^_
-
-#1. Les textes en gras et italique
-Accentuation expressive avec nuance (émotion, mot-clé très fort).
-Comment faire : Formatage → Gras Italique.
-Exemple : *^Texte en gras et italique^*
-
-#1. Les textes en exposant
-Puissances, unités : mètre carré → m^¨2¨^, mètre cube → m^¨3¨^, **10^¨8¨^. Comment faire : sélectionnez le caractère → **Formatage → Exposant**. Exemple : m^¨2¨^`
-
-#1. Les textes en indice
-Chimie, notations : H_¨2¨_O, CO_¨2¨_, x_¨1¨.
-Comment faire : sélectionnez → Formatage → Indice.
-Exemple : H_¨2¨_O
-</contentText>
-</blindWriter>
+¶ @saut de page manuel
+¶ #1. Basculer entre votre texte, la documentation LisioWriter et le manuel de b.book
+¶ -. ALT+B : basculer vers votre texte (depuis la documentation LisioWriter ou b.book).
+¶ -. ALT+A : basculer vers la documentation LisioWriter.
+¶ -. ALT+C : basculer vers le manuel b.book.
+¶ (Disponible aussi via le menu Documentation.)
+¶ @saut de page manuel
+¶ #1. Atteindre rapidement un titre
+¶ Cette fonction permet de se déplacer rapidement d’un titre à un autre dans votre document sans ouvrir de boîte de dialogue.
+¶ #2. Ouvrir le navigateur des titres
+¶ -. F6 ou Menu Naviguer → Navigateur : ouvre la liste des titres du document.
+¶ -. Dans la liste, utilisez Flèche Haut / Flèche Bas pour parcourir les titres.
+¶ -. Appuyez sur Entrée pour aller au titre sélectionné dans le texte.
+¶ -. Appuyez sur ÉCHAP pour fermer le navigateur.
+¶ #2. Aller d’un titre à un autre sans ouvrir le navigateur
+¶ -. Maj+Flèche Haut ou Menu Naviguer → Titre précédent : aller au titre précédent dans le document.
+¶ -. Maj+Flèche Bas ou Menu Naviguer → Titre suivant : aller au titre suivant.
+¶ Le curseur se place automatiquement au début du titre et la vue défile jusqu’à lui.
+¶ #2. Astuce
+¶ Vous pouvez combiner ces fonctions avec les marque-pages (Ctrl+F2) pour retrouver plus rapidement vos sections importantes.
+¶ @saut de page manuel
+¶ #1. Les marque-pages
+¶ Les marque-pages permettent de placer des repères dans votre document pour y revenir rapidement.
+¶ Ils sont particulièrement utiles dans les longs textes pour marquer une section à relire, un passage à corriger ou une référence à compléter.
+¶ Chaque marque-page peut également contenir une note personnelle, lisible ultérieurement.
+¶ #2. Insérer ou supprimer un marque-page
+¶ -. Ctrl+F2 ou Menu Naviguer → Marque-page (basculer) : insère un marque-page à la position actuelle du curseur.
+¶ -. Si un marque-page existe déjà à cet endroit, le même raccourci le supprime.
+¶ -. Après l’insertion, une fenêtre s’ouvre automatiquement pour ajouter une note au marque-page (ex. « À relire », « Vérifier citation », etc.).
+¶ -. La note est enregistrée avec le marque-page et peut être lue ou modifiée plus tard.
+¶ -. Une annonce vocale « INFO ÉCHAP. : marque-page ajouté » ou « marque-page supprimé » confirme l’action.
+¶ #2. Naviguer entre les marque-pages
+¶ -. F2 ou Menu Naviguer → Marque-page suivant : aller au marque-page suivant dans le document.
+¶ -. Maj+F2 ou Menu Naviguer → Marque-page précédent : aller au marque-page précédent.
+¶ -. Lors du déplacement, le curseur se positionne automatiquement sur la ligne du marque-page et une annonce indique son numéro (ex. « Marque-page 2 sur 5 »).
+¶ -. Si une note est associée, elle est affichée et annoncée automatiquement.
+¶ #2. Modifier ou supprimer une note
+¶ -. Ctrl+Maj+F2 ou Menu Naviguer →Marque-page note : ouvre la fenêtre de modification de la note.
+¶ -. Vous pouvez changer le texte de la note, la laisser vide, ou valider pour la conserver.
+¶ -. Pour supprimer uniquement la note (sans effacer le marque-page), laissez le champ vide et validez.
+¶ #2. Gestion et persistance des marque-pages
+¶ -. Les marque-pages et leurs notes sont enregistrés automatiquement avec le document.
+¶ -. Ils sont indépendants du contenu : même si vous modifiez ou déplacez le texte, le marque-page reste attaché à la même position.
+¶ -. Lors de la réouverture du document, vos marque-pages et notes sont restaurés.
+¶ #2. Utilisations conseillées
+¶ -. Pour mémoriser une position avant de fermer le document.
+¶ -. Pour laisser une note de révision ou un rappel sur un passage à compléter.
+¶ -. Pour placer un point de lecture si vous utilisez la lecture depuis le curseur.
+¶ #2. Récapitulatif des raccourcis
+¶ -. Ctrl+F2 : insérer ou supprimer un marque-page.
+¶ -. F2 : aller au marque-page suivant.
+¶ -. Maj+F2 : aller au marque-page précédent.
+¶ -. Ctrl+Maj+F2 : modifier ou ajouter une note au marque-page.
+¶ @saut de page manuel
+¶ #1. Insérer un saut de page manuel
+¶ Pour insérer un saut de page manuel, utilisez le code suivant : @saut de page manuel.
+¶ Le paragraphe suivant commencera au début d’une nouvelle page.
+¶ Important : ce code doit être seul sur une ligne vide, sans autre caractère ni espace.
+¶ #2. Comment insérer le code « saut de page » ?
+¶ -. Placez le curseur sur une nouvelle ligne.
+¶ -. Tapez Ctrl+Espace pour insérer le saut de page.
+¶ @saut de page
+¶ #1. Insérer une note de bas de page (citation)
+¶ Appuyez sur Ctrl+N pour insérer une note de bas de page sous la forme :
+¶ @(auteur : - titre : - année : - pages : )
+¶ Complétez ensuite les champs (auteur, titre, année, pages) ou remplacez par le texte de votre choix.
+¶ Exemples :
+¶ @(Gabriel García Márquez - Cent ans de solitude.)
+¶ @(Explications de mon choix)
+¶ #2. Format recommandé (APA) pour les citations en note
+¶ -. Auteur : Nom de l’auteur, suivi d’une virgule.
+¶ -. Titre : Titre de l’œuvre en italique, suivi d’une virgule.
+¶ -. Année : Année entre parenthèses.
+¶ -. Pages : Si pertinent, numéros de pages entre parenthèses.
+¶ #2. Une note de bas de page, c’est quoi ?
+¶ C’est une information supplémentaire placée en bas de page : explication, référence, source d’une citation.
+¶ Avec un lecteur d’écran, elle est lue comme un contenu secondaire consultable après le passage principal.
+¶ @saut de page
+¶ #1. Vérifier l’orthographe et la grammaire
+¶ La vérification détecte les fautes d’orthographe, grammaire, typographie et les mots inconnus. Elle s’applique à tout le document ou à une portion (sélection ou paragraphe courant).
+¶ #2. Lancer une vérification
+¶ -. Ctrl+F7 ou Menu Édition → Vérifier tout le document : vérifier le document entier.
+¶ -. Ctrl+Maj+F7 ou Menu Édition → Vérifier la sélection / le paragraphe : vérifier la sélection, sinon le paragraphe courant.
+¶ À la fin, une annonce indique le nombre d’éléments détectés.
+¶ #2. Naviguer entre les éléments détectés
+¶ -. F7 : élément suivant (faute, alerte, suggestion).
+¶ -. Maj+F7 : élément précédent.
+¶ À chaque déplacement, le curseur se place sur l’élément et la vue défile.
+¶ INFO ÉCHAP. : un message bref rappelle le type de problème (fermez avec ÉCHAP).
+¶ #2. Corriger, ignorer, ajouter au dictionnaire
+¶ -. Entrée (ou touche Menu / Maj+F10) sur une erreur : ouvrir les suggestions.
+¶ -. Flèche Haut/Bas pour choisir, Entrée pour appliquer.
+¶ Options courantes : Corriger, Ignorer, Ignorer tout, Ajouter au dictionnaire.
+¶ Astuce : après une correction, relancez Ctrl+Maj+F7 pour revérifier uniquement le paragraphe ajusté.
+¶ #2. Accessibilité et annonces vocales
+¶ -. Chaque étape émet une annonce vocale (si la synthèse est activée).
+¶ -. Les messages « INFO ÉCHAP. » se ferment avec ÉCHAP ; la vérification continue.
+¶ -. Tous les raccourcis sont utilisables au clavier et compatibles NVDA.
+¶ #2. Récapitulatif des raccourcis de vérification
+¶ -. Ctrl+F7 : vérifier tout le document.
+¶ -. Ctrl+Maj+F7 : vérifier la sélection / le paragraphe courant.
+¶ -. F7 / Maj+F7 : suivant / précédent.
+¶ -. Entrée (ou Menu / Maj+F10) : suggestions (corriger, ignorer, ajouter au dictionnaire).
+¶ -. ÉCHAP : fermer une info sans interrompre la vérification.
+¶ @saut de page
+¶ #1. La boîte Rechercher
+¶ -. Tapez le mot ou groupe de mots à trouver. La recherche ignore la casse.
+¶ -. Entrée : occurrence suivante ; Maj+Entrée : précédente.
+¶ -. Vous pouvez aussi utiliser F3 (suivant) et Maj+F3 (précédent), ou les flèches Haut/Bas.
+¶ -. À chaque résultat, le mot est sélectionné et surligné ; le curseur se place au début et la vue défile.
+¶ -. Une fenêtre d’information affiche le contexte avec l’occurrence encadrée par des crochets (ex. : … en pri[maire], jusqu’aux …) et la position k sur N (ex. 2 sur 3). Validez OK ou fermez avec ÉCHAP.
+¶ -. En fin (ou début) de document, la recherche reprend en haut (ou en bas) et annonce Retour en haut/bas du document.
+¶ -. ÉCHAP : fermer la boîte Rechercher ; le curseur reste sur la dernière occurrence.
+¶ #2. Utiliser des jokers (recherches avancées)
+¶ -. * = n’importe quelle suite de caractères (y compris vide).
+¶ Ex. : livre* trouve livre, livres, livrer, livrée, etc.
+¶ -. ? = exactement un caractère.
+¶ Ex. : l?vre trouve livre, lèvre.
+¶ -. Exemples utiles :
+¶ *tion (mots finissant par tion) · réu*on (réunion, réunification s’il y a on ensuite) · doc?ment.
+¶ Les jokers fonctionnent au début, au milieu ou à la fin du terme.
+¶ #2. Conseils d’usage
+¶ -. Tapez un mot puis Entrée pour entendre le contexte du premier résultat.
+¶ -. Pour parcourir rapidement, enchaînez Entrée (ou F3).
+¶ -. Si vous ne voulez plus la fenêtre de contexte, fermez-la avec ÉCHAP ; elle se rouvrira au prochain résultat.
+¶ @saut de page
+¶ #1. Exporter
+¶ #2. Exporter au format ODF (Writer)
+¶ Choisissez le menu Exporter (Alt + X) → Exporter en .ODT.
+¶ Le fichier sera exporté dans le dossier de travail avec le même nom que le fichier LisioWriter.
+¶  #2. Exporter au format DOCX (Word)
+¶ Choisissez le menu Exporter (Alt + X) → Exporter en .DOCX. 
+¶ Le fichier sera exporté dans le dossier de travail avec le même nom que le fichier LisioWriter.
+¶ #2. Exporter au format PDF
+¶ Choisissez le menu Exporter → Exporter en .PDF. 
+¶ Le fichier sera exporté dans le dossier de travail avec le même nom que le fichier LisioWriter.
+¶ #2. Exporter au format HTML
+¶ Choisissez le menu Exporter → Exporter en .HTML. 
+¶ Le fichier sera exporté dans le dossier de travail avec le même nom que le fichier LisioWriter.
+¶ @saut de page
+¶ #1. Ouvrir un fichier LisioWriter
+¶ Pour ouvrir un fichier, choisissez Fichier → Ouvrir ou tapez Ctrl+O.
+¶ Dans la boîte Ouvrir, il n’y a pas de boutons : utilisez Flèche Haut/Bas pour sélectionner, puis Entrée pour ouvrir un fichier ou entrer dans un dossier. Le dossier de travail suit automatiquement le dossier du fichier sélectionné.
+¶ Pour remonter au dossier parent, appuyez sur la Barre d’espace.
+¶ Pour vous positionner rapidement, tapez les premières lettres du nom.
+¶ ÉCHAP : revenir à LisioWriter sans rien ouvrir.
+¶ @saut de page
+¶ #1. Formater du texte, c’est quoi ?
+¶ Formater, c’est modifier la présentation (pas le sens). Pour un lecteur d’écran, on le comprend comme un changement d’intention ou de ton.
+¶ Dans LisioWriter, ces effets sont indiqués par des codes insérés dans le texte, par ex. gras, ^^italique^^. Le lecteur d’écran peut les signaler (voix, ton, pause).
+¶ #1. Les textes en gras
+¶ Mise en avant forte (terme clé, résultat important, consigne).
+¶ Comment faire : sélectionnez le texte → Formatage → Gras.
+¶ Exemple : Texte en gras
+¶ #1. Les textes en italique
+¶ Nuance de ton (citation, mot étranger, mise en relief discrète).
+¶ Comment faire : Formatage → Italique.
+¶ Exemple : ^^Texte en italique^^
+¶ #1. Les textes soulignés
+¶ Signal visuel/repère à mémoriser (terme, titre, exercice).
+¶ Comment faire : Formatage → Souligner.
+¶ Exemple : __Texte souligné__
+¶ #1. Les textes soulignés et gras
+¶ Insistance maximale (titre interne important, avertissement).
+¶ Comment faire : Formatage → Souligner Gras.
+¶ Exemple : _*Texte souligné et gras*_
+¶ #1. Les textes soulignés et italiques
+¶ Marque discrète et élégante (nom d’ouvrage, mot clé dans citation).
+¶ Comment faire : Formatage → Souligner Italique.
+¶ Exemple : _^Texte souligné et italique^_
+¶ #1. Les textes en gras et italique
+¶ Accentuation expressive avec nuance (émotion, mot-clé très fort).
+¶ Comment faire : Formatage → Gras Italique.
+¶ Exemple : *^Texte en gras et italique^*
+¶ #1. Les textes en exposant
+¶ Puissances, unités : mètre carré → m^¨2¨^, mètre cube → m^¨3¨^, **10^¨8¨^. Comment faire : sélectionnez le caractère → **Formatage → Exposant**. Exemple : m^¨2¨^`
+¶ #1. Les textes en indice
+¶ Chimie, notations : H_¨2¨_O, CO_¨2¨_, x_¨1¨.
+¶ Comment faire : sélectionnez → Formatage → Indice.
+¶ Exemple : H_¨2¨_O
+</contentText><bookmarks version="1"></bookmarks></blindWriter>

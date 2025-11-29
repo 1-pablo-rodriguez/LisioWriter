@@ -52,23 +52,23 @@ public class titre3 {
                 // ligne contenant seulement ¶ (+ espaces)
                 newAfter = "#3. ";
             } else if (HN_4_9.matcher(after).find()) {
-                newAfter = HN_4_9.matcher(after).replaceFirst("#3. ");
+                newAfter = HN_4_9.matcher(after).replaceFirst(" #3. ");
             } else if (H1.matcher(after).find()) {
-                newAfter = H1.matcher(after).replaceFirst("#3. ");
+                newAfter = H1.matcher(after).replaceFirst(" #3. ");
             } else if (H2.matcher(after).find()) {
-                newAfter = H2.matcher(after).replaceFirst("#3. ");
+                newAfter = H2.matcher(after).replaceFirst(" #3. ");
             } else if (HP.matcher(after).find()) {
-                newAfter = HP.matcher(after).replaceFirst("#3. ");
+                newAfter = HP.matcher(after).replaceFirst(" #3. ");
             } else if (HS.matcher(after).find()) {
-                newAfter = HS.matcher(after).replaceFirst("#3. ");
+                newAfter = HS.matcher(after).replaceFirst(" #3. ");
             } else if (BULLET.matcher(after).find()) {
-                newAfter = BULLET.matcher(after).replaceFirst("#3. ");
+                newAfter = BULLET.matcher(after).replaceFirst(" #3. ");
             } else if (H3_ANY.matcher(after).find()) {
                 // normaliser "#3." -> "#3. "
-                newAfter = H3_ANY.matcher(after).replaceFirst("#3. ");
+                newAfter = H3_ANY.matcher(after).replaceFirst(" #3. ");
             } else if (NOT_H.matcher(after).find()) {
                 // pas de balise en tête → préfixer
-                newAfter = "#3. " + after.stripLeading();
+                newAfter = " #3. " + after.stripLeading();
             } else {
                 newAfter = after; // déjà propre
             }

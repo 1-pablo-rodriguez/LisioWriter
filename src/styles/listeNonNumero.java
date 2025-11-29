@@ -50,17 +50,17 @@ public class listeNonNumero {
                 // ligne contenant seulement ¶ (+ espaces)
                 newAfter = "-. ";
             } else if (HN_1_9.matcher(after).find()) {
-                newAfter = HN_1_9.matcher(after).replaceFirst("-. ");
+                newAfter = HN_1_9.matcher(after).replaceFirst(" -. ");
             } else if (HP.matcher(after).find()) {
-                newAfter = HP.matcher(after).replaceFirst("-. ");
+                newAfter = HP.matcher(after).replaceFirst(" -. ");
             } else if (HS.matcher(after).find()) {
-                newAfter = HS.matcher(after).replaceFirst("-. ");
+                newAfter = HS.matcher(after).replaceFirst(" -. ");
             } else if (BULLET_ANY.matcher(after).find()) {
                 // normaliser "-." → "-. "
-                newAfter = BULLET_ANY.matcher(after).replaceFirst("-. ");
+                newAfter = BULLET_ANY.matcher(after).replaceFirst(" -. ");
             } else if (NOT_MARKED.matcher(after).find()) {
                 // pas de balise en tête → préfixer
-                newAfter = "-. " + after.stripLeading();
+                newAfter = " -. " + after.stripLeading();
             } else {
                 newAfter = after; // déjà propre
             }
