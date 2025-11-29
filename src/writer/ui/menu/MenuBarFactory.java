@@ -819,8 +819,7 @@ public final class MenuBarFactory {
         return fileMenu;
     }
 
- // Menu Naviguer
-    @SuppressWarnings("serial")
+    // Menu Naviguer
 	private static JMenu menuNaviguer(EditorApi ctx) {
         JMenu naviguerMenu = new JMenu("Naviguer");
         naviguerMenu.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
@@ -903,7 +902,7 @@ public final class MenuBarFactory {
         });
 
         JMenuItem bmNext = createMenuItem("Marque-page suivant",
-                KeyEvent.VK_F4, 0, e -> {
+                KeyEvent.VK_F5, 0, e -> {
             var m = ctx.getBookmarks();
             if (m == null) {
                 java.awt.Toolkit.getDefaultToolkit().beep();
@@ -913,7 +912,7 @@ public final class MenuBarFactory {
         });
 
         JMenuItem bmPrev = createMenuItem("Marque-page précédent",
-                KeyEvent.VK_F4, InputEvent.SHIFT_DOWN_MASK, e -> {
+                KeyEvent.VK_F5, InputEvent.SHIFT_DOWN_MASK, e -> {
             var m = ctx.getBookmarks();
             if (m == null) {
                 java.awt.Toolkit.getDefaultToolkit().beep();
@@ -977,6 +976,7 @@ public final class MenuBarFactory {
     	fileInternet.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
     	fileInternet.setMnemonic(KeyEvent.VK_S); 
     	fileInternet.getAccessibleContext().setAccessibleName("Internet");
+    		
     	// Listener déclenché à l’ouverture du menu
     	fileInternet.addMenuListener(new MenuListener() {
             @Override public void menuSelected(MenuEvent e) {

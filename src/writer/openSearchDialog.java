@@ -53,7 +53,7 @@ public class openSearchDialog extends JDialog {
         setModalityType(ModalityType.MODELESS);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-        // --- 🔠 Police très lisible pour malvoyants
+        // --- Police très lisible pour malvoyants
         Font font = new Font("Segoe UI", Font.PLAIN, 20);
         Font listFont = font.deriveFont(Font.PLAIN, 22);
 
@@ -64,9 +64,6 @@ public class openSearchDialog extends JDialog {
         field.setCaretColor(Color.BLACK);
         field.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(120, 120, 120)));
         field.getAccessibleContext().setAccessibleName("Zone de recherche");
-//        field.getAccessibleContext().setAccessibleDescription(
-//        	    "Appuyez sur Entrée pour lancer la recherche, ou sur espace depuis la liste pour modifier la requête."
-//        	);
         
         JLabel lab = new JLabel("Rechercher :");
         lab.setFont(font);
@@ -427,7 +424,7 @@ public class openSearchDialog extends JDialog {
 	        return java.util.regex.Pattern.compile(rx, flags);
 	    }
 	
-	    // 1️⃣ Classe pour les jokers (*, ?, %d) : on garde le tiret
+	    // 1️ Classe pour les jokers (*, ?, %d) : on garde le tiret
 	    final String WILDCARD_CHARS = "[\\p{L}\\p{N}'’_-]";
 	
 	    // 2️⃣ Classe pour les bornes de mot : SANS tiret, SANS point
@@ -442,12 +439,59 @@ public class openSearchDialog extends JDialog {
 	    for (int i = 0; i < q.length(); i++) {
 	        char c = q.charAt(i);
 	
-	        // joker %d : nombre de 1 à 6 chiffres (à adapter si tu veux plus)
+	     // joker %d ou %d{min,max} : séquence de chiffres
 	        if (c == '%' && i + 1 < q.length() && q.charAt(i + 1) == 'd') {
-	            rx.append("[0-9]{1,6}");
-	            i++;
+	            int minDigits = 1;
+	            int maxDigits = 20; // valeur par défaut si pas de {…}
+
+	            int j = i + 2; // position après "d"
+
+	            // On regarde s'il y a une accolade : %d{...}
+	            if (j < q.length() && q.charAt(j) == '{') {
+	                int k = q.indexOf('}', j + 1); // cherche la '}' correspondante
+	                if (k > j + 1) {
+	                    String inside = q.substring(j + 1, k); // contenu entre { et }
+	                    int comma = inside.indexOf(',');
+
+	                    try {
+	                        if (comma < 0) {
+	                            // %d{4} → exactement 4 chiffres
+	                            int v = Integer.parseInt(inside.trim());
+	                            minDigits = Math.max(1, v);
+	                            maxDigits = minDigits;
+	                        } else {
+	                            // %d{1,5} → 1 à 5 chiffres
+	                            String sMin = inside.substring(0, comma).trim();
+	                            String sMax = inside.substring(comma + 1).trim();
+
+	                            if (!sMin.isEmpty()) {
+	                                minDigits = Math.max(1, Integer.parseInt(sMin));
+	                            }
+	                            if (!sMax.isEmpty()) {
+	                                maxDigits = Math.max(minDigits, Integer.parseInt(sMax));
+	                            }
+	                        }
+	                    } catch (NumberFormatException ex) {
+	                        // en cas d'erreur, on retombe sur le comportement par défaut
+	                        minDigits = 1;
+	                        maxDigits = 20;
+	                    }
+
+	                    // On avance i jusqu'à la '}' pour que la boucle for ignore tout ça
+	                    i = k;
+	                } else {
+	                    // accolade mal fermée → on laisse %d simple
+	                    i++; // on saute juste le 'd'
+	                }
+	            } else {
+	                // pas de {…} après %d → %d classique
+	                i++; // on saute juste le 'd'
+	            }
+
+	            rx.append("[0-9]{").append(minDigits).append(',').append(maxDigits).append('}');
 	            continue;
 	        }
+
 	
 	        switch (c) {
 	            case '*':

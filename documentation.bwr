@@ -1,5 +1,5 @@
-<blindWriter filename="documentation"><meta>/<auteur nom=""></auteur><titre LeTitre=""></titre><sujet LeSujet=""></sujet><coauteur nom="LisioWriter; ..."></coauteur><society nom=""></society><description resume=""></description><motsCles mots=""></motsCles><langue lang=""></langue><date_creation date="2025-11-29T13:06:44"></date_creation><date_modification date="2025-11-29T14:27:05"></date_modification><></></meta><styles_paragraphes><Title name="Title" police="Arial" size="18pt" alignement="center" interligne="150%" espacement_au_dessus="0.423cm" espacement_en_dessous="0.212cm" keep-with-next="always"></Title><Subtitle name="Subtitle" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Subtitle><Titre1 name="Titre1" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre1><Titre2 name="Titre2" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre2><Titre3 name="Titre3" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre3><Titre4 name="Titre4" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre4><Titre5 name="Titre5" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre5><bodyText name="Corps de texte" police="Arial" size="14pt" alignement="justify" interligne="115%" espacement_au_dessus="0.2cm" espacement_en_dessous="0.2cm"></bodyText><Title name="Title" police="Arial" size="18pt" alignement="center" interligne="150%" espacement_au_dessus="0.423cm" espacement_en_dessous="0.212cm" keep-with-next="always"></Title><Subtitle name="Subtitle" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Subtitle><Titre1 name="Titre1" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre1><Titre2 name="Titre2" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre2><Titre3 name="Titre3" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre3><Titre4 name="Titre4" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre4><Titre5 name="Titre5" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre5><bodyText name="Corps de texte" police="Arial" size="14pt" alignement="justify" interligne="115%" espacement_au_dessus="0.2cm" espacement_en_dessous="0.2cm"></bodyText><Title name="Title" police="Arial" size="18pt" alignement="center" interligne="150%" espacement_au_dessus="0.423cm" espacement_en_dessous="0.212cm" keep-with-next="always"></Title><Subtitle name="Subtitle" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Subtitle><Titre1 name="Titre1" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre1><Titre2 name="Titre2" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre2><Titre3 name="Titre3" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre3><Titre4 name="Titre4" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre4><Titre5 name="Titre5" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre5><bodyText name="Corps de texte" police="Arial" size="14pt" alignement="justify" interligne="115%" espacement_au_dessus="0.2cm" espacement_en_dessous="0.2cm"></bodyText></styles_paragraphes><styles_pages><pageDefaut entete="false" piedpage="false"></pageDefaut><pageTitre couverture="false"></pageTitre><pageDefaut entete="false" piedpage="false"></pageDefaut><pageTitre couverture="false"></pageTitre></styles_pages><contentText>¶ #P. Traitement de texte pour non-voyant et déficient visuel
-¶ #S. Version 1.1.16 du 29 novembre 2025
+<blindWriter filename="documentation"><styles_paragraphes></styles_paragraphes><styles_paragraphes><Title name="Title" police="Arial" size="18pt" alignement="center" interligne="150%" espacement_au_dessus="0.423cm" espacement_en_dessous="0.212cm" keep-with-next="always"></Title><Subtitle name="Subtitle" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Subtitle><Titre1 name="Titre1" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre1><Titre2 name="Titre2" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre2><Titre3 name="Titre3" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre3><Titre4 name="Titre4" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre4><Titre5 name="Titre5" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre5><bodyText name="Corps de texte" police="Arial" size="14pt" alignement="justify" interligne="115%" espacement_au_dessus="0.2cm" espacement_en_dessous="0.2cm"></bodyText><Title name="Title" police="Arial" size="18pt" alignement="center" interligne="150%" espacement_au_dessus="0.423cm" espacement_en_dessous="0.212cm" keep-with-next="always"></Title><Subtitle name="Subtitle" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Subtitle><Titre1 name="Titre1" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre1><Titre2 name="Titre2" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre2><Titre3 name="Titre3" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre3><Titre4 name="Titre4" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre4><Titre5 name="Titre5" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre5><bodyText name="Corps de texte" police="Arial" size="14pt" alignement="justify" interligne="115%" espacement_au_dessus="0.2cm" espacement_en_dessous="0.2cm"></bodyText><Title name="Title" police="Arial" size="18pt" alignement="center" interligne="150%" espacement_au_dessus="0.423cm" espacement_en_dessous="0.212cm" keep-with-next="always"></Title><Subtitle name="Subtitle" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Subtitle><Titre1 name="Titre1" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre1><Titre2 name="Titre2" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre2><Titre3 name="Titre3" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre3><Titre4 name="Titre4" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre4><Titre5 name="Titre5" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre5><bodyText name="Corps de texte" police="Arial" size="14pt" alignement="justify" interligne="115%" espacement_au_dessus="0.2cm" espacement_en_dessous="0.2cm"></bodyText></styles_paragraphes><styles_pages><pageDefaut entete="false" piedpage="false"></pageDefaut><pageTitre couverture="false"></pageTitre><pageDefaut entete="false" piedpage="false"></pageDefaut><pageTitre couverture="false"></pageTitre><pageDefaut entete="false" piedpage="false"></pageDefaut><pageTitre couverture="false"></pageTitre></styles_pages><meta><auteur nom=""></auteur><titre LeTitre=""></titre><sujet LeSujet=""></sujet><coauteur nom="LisioWriter; ..."></coauteur><society nom=""></society><description resume=""></description><motsCles mots=""></motsCles><langue lang=""></langue><date_creation date="2025-11-29T20:25:40"></date_creation><date_modification date="2025-11-29T21:29:17"></date_modification><></><></></meta><contentText>¶ #P. Traitement de texte pour non-voyant et déficient visuel
+¶ #S. Version 1.1.17 du 29 novembre 2025
 ¶ Astuce : appuyez sur F6 pour ouvrir le navigateur et décrouvrir la documentation.
 ¶ Astuce : appuyez sur F2 pour savoir dans quelle partie de la documentation vous vous trouvez.
 ¶ Astuce : appuyez sur F3 pour aller sur le titre suivant.
@@ -43,7 +43,7 @@
 ¶ Tapez votre texte dans un nouveau paragraphe ou placez le curseur dans le paragraphe, puis utilisez les raccourcis clavier :
 ¶ -. Ctrl + & : Titre 1 → insère le code #1. au début du paragraphe.
 ¶ -. Ctrl + é : Titre 2 → insère le code #2. au début du paragraphe.
-¶ -. Ctrl + " : Titre 3 → insère le code #3. au début du paragraphe.
+¶ -. Ctrl +  : Titre 3 → insère le code #3. au début du paragraphe.
 ¶ -. Ctrl + '  : Titre 4 → insère le code #4. au début du paragraphe. 
 ¶ -. Ctrl + ( : Titre 5 → insère le code #5. au début du paragraphe.  
 ¶ -. Ctrl + _ : Titre principal → insère le code #P. au début du paragraphe (réservé au titre du document).
@@ -58,7 +58,15 @@
 ¶ #1. Le navigateur
 ¶ Le navigateur liste tous les titres.
 ¶ Il permet de parcourir, développer ou réduire un titre, atteindre un titre, réorganiser la structure, modifier les niveaux, supprimer un titre et son contenu, et copier un titre avec son contenu dans le presse-papiers.
-¶ À l’ouverture, seuls les titres racine (souvent niveau 1) sont visibles.
+¶ À l’ouverture, seuls les titres racine (souvent niveau 1) sont visibles et réduit. C'est à dire que les sous-titres ne sont pas affichés.
+¶ #2. Ouvrir le navigateur de titre
+¶ -. Menu Naviguer (Alt + N) → Navigateur de titre (F6).
+¶ Le navigateur affiche la liste des titres réduits du document.
+¶ Si vous voulez développer tous les titres, tapez dans le navigateur de titre le raccourci clavier (Ctrl + +).
+¶ -. Dans la liste, utilisez Flèche Haut / Flèche Bas pour parcourir les titres.
+¶ -. Tapez sur Entrée pour aller au titre sélectionné. Le curseur se place automatiquement au début du titre et le navigateur se referme.
+¶ -. Tapez sur ÉCHAP pour fermer le navigateur sans aller sur un titre.
+¶ @saut de page
 ¶ #2. Navigation de base
 ¶ -. Flèche Haut / Flèche Bas : se déplacer dans la liste.
 ¶ -. Entrée : aller au titre dans le document (curseur placé au début du titre, défilement auto).
@@ -76,127 +84,107 @@
 ¶ -. Alt+Flèche Gauche : diminuer d’un niveau le titre et ses sous-titres (bloc complet), min 1.
 ¶ Remarque : modifier le niveau peut changer la hiérarchie (parent/enfant).
 ¶ #2. Réorganiser la structure
-¶ -. Alt+Flèche Haut : déplacer le bloc vers le haut (avant le frère précédent du même niveau).
-¶ -. Alt+Flèche Bas : déplacer le bloc vers le bas (après le frère suivant du même niveau).
+¶ -. Raccourci Alt + Flèche Haut : déplacer le bloc vers le haut (avant le frère précédent du même niveau).
+¶ -. Raccourci Alt + Flèche Bas : déplacer le bloc vers le bas (après le frère suivant du même niveau).
 ¶ #2. Copier un titre et son contenu
-¶ -. Ctrl+C : copier le titre sélectionné et tout son contenu (jusqu’au prochain titre de même ou plus haut niveau) dans le presse-papiers.
-¶ Astuce : la copie n’altère pas le document. Collez le bloc où vous voulez.
+¶ -. Raccourci Ctrl+C : copier le titre sélectionné et tout son contenu (jusqu’au prochain titre de même ou plus haut niveau) dans le presse-papiers.
+¶ Astuce : la copie n’altère pas le document. Collez le bloc du titre (sous-titres et texte) où vous voulez.
 ¶ #2. Suppression
 ¶ -. Suppr : supprimer le titre sélectionné et tout son contenu. Une confirmation est demandée.
 ¶ #2. Informations sur le Fichier et le positionnement du curseur
 ¶ -. F1 : Fenêtre informations sur le fichiers et ses statistiques.
 ¶ -. F2 : Fenêtre position dans le document.
-¶ (Annonces actives si la synthèse vocale est activée.)
-¶ @saut de page
 ¶ #1. Appliquer les styles de paragraphe
-¶ -. Style par défaut : corps de texte (niveau de base, pas de code markdown).
-¶ -. Titre principal : Ctrl+_ → code #P (réservé au titre du document).
-¶ -. Sous-titre : Ctrl+ç → code #S.
-¶ -. Titre 1 : Ctrl+& → code 
-¶ #1.
-¶ -. Titre 2 : Ctrl+é → code 
-¶ #2.
-¶ -. Titre 3 : Ctrl+ → code 
-¶ #3.
-¶ -. Titre 4 : Ctrl+' → code 
-¶ #4.
-¶ -. Titre 5 : Ctrl+( → code 
-¶ #5.
-
-¶ @saut de page manuel
+¶ Pour appliquer les styles, sélectionnez le menu Appliquer un style (Alt +U).
+¶ Vous pouvez appliquer un style directement avec les raccourcis clavier ou bien en tapant le code au clavier.
+¶ Liste des styles disponibles avec leurs racourccis clavier :
+¶ -. Style par défaut : Ctrl + à → corps de texte (niveau de base, pas de code au début du paragraphe).
+¶ -. Style titre principal : Ctrl + _ → insère le code #P. au début du paragraphe (réservé au titre du document). Ce style n'apparaît pas dans les tables des matières.
+¶ -. Styles sous-titre : Ctrl + ç → insère le code #S. au début du paragraphe. Ce style n'apparaît pas dans les tables des matières.
+¶ -. Style de titre 1 : Ctrl + & → insère le code #1. au début du paragraphe (réservé aux titres les plus importants, titres de chapitre).
+¶ -. Style titre 2 : Ctrl + é → insère le code #2. au début du paragraphe.
+¶ -. Style titre 3 : Ctrl +  → insère le code #3. au début du paragraphe.
+¶ -. Style titre 4 : Ctrl + ' → insère le code #4. au début du paragraphe.
+¶ -. Style titre 5 : Ctrl + ( → code le code #5. au début du paragraphe.
+¶ @saut de page 
 ¶ #1. Basculer entre votre texte, la documentation LisioWriter et le manuel de b.book
-¶ -. ALT+B : basculer vers votre texte (depuis la documentation LisioWriter ou b.book).
+¶ Vous pouvez  tout moment basculer sur la documentation, ou le manuel du b.bbok et revenir sur votre texte.
+¶ Disponible aussi via le menu Documentation (Alt + D)
+¶ -. ALT+B : basculer vers votre texte (depuis la documentation LisioWriter ou depuis le manuel du b.book d'Eurobraille).
 ¶ -. ALT+A : basculer vers la documentation LisioWriter.
 ¶ -. ALT+C : basculer vers le manuel b.book.
-¶ (Disponible aussi via le menu Documentation.)
-¶ @saut de page manuel
+¶ @saut de page
 ¶ #1. Atteindre rapidement un titre
-¶ Cette fonction permet de se déplacer rapidement d’un titre à un autre dans votre document sans ouvrir de boîte de dialogue.
-¶ #2. Ouvrir le navigateur des titres
-¶ -. F6 ou Menu Naviguer → Navigateur : ouvre la liste des titres du document.
-¶ -. Dans la liste, utilisez Flèche Haut / Flèche Bas pour parcourir les titres.
-¶ -. Appuyez sur Entrée pour aller au titre sélectionné dans le texte.
-¶ -. Appuyez sur ÉCHAP pour fermer le navigateur.
-¶ #2. Aller d’un titre à un autre sans ouvrir le navigateur
-¶ -. Maj+Flèche Haut ou Menu Naviguer → Titre précédent : aller au titre précédent dans le document.
-¶ -. Maj+Flèche Bas ou Menu Naviguer → Titre suivant : aller au titre suivant.
-¶ Le curseur se place automatiquement au début du titre et la vue défile jusqu’à lui.
-¶ #2. Astuce
-¶ Vous pouvez combiner ces fonctions avec les marque-pages (Ctrl+F2) pour retrouver plus rapidement vos sections importantes.
-¶ @saut de page manuel
+¶ Avec les raccourcis clavier :
+¶ -. F3 → vous pouvez aller directement sur le titre suivant.
+¶ -. F4 → vous pouvez aller sur le titre précédent (au-dessus).
+¶ -. F6 → Vous ouvrez le navigateur de titre, puis sélectionner un titre et taper sur Entrée pour aller directement sur le titre.
+¶ -. Avec la boite de recherche (Ctrl + F)  → tapez le joker ## et validez.
+¶ @saut de page
 ¶ #1. Les marque-pages
 ¶ Les marque-pages permettent de placer des repères dans votre document pour y revenir rapidement.
 ¶ Ils sont particulièrement utiles dans les longs textes pour marquer une section à relire, un passage à corriger ou une référence à compléter.
 ¶ Chaque marque-page peut également contenir une note personnelle, lisible ultérieurement.
 ¶ #2. Insérer ou supprimer un marque-page
-¶ -. Ctrl+F2 ou Menu Naviguer → Marque-page (basculer) : insère un marque-page à la position actuelle du curseur.
-¶ -. Si un marque-page existe déjà à cet endroit, le même raccourci le supprime.
-¶ -. Après l’insertion, une fenêtre s’ouvre automatiquement pour ajouter une note au marque-page (ex. « À relire », « Vérifier citation », etc.).
-¶ -. La note est enregistrée avec le marque-page et peut être lue ou modifiée plus tard.
-¶ -. Une annonce vocale « INFO ÉCHAP. : marque-page ajouté » ou « marque-page supprimé » confirme l’action.
+¶ Menu Naviguer (Alt + N) → Marque-page (basculer)  (Ctrl + F2) → insère un marque-page à la position actuelle du curseur.
+¶ Si un marque-page existe déjà à cet endroit, le même raccourci le supprime.
+¶ Après l’insertion, une fenêtre s’ouvre automatiquement pour ajouter une note au marque-page (ex. « À relire », « Vérifier citation », etc.).
+¶ La note est enregistrée avec le marque-page et peut être lue ou modifiée plus tard.
 ¶ #2. Naviguer entre les marque-pages
-¶ -. F2 ou Menu Naviguer → Marque-page suivant : aller au marque-page suivant dans le document.
-¶ -. Maj+F2 ou Menu Naviguer → Marque-page précédent : aller au marque-page précédent.
-¶ -. Lors du déplacement, le curseur se positionne automatiquement sur la ligne du marque-page et une annonce indique son numéro (ex. « Marque-page 2 sur 5 »).
-¶ -. Si une note est associée, elle est affichée et annoncée automatiquement.
+¶ -. Menu Naviguer (Alt + N) → Marque-page suivant (F5) pour aller au marque-page suivant dans le document.
+¶ -. Menu Naviguer (Alt + N) → Marque-page précédent (Maj + F5) pour aller au marque-page précédent.
+¶ -. Lors du déplacement, le curseur se positionne automatiquement sur le marque-page.
+¶ #2. Lecture ou modifier une note associée au marque-page
+¶ -. Menu Naviguer (Alt + N) → Marque-page note (Ctrl + T).
 ¶ #2. Modifier ou supprimer une note
-¶ -. Ctrl+Maj+F2 ou Menu Naviguer →Marque-page note : ouvre la fenêtre de modification de la note.
-¶ -. Vous pouvez changer le texte de la note, la laisser vide, ou valider pour la conserver.
-¶ -. Pour supprimer uniquement la note (sans effacer le marque-page), laissez le champ vide et validez.
+¶ Pour supprimer un marque page, il faut placer le curseur exactement sur le marque page avec les raccourcis F5 ou Maj + F5.
+¶ Puis sélectionner le menu Naviguer (Alt + N) → Marque-page note (Ctrl +F2).
 ¶ #2. Gestion et persistance des marque-pages
-¶ -. Les marque-pages et leurs notes sont enregistrés automatiquement avec le document.
-¶ -. Ils sont indépendants du contenu : même si vous modifiez ou déplacez le texte, le marque-page reste attaché à la même position.
-¶ -. Lors de la réouverture du document, vos marque-pages et notes sont restaurés.
-¶ #2. Utilisations conseillées
+¶ Les marque-pages et leurs notes sont enregistrés automatiquement avec le document.
+¶ Ils sont indépendants du contenu : même si vous modifiez ou déplacez le texte, le marque-page reste attaché à la même position.
+¶ Lors de la réouverture du document, vos marque-pages et notes sont restaurés.
+¶ #2. Utilisations conseillées des marques pages
 ¶ -. Pour mémoriser une position avant de fermer le document.
 ¶ -. Pour laisser une note de révision ou un rappel sur un passage à compléter.
 ¶ -. Pour placer un point de lecture si vous utilisez la lecture depuis le curseur.
-¶ #2. Récapitulatif des raccourcis
-¶ -. Ctrl+F2 : insérer ou supprimer un marque-page.
-¶ -. F2 : aller au marque-page suivant.
-¶ -. Maj+F2 : aller au marque-page précédent.
-¶ -. Ctrl+Maj+F2 : modifier ou ajouter une note au marque-page.
-¶ @saut de page manuel
-¶ #1. Insérer un saut de page manuel
-¶ Pour insérer un saut de page manuel, utilisez le code suivant : @saut de page manuel.
-¶ Le paragraphe suivant commencera au début d’une nouvelle page.
-¶ Important : ce code doit être seul sur une ligne vide, sans autre caractère ni espace.
-¶ #2. Comment insérer le code « saut de page » ?
-¶ -. Placez le curseur sur une nouvelle ligne.
-¶ -. Tapez Ctrl+Espace pour insérer le saut de page.
 ¶ @saut de page
-¶ #1. Insérer une note de bas de page (citation)
-¶ Appuyez sur Ctrl+N pour insérer une note de bas de page sous la forme :
-¶ @(auteur : - titre : - année : - pages : )
+¶ #1. Insérer un saut de page manuel
+¶ Il faut se placer sur un paragraphe vide de texte.
+¶ Puis tapez le raccourci clavier Ctrl + espace, ou sélectionner le menu Insertion (Alt + I) → Insérer un saut de page (Ctrl + Space).
+¶ Le paragraphe suivant commencera au début d’une nouvelle page dans les documents Writer, Word ou PDF.
+¶ Important : ce code doit être seul sur une ligne vide, sans autre caractère.
+¶ @saut de page
+¶ #1. Insérer une note de bas de page dans votre texte.
+¶ -. Sélectionnez le menu Insertion (Alt + I) → Insérer une note de bas de page (Ctrl + K)
+¶ -. Raccourci clavier Ctrl + K pour insérer une note de bas de page sous la forme @(auteur : - titre : - année : - pages : )
 ¶ Complétez ensuite les champs (auteur, titre, année, pages) ou remplacez par le texte de votre choix.
 ¶ Exemples :
 ¶ @(Gabriel García Márquez - Cent ans de solitude.)
 ¶ @(Explications de mon choix)
-¶ #2. Format recommandé (APA) pour les citations en note
+¶ #2. Format recommandé (APA) pour les citations en note de bas de page
 ¶ -. Auteur : Nom de l’auteur, suivi d’une virgule.
 ¶ -. Titre : Titre de l’œuvre en italique, suivi d’une virgule.
 ¶ -. Année : Année entre parenthèses.
 ¶ -. Pages : Si pertinent, numéros de pages entre parenthèses.
-¶ #2. Une note de bas de page, c’est quoi ?
+¶ #2. Une note de bas de page, qu'est-ce que c'est ?
 ¶ C’est une information supplémentaire placée en bas de page : explication, référence, source d’une citation.
 ¶ Avec un lecteur d’écran, elle est lue comme un contenu secondaire consultable après le passage principal.
 ¶ @saut de page
 ¶ #1. Vérifier l’orthographe et la grammaire
 ¶ La vérification détecte les fautes d’orthographe, grammaire, typographie et les mots inconnus. Elle s’applique à tout le document ou à une portion (sélection ou paragraphe courant).
 ¶ #2. Lancer une vérification
-¶ -. Ctrl+F7 ou Menu Édition → Vérifier tout le document : vérifier le document entier.
-¶ -. Ctrl+Maj+F7 ou Menu Édition → Vérifier la sélection / le paragraphe : vérifier la sélection, sinon le paragraphe courant.
+¶ -. Sélectionner le menu Édition (Alt + E) → Vérification de tout le document.
+¶ -. Sélectionner le menu Édition (Alt + E) → Vérification du paragraphe uniquement.
 ¶ À la fin, une annonce indique le nombre d’éléments détectés.
 ¶ #2. Naviguer entre les éléments détectés
 ¶ -. F7 : élément suivant (faute, alerte, suggestion).
 ¶ -. Maj+F7 : élément précédent.
 ¶ À chaque déplacement, le curseur se place sur l’élément et la vue défile.
-¶ INFO ÉCHAP. : un message bref rappelle le type de problème (fermez avec ÉCHAP).
 ¶ #2. Corriger, ignorer, ajouter au dictionnaire
 ¶ -. Entrée (ou touche Menu / Maj+F10) sur une erreur : ouvrir les suggestions.
 ¶ -. Flèche Haut/Bas pour choisir, Entrée pour appliquer.
 ¶ Options courantes : Corriger, Ignorer, Ignorer tout, Ajouter au dictionnaire.
-¶ Astuce : après une correction, relancez Ctrl+Maj+F7 pour revérifier uniquement le paragraphe ajusté.
+¶ Astuce : après une correction, relancez Ctrl+Maj+F7 pour revérifier seulement le paragraphe ajusté.
 ¶ #2. Accessibilité et annonces vocales
 ¶ -. Chaque étape émet une annonce vocale (si la synthèse est activée).
 ¶ -. Les messages « INFO ÉCHAP. » se ferment avec ÉCHAP ; la vérification continue.
@@ -209,14 +197,14 @@
 ¶ -. ÉCHAP : fermer une info sans interrompre la vérification.
 ¶ @saut de page
 ¶ #1. La boîte Rechercher
-¶ -. Tapez le mot ou groupe de mots à trouver. La recherche ignore la casse.
-¶ -. Entrée : occurrence suivante ; Maj+Entrée : précédente.
-¶ -. Vous pouvez aussi utiliser F3 (suivant) et Maj+F3 (précédent), ou les flèches Haut/Bas.
-¶ -. À chaque résultat, le mot est sélectionné et surligné ; le curseur se place au début et la vue défile.
-¶ -. Une fenêtre d’information affiche le contexte avec l’occurrence encadrée par des crochets (ex. : … en pri[maire], jusqu’aux …) et la position k sur N (ex. 2 sur 3). Validez OK ou fermez avec ÉCHAP.
-¶ -. En fin (ou début) de document, la recherche reprend en haut (ou en bas) et annonce Retour en haut/bas du document.
-¶ -. ÉCHAP : fermer la boîte Rechercher ; le curseur reste sur la dernière occurrence.
-¶ #2. Utiliser des jokers (recherches avancées)
+¶ Sélectionnez le menu Naviguer (Alt + N) → Rechercher texte (Ctrl + F)
+¶ Tapez le mot ou groupe de mots à trouver. PAr défaut la recherche ignore la casse (majuscule ou minuscule).
+¶ Les résultats s'affichents dans une liste qui peut être parcourue avec les flèches haut / bas mais aussi lu avec les fèches de gauche / droite.
+¶ Pour chque résultats, vous disposez de l'ocuurence sur le total des occurences, entre crochés le [texte recherché] dans son contexte textuel.
+¶ Pour valiser la rechercher tapez sur Entrée, le curseur se placera au début du texte recherché.
+¶ Pour modifier la rechercher tapez sur la barre espace.
+¶ Pour annuler et rechercher la fenêtre de recherche, taper sur ÉCHAP.
+¶ #2. Utiliser des jokers pour les recherches avancées
 ¶ -. * = n’importe quelle suite de caractères (y compris vide).
 ¶ Ex. : livre* trouve livre, livres, livrer, livrée, etc.
 ¶ -. ? = exactement un caractère.
