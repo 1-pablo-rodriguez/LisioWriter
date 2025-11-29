@@ -1,24 +1,41 @@
-package dia;
+package writer.internets;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.JRootPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+
 import writer.ui.EditorFrame;
 
-public class WikipediaSearchDialog {
+public class WiktionarySearchDialog {
 
     public static void open(EditorFrame parent, java.util.function.Consumer<String> onSearch) {
         // --- Création de la boîte de dialogue ---
-        JDialog dlg = new JDialog(parent, "Recherche Wikipédia", true);
+        JDialog dlg = new JDialog(parent, "Recherche Wiktionnaire", true);
         dlg.setLayout(new BorderLayout(15, 15));
         dlg.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         dlg.setResizable(false);
 
         // === Apparence adaptée aux malvoyants ===
         Font labelFont = new Font("Segoe UI Semibold", Font.PLAIN, 22);
-        Font fieldFont = new Font("Segoe UI", Font.PLAIN, 26); // 💡 Taille plus grande ici
+        Font fieldFont = new Font("Segoe UI", Font.PLAIN, 26); // Taille plus grande
         Font buttonFont = new Font("Segoe UI Semibold", Font.PLAIN, 20);
 
         Color bg = new Color(245, 245, 245);
@@ -27,7 +44,7 @@ public class WikipediaSearchDialog {
         dlg.getContentPane().setBackground(bg);
 
         // --- Label principal ---
-        JLabel lbl = new JLabel("Rechercher un article sur Wikipédia :");
+        JLabel lbl = new JLabel("Rechercher un mot dans le Wiktionnaire :");
         lbl.setFont(labelFont);
         lbl.setForeground(fg);
         lbl.setBorder(BorderFactory.createEmptyBorder(15, 20, 5, 20));
@@ -43,8 +60,7 @@ public class WikipediaSearchDialog {
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
         field.setPreferredSize(new Dimension(650, 60)); // agrandit la hauteur
-        field.getAccessibleContext().setAccessibleName("Zone de saisie du mot-clé Wikipédia");
-//        field.getAccessibleContext().setAccessibleDescription("Tapez le mot à rechercher puis appuyez sur Entrée pour lancer la recherche.");
+        field.getAccessibleContext().setAccessibleName("Zone de saisie du mot pour le Wiktionnaire");
 
         // --- Boutons bas de fenêtre ---
         JButton searchBtn = new JButton("🔍 Rechercher (Entrée)");
@@ -78,11 +94,15 @@ public class WikipediaSearchDialog {
         dlg.add(south, BorderLayout.SOUTH);
 
         // --- Accessibilité clavier ---
-        dlg.getRootPane().setDefaultButton(searchBtn);
-        dlg.getRootPane().registerKeyboardAction(e -> {
-            dlg.dispose();
-            SwingUtilities.invokeLater(() -> parent.getEditor().requestFocusInWindow());
-        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+        JRootPane rootPane = dlg.getRootPane();
+        rootPane.setDefaultButton(searchBtn);
+        rootPane.registerKeyboardAction(e -> {
+                    dlg.dispose();
+                    SwingUtilities.invokeLater(() -> parent.getEditor().requestFocusInWindow());
+                },
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
 
         // --- Action recherche ---
         searchBtn.addActionListener(e -> {
@@ -90,25 +110,40 @@ public class WikipediaSearchDialog {
             if (!query.isEmpty()) {
                 try {
                     Toolkit.getDefaultToolkit().beep();
-                    System.out.println("Recherche Wikipédia pour : " + query);
+                    System.out.println("Recherche Wiktionnaire pour : " + query);
 
                     String encoded = URLEncoder.encode(query, StandardCharsets.UTF_8);
-                    String url = "https://fr.wikipedia.org/w/index.php?search=" + encoded
-                            + "&title=Sp%C3%A9cial%3ARecherche&profile=advanced&fulltext=1&ns0=1";
+                    // URL de recherche sur le Wiktionnaire (espace principal)
+                    String url = "https://fr.wiktionary.org/w/index.php?search=" + encoded
+                            + "&title=Sp%C3%A9cial%3ARecherche&fulltext=1&ns0=1";
 
                     dlg.dispose();
-                    new HtmlBrowserDialog_WIKIPEDIA(parent, parent.getEditor(), url);
+
+                    // Si on veut réutiliser le callback onSearch :
+                    if (onSearch != null) {
+                        onSearch.accept(url);
+                    }
+
+                    // Navigation interne (comme pour Wikipédia)
+                    new HtmlBrowserDialog_WIKTIONAIRE(parent, parent.getEditor(), url);
 
                 } catch (Exception ex) {
                     Toolkit.getDefaultToolkit().beep();
-                    JOptionPane.showMessageDialog(dlg, "Erreur d'encodage : " + ex.getMessage(),
-                            "Erreur", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(
+                            dlg,
+                            "Erreur d'encodage : " + ex.getMessage(),
+                            "Erreur",
+                            JOptionPane.ERROR_MESSAGE
+                    );
                 }
             } else {
                 Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(dlg,
+                JOptionPane.showMessageDialog(
+                        dlg,
                         "Veuillez saisir un mot à rechercher.",
-                        "Saisie manquante", JOptionPane.WARNING_MESSAGE);
+                        "Saisie manquante",
+                        JOptionPane.WARNING_MESSAGE
+                );
             }
         });
 
@@ -121,7 +156,7 @@ public class WikipediaSearchDialog {
         EventQueue.invokeLater(() -> {
             field.requestFocusInWindow();
             Toolkit.getDefaultToolkit().beep();
-            System.out.println("Fenêtre de recherche Wikipédia ouverte.");
+            System.out.println("Fenêtre de recherche Wiktionnaire ouverte.");
         });
 
         dlg.pack();

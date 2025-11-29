@@ -29,8 +29,6 @@ import dia.BoiteNewDocument;
 import dia.BoiteNonVoyant;
 import dia.BoiteRenameFile;
 import dia.BoiteSaveAs;
-import dia.WikipediaSearchDialog;
-import dia.WiktionarySearchDialog;
 import dia.boiteMeta;
 import dia.navigateurT1;
 import dia.ouvrirDOCX;
@@ -45,6 +43,8 @@ import writer.commandes;
 import writer.enregistre;
 import writer.readFileBlindWriter;
 import writer.readFileTXT;
+import writer.internets.WikipediaSearchDialog;
+import writer.internets.WiktionarySearchDialog;
 import writer.model.Affiche;
 import writer.ui.EditorApi;
 import writer.ui.EditorFrame;
@@ -68,7 +68,7 @@ public final class MenuBarFactory {
         bar.add(menuInsertion(ctx));
         bar.add(menuImporte(ctx));
         bar.add(menuExporter(ctx));
-        bar.add(menuSources(ctx));
+        bar.add(menuInternet(ctx));
         bar.add(menuDocumentation(ctx));
         bar.add(menuPreference(ctx));
         
@@ -414,39 +414,20 @@ public final class MenuBarFactory {
         	ctx.setModified(false);
         }); 
         
-        JMenuItem importWikipedia = createMenuItem("Recherche Wikipedia", KeyEvent.VK_F8, 0,e -> {
-        	 var win = ctx.getWindow();
-             if (win instanceof EditorFrame frame) {
-            	 WikipediaSearchDialog.open(frame, url -> {
-            		    new dia.HtmlBrowserDialog_WIKIPEDIA(frame, frame.getEditor(), url);
-            		});
-             }
-        });
-        
-        JMenuItem importWiktionaire = createMenuItem("Recherche Wiktionaire", 0, 0,e -> {
-       	 var win = ctx.getWindow();
-            if (win instanceof EditorFrame frame) {
-           		WiktionarySearchDialog.open(frame, url -> {
-           		    // callback si tu veux logguer, adapter le comportement, etc.
-           		    System.out.println("URL Wiktionnaire sélectionnée : " + url);
-           		});
-            }
-       });
+       
         
         ctx.addItemChangeListener(importWriter);
         ctx.addItemChangeListener(importWord);
         ctx.addItemChangeListener(importTxt);
         ctx.addItemChangeListener(importHtml);
-        ctx.addItemChangeListener(importWikipedia);
-        ctx.addItemChangeListener(importWiktionaire);
+        
  
         fileMenu.add(importWriter);
         fileMenu.add(importWord);
         fileMenu.add(importTxt);
         fileMenu.add(importHtml);
         fileMenu.addSeparator();
-        fileMenu.add(importWikipedia);
-        fileMenu.add(importWiktionaire);
+
         
         return fileMenu;
     }
@@ -970,13 +951,13 @@ public final class MenuBarFactory {
     }
 
     // Menu Sources pour réaliser une bibilographie
-    private static JMenu menuSources(EditorApi ctx) {
-    	JMenu fileSources = new JMenu("Sources");
-    	fileSources.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
-    	fileSources.setMnemonic(KeyEvent.VK_S); 
-    	fileSources.getAccessibleContext().setAccessibleName("Sources");
+    private static JMenu menuInternet(EditorApi ctx) {
+    	JMenu fileInternet = new JMenu("Internets");
+    	fileInternet.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+    	fileInternet.setMnemonic(KeyEvent.VK_S); 
+    	fileInternet.getAccessibleContext().setAccessibleName("Internet");
     	// Listener déclenché à l’ouverture du menu
-    	fileSources.addMenuListener(new MenuListener() {
+    	fileInternet.addMenuListener(new MenuListener() {
             @Override public void menuSelected(MenuEvent e) {
                 // Laisse Swing ouvrir le menu, puis enlève l’item armé
                 SwingUtilities.invokeLater(() -> {
@@ -997,7 +978,32 @@ public final class MenuBarFactory {
             @Override public void menuCanceled(MenuEvent e) {}
         }); 
     	
-    	return fileSources;
+    	 JMenuItem importWikipedia = createMenuItem("Recherche Wikipedia", KeyEvent.VK_F8, 0,e -> {
+        	 var win = ctx.getWindow();
+             if (win instanceof EditorFrame frame) {
+            	 WikipediaSearchDialog.open(frame, url -> {
+            		    new writer.internets.HtmlBrowserDialog_WIKIPEDIA(frame, frame.getEditor(), url);
+            		});
+             }
+        });
+        
+        JMenuItem importWiktionaire = createMenuItem("Recherche Wiktionaire", 0, 0,e -> {
+       	 var win = ctx.getWindow();
+            if (win instanceof EditorFrame frame) {
+           		WiktionarySearchDialog.open(frame, url -> {
+           		    // callback si tu veux logguer, adapter le comportement, etc.
+           		    System.out.println("URL Wiktionnaire sélectionnée : " + url);
+           		});
+            }
+       });
+        
+        ctx.addItemChangeListener(importWikipedia);
+        ctx.addItemChangeListener(importWiktionaire);
+    	
+        fileInternet.add(importWikipedia);
+        fileInternet.add(importWiktionaire);
+        
+    	return fileInternet;
     }
     
     // Menu Documentation

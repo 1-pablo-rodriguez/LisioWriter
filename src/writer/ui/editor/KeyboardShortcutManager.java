@@ -32,9 +32,9 @@ import act.informations;
 import act.openSearchDialog;
 import act.ouvrirNavigateurT1;
 import act.textBody;
-import dia.HtmlBrowserDialog_WIKIPEDIA;
-import dia.WikipediaSearchDialog;
 import writer.editor.InsertUnorderedBulletAction;
+import writer.internets.HtmlBrowserDialog_WIKIPEDIA;
+import writer.internets.WikipediaSearchDialog;
 import writer.ui.EditorFrame;
 
 /**

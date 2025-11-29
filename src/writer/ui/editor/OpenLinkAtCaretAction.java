@@ -149,7 +149,7 @@ public final class OpenLinkAtCaretAction extends AbstractAction {
     private void open(String title, String url) {
         if (isWikipediaUrl(url)) {
             System.out.println("Import direct Wikipédia : " + title + " → " + url);
-            dia.HtmlBrowserDialog_WIKIPEDIA.insertArticleDirect(editor, url);
+            writer.internets.HtmlBrowserDialog_WIKIPEDIA.insertArticleDirect(editor, url);
         } else {
             System.out.println("Ouverture navigateur : " + title + " → " + url);
             openInBrowser(url);
