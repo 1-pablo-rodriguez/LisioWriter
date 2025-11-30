@@ -14,7 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
@@ -153,32 +152,16 @@ public final class MenuBarFactory {
 	    JMenuItem saveItem = createMenuItem("Enregistrer", KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK, e -> {
 	        var win = ctx.getWindow();
 	        if (win instanceof EditorFrame frame) {
-	            ctx.clearSpellHighlightsAndFocusEditor();
 	            new enregistre(frame);
 	            ctx.setModified(false);
-	            ctx.updateWindowTitle();
-	
-	            StringBuilder msg = new StringBuilder(128);
-	            msg.append("Fichier enregistré ↓")
-	               .append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓")
-	               .append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
-	            ctx.showInfo("Information", msg.toString());
+	            ctx.updateWindowTitle(); 
 	        }
 	    });
 	
 	    JMenuItem saveAsItem = createMenuItem("Enregistrer sous", KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, e -> {
-	        ctx.clearSpellHighlightsAndFocusEditor();
 	        var win = ctx.getWindow();
 	        if (win instanceof EditorFrame frame) {
 	            new BoiteSaveAs(frame);
-	            ctx.setModified(false);
-	            ctx.updateWindowTitle();
-	
-	            StringBuilder msg = new StringBuilder(128);
-	            msg.append("Fichier enregistré ↓")
-	               .append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓")
-	               .append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓");
-	            ctx.showInfo("Information", msg.toString());
 	        }
 	    });
 	
@@ -187,8 +170,6 @@ public final class MenuBarFactory {
 	        var win = ctx.getWindow();
 	        if (win instanceof EditorFrame frame) {
 	            new BoiteRenameFile(frame);
-	            ctx.setModified(false);
-	            ctx.updateWindowTitle();
 	        }
 	    });
 	

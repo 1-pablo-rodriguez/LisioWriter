@@ -44,9 +44,11 @@ public final class BoiteRenameFile extends JDialog {
     // autorise lettres, chiffres, espace, _ - . (souvent utiles dans un nom)
     private static final Pattern ALLOWED = Pattern.compile("[a-zA-Z0-9 _.-]+");
 
+    EditorFrame parent ;
     
     public BoiteRenameFile(EditorFrame parent) {
         super((Frame) null, "Modifier le nom de fichier", true);
+        this.parent = parent;
         
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(12, 12));
@@ -146,6 +148,7 @@ public final class BoiteRenameFile extends JDialog {
         commandes.nameFile = texte;
         if (commandes.nodeblindWriter != null) {
             commandes.nodeblindWriter.getAttributs().put("filename", texte);
+            parent.updateWindowTitle();
         }
         dispose();
     }

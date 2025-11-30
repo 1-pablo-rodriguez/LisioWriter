@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import writer.ui.EditorFrame;
+import writer.util.RecentFilesManager;
 
 
 public class enregistre {
@@ -45,12 +46,24 @@ public class enregistre {
            // Hash du node
            commandes.hash = commandes.nodeblindWriter.hashCode();
            
+           // Document propre : marquer non-modifié
+           parent.setModified(false);
+           
+           // Ajoute dans la liste des fichiers récents
+           RecentFilesManager.addOpenedFile(fichier);
+           
+           StringBuilder msg = new StringBuilder(128);
+           msg.append("Fichier enregistré ↓")
+              .append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓")
+              .append("\n• Dossier : ").append(commandes.nomDossierCourant);
+           parent.showInfo("Information", msg.toString());
+           
        } catch (IOException e1) {
            e1.printStackTrace();
        }
    }
     
-    public enregistre(String nameFile, EditorFrame parent) {
+    public enregistre(String nameFile, File file, EditorFrame parent) {
       	 // Sauvegarder le texte du JEditorPane dans un fichier
           String text = parent.getEditor().getText();
           commandes.nodeblindWriter.removeAllEnfantWithThisName("bookmarks");
@@ -71,11 +84,16 @@ public class enregistre {
           try (FileWriter writer = new FileWriter(fichier)) {
               // Écrit du contenu dans le fichier
               writer.write(text);
-              
               commandes.texteDocument=text;
               
               // Hash du node
               commandes.hash = commandes.nodeblindWriter.hashCode();
+              
+              // Document propre : marquer non-modifié
+              parent.setModified(false);
+              
+              // Ajoute dans la liste des fichiers récents
+              RecentFilesManager.addOpenedFile(file);
               
           } catch (IOException e1) {
               e1.printStackTrace();

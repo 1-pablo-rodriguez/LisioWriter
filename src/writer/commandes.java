@@ -20,7 +20,6 @@ public class commandes {
     public static String userHome = System.getProperty("user.home");
     public static File currentDirectory = new File(userHome + "/Documents");
     public static String nomDossierCourant = currentDirectory.getName();
-    
     public static String pathApp = Paths.get("").toAbsolutePath().toString();
 	public static String getPathApp = pathApp ;
 	public static FileSystemView filesys = FileSystemView.getFileSystemView();

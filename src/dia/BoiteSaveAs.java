@@ -160,13 +160,25 @@ public class BoiteSaveAs extends JFrame {
 	            String body = "Le fichier " + target.getName() + " existe déjà. Écraser ?";
 	            boolean ok = confirmWithBrailleDialog(body, "Confirmer l’écrasement");
 	            if (!ok) {
-	                refocusListAndAnnounce("Enregistrement annulé.");
-	                return;
+	            	 StringBuilder msg = new StringBuilder(128);
+	                 msg.append("FEnregistrement annulé");
+	                 parent.showInfo("Information", msg.toString());
+	                 return;
 	            }
 	        }
 
 	        typed = "";
+
 	        saveTo(target);
+	        
+	        StringBuilder msg = new StringBuilder(128);
+            msg.append("Fichier enregistré ↓")
+               .append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓")
+               .append("\n• Dossier : ").append(commandes.nomDossierCourant);
+            parent.showInfo("Information", msg.toString());
+            
+            parent.setModified(false);
+            parent.updateWindowTitle();
 	    });
 
 	    nameField.getActionMap().put("enter", new AbstractAction() {
@@ -468,9 +480,10 @@ public class BoiteSaveAs extends JFrame {
         	    String body = "Le fichier " + sel.getName() + " existe déjà. Écraser ?";
         	    boolean ok = confirmWithBrailleDialog(body, "Confirmer l’écrasement");
         	    if (!ok) {
-        	    	refocusListAndAnnounce("Enregistrement annulé.");
-        	        SwingUtilities.invokeLater(() -> announceHere("Écrasement annulé. Retour sur " + sel.getName(), true, true));
-        	        return;
+        	    	 StringBuilder msg = new StringBuilder(128);
+	                 msg.append("Enregistrement annulé");
+	                 parent.showInfo("Information", msg.toString());
+	                 return;
         	    }
         	}
             typed = "";
@@ -478,7 +491,21 @@ public class BoiteSaveAs extends JFrame {
             nameField.setText(stripExt(sel.getName()));
 
             saveTo(sel);
-            return;
+            
+            commandes.currentDirectory = sel.getParentFile().getAbsoluteFile();
+            commandes.nomDossierCourant = sel.getParentFile().getName();
+            commandes.nameFile = stripExt(sel.getName());
+            new writer.enregistre(commandes.nameFile , sel, parent);
+            
+            
+            StringBuilder msg = new StringBuilder(128);
+            msg.append("Fichier enregistré ↓")
+               .append("\n• Fichier : ").append(commandes.nameFile).append(".bwr ↓")
+               .append("\n• Dossier : ").append(commandes.nomDossierCourant);
+            parent.showInfo("Information", msg.toString());
+            
+            parent.setModified(false);
+            parent.updateWindowTitle();
         }
     }
 
@@ -506,10 +533,11 @@ public class BoiteSaveAs extends JFrame {
 
     private void saveTo(File targetFile) {
         commandes.currentDirectory = targetFile.getParentFile().getAbsoluteFile();
+        commandes.nomDossierCourant = targetFile.getParentFile().getName();
         commandes.nameFile = stripExt(targetFile.getName());
-        new writer.enregistre(commandes.nameFile, parent);
+        new writer.enregistre(commandes.nameFile , targetFile, parent);
         
-        fermeture(); // rend le focus à l'éditeur
+        fermeture();
 
         System.out.println("Fichier enregistré : " + targetFile.getName());
         
@@ -621,12 +649,6 @@ public class BoiteSaveAs extends JFrame {
     }
 
 
-    private void refocusListAndAnnounce(String msg) {
-        SwingUtilities.invokeLater(() -> {
-            fileList.requestFocusInWindow();     // la liste reprend le focus
-            announceHere(msg, /*autoHide*/ true, /*takeFocus*/ false); // puis on annonce (srLocal prendra le focus brièvement)
-        });
-    }
 
     private static String stripExt(String name) {
         int i = name.lastIndexOf('.');
