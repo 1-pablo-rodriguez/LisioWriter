@@ -44,6 +44,7 @@ public class commandes {
     public static node styles_page = new node();
     public static node Tprin = new node();
     public static node Tstitre = new node();
+    public static node bodyText = new node();
     public static node T1 = new node();
     public static node T2 = new node();
     public static node T3 = new node();
@@ -51,7 +52,6 @@ public class commandes {
     public static node T5 = new node();
     public static node pageDefaut = new node();
     public static node pageTitre = new node();
-    public static node bodyText = new node();
     public static node meta = new node();
     public static node bookmarks = new node();
     public static node dateModif = new node();
@@ -110,7 +110,7 @@ public class commandes {
     	T5 = new node();
     	T5.setNameNode("Titre5");
     	T5.getAttributs().put("name", "Titre5");
-    	
+
     	bodyText = new node();
     	bodyText.setNameNode("bodyText");
     	bodyText.getAttributs().put("name", "Corps de texte");
@@ -238,7 +238,7 @@ public class commandes {
 
     	bodyText = commandes.nodeblindWriter.retourneFirstEnfant("bodyText");
         if(!bodyText.isHasAttributs("police")) bodyText.getAttributs().put("police", "Arial");
-        if(!bodyText.isHasAttributs("size")) bodyText.getAttributs().put("size", "14pt");
+        if(!bodyText.isHasAttributs("size")) bodyText.getAttributs().put("size", "22pt");
         if(!bodyText.isHasAttributs("alignement")) bodyText.getAttributs().put("alignement", "justify");
         if(!bodyText.isHasAttributs("interligne")) bodyText.getAttributs().put("interligne", "115%");
         if(!bodyText.isHasAttributs("margin_top")) bodyText.getAttributs().put("espacement_au_dessus", "0.2cm");
