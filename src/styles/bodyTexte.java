@@ -7,7 +7,7 @@ import writer.ui.EditorApi;
 import writer.ui.text.Lines;
 
 public class bodyTexte {
-    private static final char BRAILLE = '\u00B6';
+    private static final char PIEDDEMOUCHE = '\u00B6';
 
     // ^\s*¶\s* → capture et normalise le préfixe braille
     private static final Pattern LEADING_BRAILLE = Pattern.compile("^\\s*\\u00B6\\s*");
@@ -59,8 +59,8 @@ public class bodyTexte {
             newAfter = newAfter.stripLeading();
 
             // 3) Recompose : garder uniquement ¶ (et le texte si présent)
-            final String newLine = newAfter.isEmpty() ? String.valueOf(BRAILLE)
-                                                      : BRAILLE + " " + newAfter;
+            final String newLine = newAfter.isEmpty() ? String.valueOf(PIEDDEMOUCHE)
+                                                      : PIEDDEMOUCHE + " " + newAfter;
 
             // 4) Restaure la fin de ligne d’origine
             String trailingNL = raw.endsWith("\r\n") ? "\r\n" : (raw.endsWith("\n") ? "\n" : "");

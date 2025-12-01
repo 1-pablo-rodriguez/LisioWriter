@@ -475,12 +475,12 @@ public final class MenuBarFactory {
             new styles.titre5(ctx).appliquer();
         });
     	 
-    	JMenuItem tPrinItem = createMenuItem("Titre principale", KeyEvent.VK_8, InputEvent.CTRL_DOWN_MASK, e -> {
+    	JMenuItem tPrinItem = createMenuItem("Titre principal", KeyEvent.VK_8, InputEvent.CTRL_DOWN_MASK, e -> {
             System.out.println("Applique le titre principale"); // Debugger
             new styles.titrePrincipale(ctx).appliquer();
         });
     	 
-    	JMenuItem sTitreItem = createMenuItem("Sous titre principale", KeyEvent.VK_9, InputEvent.CTRL_DOWN_MASK, e -> {
+    	JMenuItem sTitreItem = createMenuItem("Sous-titre principal", KeyEvent.VK_9, InputEvent.CTRL_DOWN_MASK, e -> {
             System.out.println("Applique le Sous titre"); // Debugger
             new styles.sousTitre(ctx).appliquer();
         });
@@ -490,6 +490,56 @@ public final class MenuBarFactory {
             System.out.println("Puce"); // Debugger
             new styles.listeNonNumero(ctx).appliquer();
         });
+    	
+    	JMenuItem ecItem = new JMenuItem("Éditer corps de texte");
+    	ecItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+    	ecItem.addActionListener(e -> {
+    	    styles.BodyTextStyleDialog.open(ctx.getWindow());
+    	});
+    	
+    	JMenuItem et1Item = new JMenuItem("Éditer Titre 1");
+    	et1Item.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+    	et1Item.addActionListener(e -> {
+    	    styles.Titre1TextStyleDialog.open(ctx.getWindow());
+    	});
+    	
+    	JMenuItem et2Item = new JMenuItem("Éditer Titre 2");
+    	et2Item.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+    	et2Item.addActionListener(e -> {
+    	    styles.Titre2TextStyleDialog.open(ctx.getWindow());
+    	});
+    	
+    	JMenuItem et3Item = new JMenuItem("Éditer Titre 3");
+    	et3Item.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+    	et3Item.addActionListener(e -> {
+    	    styles.Titre3TextStyleDialog.open(ctx.getWindow());
+    	});
+    	
+    	JMenuItem et4Item = new JMenuItem("Éditer Titre 4");
+    	et4Item.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+    	et4Item.addActionListener(e -> {
+    	    styles.Titre4TextStyleDialog.open(ctx.getWindow());
+    	});
+    	
+    	JMenuItem et5Item = new JMenuItem("Éditer Titre 5");
+    	et5Item.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+    	et5Item.addActionListener(e -> {
+    	    styles.Titre5TextStyleDialog.open(ctx.getWindow());
+    	});
+    	
+    	JMenuItem etPItem = new JMenuItem("Éditer Titre principal");
+    	etPItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+    	etPItem.addActionListener(e -> {
+    	    styles.TitrePTextStyleDialog.open(ctx.getWindow());
+    	});
+    	
+    	JMenuItem etSItem = new JMenuItem("Éditer Sous-titre principal");
+    	etSItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+    	etSItem.addActionListener(e -> {
+    	    styles.TitreSTextStyleDialog.open(ctx.getWindow());
+    	});
+
+    	
     	
     	// Ajouter des ChangeListeners pour les JMenuItem
     	ctx.addItemChangeListener(ctItem);
@@ -501,6 +551,15 @@ public final class MenuBarFactory {
     	ctx.addItemChangeListener(t4Item);
     	ctx.addItemChangeListener(t5Item);
     	ctx.addItemChangeListener(sPuceItem);
+    	ctx.addItemChangeListener(ecItem);
+    	ctx.addItemChangeListener(etPItem);
+    	ctx.addItemChangeListener(etSItem);
+    	ctx.addItemChangeListener(et1Item);
+    	ctx.addItemChangeListener(et2Item);
+    	ctx.addItemChangeListener(et3Item);
+    	ctx.addItemChangeListener(et4Item);
+    	ctx.addItemChangeListener(et5Item);
+    	
         
     	fileAppliqueStyle.add(ctItem);
     	fileAppliqueStyle.add(tPrinItem);
@@ -510,7 +569,16 @@ public final class MenuBarFactory {
     	fileAppliqueStyle.add(t3Item);
     	fileAppliqueStyle.add(t4Item);
     	fileAppliqueStyle.add(t5Item);
-    	fileAppliqueStyle.add(sPuceItem); 
+    	fileAppliqueStyle.add(sPuceItem);
+    	fileAppliqueStyle.addSeparator();
+    	fileAppliqueStyle.add(ecItem);
+    	fileAppliqueStyle.add(etPItem);
+    	fileAppliqueStyle.add(etSItem);
+    	fileAppliqueStyle.add(et1Item);
+    	fileAppliqueStyle.add(et2Item);
+    	fileAppliqueStyle.add(et3Item);
+    	fileAppliqueStyle.add(et4Item);
+    	fileAppliqueStyle.add(et5Item);
 	
     	return fileAppliqueStyle;
     }
