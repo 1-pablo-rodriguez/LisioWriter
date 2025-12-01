@@ -265,6 +265,14 @@ public class HtmlBrowserDialog_WIKIPEDIA extends JDialog {
 	                    content.select("[id^=cite_note], [id^=cite_ref]").remove();  // enlève tout élément dont l'id commence par cite_note ou cite_ref
 	                    content.select("ol.references > li[id^=cite_note]").remove();
 	                    
+	                    
+	                    // --- Supprimer complètement les balises <a> (garder seulement le texte) ---
+	                    // suppression des liens
+	                    for (Element link : content.select("a[href]")) {
+	                        link.unwrap();
+	                    }
+
+	                    
 	                    // --- Images ---
 		                 // 1) remplacer figure/thumb par un marqueur (supprime aussi les légendes)
 		                 convertFiguresAndThumbs(content);
@@ -294,6 +302,8 @@ public class HtmlBrowserDialog_WIKIPEDIA extends JDialog {
 //	                        }
 //	                    }
 	
+		                
+		                
 	                // --- Conversion finale du HTML vers le format LisioWriter ---
                     String html = content.html();
                     converted = HtmlImporter.importFromHtml(html);
@@ -318,11 +328,17 @@ public class HtmlBrowserDialog_WIKIPEDIA extends JDialog {
                             .replaceAll("(?is)\\([^)]*(?:[\\\\/]|(?:\\b(?:text|file|src|href|path|url)\\=))[^\"]*?\\)", "")
 
                             .trim();
-         
+
                         converted = converted
                                 // à nouveau : garantir qu'on n'a pas plus de 2 newlines de suite
                                 .replaceAll("\\n{2,}", "\n")
+                                // suppression des ) orphelines
+                                .replaceAll("(?m)(?<!\\()\\)", "")
+                                // remplace les espaces superflux
+                        		.replaceAll(" {2,}", " ")
                                 .trim();
+           
+                        		
                     }
                 }
             } catch (Exception ex) {
@@ -502,8 +518,7 @@ public class HtmlBrowserDialog_WIKIPEDIA extends JDialog {
 	                                .replaceAll("(?m)^[ \\t]+(?=(?:-\\.|\\*|\\d+\\.)\\s)", "")
 	                                // 2) aucun espace après marqueur
 	                                .replaceAll("(?m)^(?:\\s*)(-\\.|\\*|\\d+\\.)\\s+", "$1")
-	                                // chemins indésirables entre parenthèses
-	                                .replaceAll("(?is)\\([^)]*(?:[\\\\/]|(?:\\b(?:text|file|src|href|path|url)\\=))[^\"]*?\\)", "")
+	                                .replaceAll("(?is)\\((?:[^()]*[\\\\/]|[^()]*\\b(?:text|file|src|href|path|url)=)[^()]*\\)","")
 	                                .replaceAll("\\n{2,}", "\n")
 	                                .trim();
 	                    }

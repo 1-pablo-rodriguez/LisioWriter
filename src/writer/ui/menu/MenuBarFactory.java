@@ -1102,7 +1102,7 @@ public final class MenuBarFactory {
 			@Override public void menuCanceled(MenuEvent e) {}
         }); 
         
-        JMenuItem afficheDocItem = createMenuItem("Doc. LisoWriter", KeyEvent.VK_A, InputEvent.ALT_DOWN_MASK, e -> {
+        JMenuItem afficheDocItem = createMenuItem("Doc. LisioWriter", KeyEvent.VK_A, InputEvent.ALT_DOWN_MASK, e -> {
 	        ctx.sauvegardeTemporaire();             
 	        if (ctx instanceof EditorFrame f) {
 	        	if(f.getAffichage() == Affiche.TEXTE){
@@ -1113,7 +1113,7 @@ public final class MenuBarFactory {
 	        }
         });
           
-        JMenuItem afficheTextItem = createMenuItem("Votre texte", KeyEvent.VK_B, InputEvent.ALT_DOWN_MASK, e -> {
+        JMenuItem afficheTextItem = createMenuItem("Votre document", KeyEvent.VK_B, InputEvent.ALT_DOWN_MASK, e -> {
         	if (ctx instanceof EditorFrame f) {
         		if(f.getAffichage()!=Affiche.TEXTE){
             		f.setAffichage(Affiche.TEXTE);

@@ -265,6 +265,12 @@ public class HtmlBrowserDialog_WIKTIONAIRE extends JDialog {
 	                    content.select("[id^=cite_note], [id^=cite_ref]").remove();  // enlève tout élément dont l'id commence par cite_note ou cite_ref
 	                    content.select("ol.references > li[id^=cite_note]").remove();
 	                    
+	                    // --- Supprimer complètement les balises <a> (garder seulement le texte) ---
+	                    // suppression des liens
+	                    for (Element link : content.select("a[href]")) {
+	                        link.unwrap();
+	                    }
+	                    
 	                    // --- Images ---
 		                 // 1) remplacer figure/thumb par un marqueur (supprime aussi les légendes)
 		                 convertFiguresAndThumbs(content);
@@ -305,6 +311,9 @@ public class HtmlBrowserDialog_WIKTIONAIRE extends JDialog {
                         converted = converted
                                 // à nouveau : garantir qu'on n'a pas plus de 2 newlines de suite
                                 .replaceAll("\\n{2,}", "\n")
+                                .replaceAll(" {2,}", " ")
+                                .replaceAll("\\^{3,}", "")
+                                .replaceAll("\\*{3,}", "")
                                 .trim();
                     }
                 }
