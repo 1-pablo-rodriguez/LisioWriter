@@ -560,7 +560,6 @@ public final class MenuBarFactory {
     	ctx.addItemChangeListener(et4Item);
     	ctx.addItemChangeListener(et5Item);
     	
-        
     	fileAppliqueStyle.add(ctItem);
     	fileAppliqueStyle.add(tPrinItem);
     	fileAppliqueStyle.add(sTitreItem);
