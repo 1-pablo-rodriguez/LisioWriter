@@ -134,7 +134,7 @@ public class readFileBlindWriter {
                               .loadFromXml(commandes.nodeblindWriter.retourneFirstEnfant("bookmarks"));
                     }
 
-                    // Document propre : marquer non-modifié
+                    // marquer non-modifié
                     parent.setModified(false);
 
                     // Vider l'historique d'undo tout de suite pour éviter que l'ouverture soit annulable.

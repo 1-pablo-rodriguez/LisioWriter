@@ -315,6 +315,8 @@ public class HtmlBrowserDialog_WIKTIONAIRE extends JDialog {
                                 .replaceAll("\\^{3,}", "")
                                 .replaceAll("\\*{3,}", "")
                                 .trim();
+                        
+                        
                     }
                 }
             } catch (Exception ex) {
@@ -481,6 +483,10 @@ public class HtmlBrowserDialog_WIKTIONAIRE extends JDialog {
 	                    // Conversion finale
 	                    String html = content.html();
 	                    converted = Import.HtmlImporter.importFromHtml(html);
+	                    
+	                    // Correction synthasique
+	                    converted = CorrectionSynthase.corrigerSynthase(converted);
+	                    
 	                    if (converted != null) {
 	                        converted = converted
 	                                .replace('\u00A0', ' ')      // nbsp -> espace

@@ -202,13 +202,15 @@ public final class MenuBarFactory {
 	    m.add(openItem);
 	    m.add(recentMenu);
 	    m.addSeparator();
+	    m.add(renameItem);
+	    m.addSeparator();
 	    m.add(saveItem);
 	    m.add(saveAsItem);
 	    m.addSeparator();
-	    m.add(renameItem);
 	    m.add(metaItem);
-
+	    m.addSeparator();
 	    m.add(quitItem);
+	    
 	    return m;
 	}
 
@@ -1245,8 +1247,9 @@ public final class MenuBarFactory {
         for (File f : recents) {
             final File file = f;  // pour la lambda
 
-            String label = file.getName();
-            // si tu veux un préfixe numérique : index + ". " + file.getName()
+            // ① Label numéroté : "1- nomDuFichier.ext"
+            String label = index + "- " + file.getName();
+
             JMenuItem item = new JMenuItem(label);
             item.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
             item.setToolTipText(file.getAbsolutePath());
@@ -1265,41 +1268,41 @@ public final class MenuBarFactory {
 
                 var win = ctx.getWindow();
                 if (win instanceof EditorFrame frame) {
-                	try {
-                	    String name = file.getName().toLowerCase(java.util.Locale.ROOT);
+                    try {
+                        String name = file.getName().toLowerCase(java.util.Locale.ROOT);
 
-                	    if (name.endsWith(".bwr")) {
-                	        new readFileBlindWriter(file, frame);
-                	    } else if (name.endsWith(".txt")) {
-                	    	new readFileTXT(file,frame);
-                	    } else if (name.endsWith(".odt")) {
-                	    	new ouvrirODT(frame,true).readFile(file);
-                	    } else if (name.endsWith(".docx")) {
-                	    	new ouvrirDOCX(frame, true).readFile(file);
-                	    } else if (name.endsWith(".html") || name.endsWith(".htm")) {
-                	    	new ouvrirHTML(frame, true).readFile(file);
-                	    } else {
-                	        // Extension inconnue
-                	        Toolkit.getDefaultToolkit().beep();
-                	        dia.InfoDialog.show(frame, "Extension non prise en charge",
-                	                "Impossible d’ouvrir ce fichier récent :\n"
-                	              + file.getAbsolutePath()
-                	              + "\n\nExtension non reconnue.");
-                	        return;
-                	    }
+                        if (name.endsWith(".bwr")) {
+                            new readFileBlindWriter(file, frame);
+                        } else if (name.endsWith(".txt")) {
+                            new readFileTXT(file, frame);
+                        } else if (name.endsWith(".odt")) {
+                            new ouvrirODT(frame, true).readFile(file);
+                        } else if (name.endsWith(".docx")) {
+                            new ouvrirDOCX(frame, true).readFile(file);
+                        } else if (name.endsWith(".html") || name.endsWith(".htm")) {
+                            new ouvrirHTML(frame, true).readFile(file);
+                        } else {
+                            // Extension inconnue
+                            Toolkit.getDefaultToolkit().beep();
+                            dia.InfoDialog.show(frame, "Extension non prise en charge",
+                                    "Impossible d’ouvrir ce fichier récent :\n"
+                                  + file.getAbsolutePath()
+                                  + "\n\nExtension non reconnue.");
+                            return;
+                        }
 
-                	    // Si on arrive ici, l’ouverture s’est bien passée
-                	    ctx.setModified(false);
-                	    ctx.updateWindowTitle();
+                        // Si on arrive ici, l’ouverture s’est bien passée
+                        ctx.setModified(false);
+                        ctx.updateWindowTitle();
 
-                	} catch (Exception ex) {
-                	    ex.printStackTrace();
-                	    Toolkit.getDefaultToolkit().beep();
-                	    dia.InfoDialog.show(frame, "Erreur d’ouverture",
-                	            "Une erreur est survenue en ouvrant le fichier :\n"
-                	          + file.getAbsolutePath()
-                	          + "\n\n" + ex.getMessage());
-                	}
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        Toolkit.getDefaultToolkit().beep();
+                        dia.InfoDialog.show(frame, "Erreur d’ouverture",
+                                "Une erreur est survenue en ouvrant le fichier :\n"
+                              + file.getAbsolutePath()
+                              + "\n\n" + ex.getMessage());
+                    }
                 }
             });
 
@@ -1308,6 +1311,7 @@ public final class MenuBarFactory {
             if (index > 40) break;
         }
     }
+
 
     
 }

@@ -508,20 +508,25 @@ public class HtmlBrowserDialog_WIKIPEDIA extends JDialog {
 	                    // Conversion finale
 	                    String html = content.html();
 	                    converted = Import.HtmlImporter.importFromHtml(html);
-	                    if (converted != null) {
-	                        converted = converted
-	                                .replace('\u00A0', ' ')      // nbsp -> espace
-	                                .replace('\u2028', '\n')     // séparateur de ligne -> \n
-	                                .replace('\u2029', '\n')     // séparateur de paragraphe -> \n
-	                                .replaceAll("[\\r\\n]{3,}", "\n\n")
-	                                // 1) enlever espaces avant marqueur liste
-	                                .replaceAll("(?m)^[ \\t]+(?=(?:-\\.|\\*|\\d+\\.)\\s)", "")
-	                                // 2) aucun espace après marqueur
-	                                .replaceAll("(?m)^(?:\\s*)(-\\.|\\*|\\d+\\.)\\s+", "$1")
-	                                .replaceAll("(?is)\\((?:[^()]*[\\\\/]|[^()]*\\b(?:text|file|src|href|path|url)=)[^()]*\\)","")
-	                                .replaceAll("\\n{2,}", "\n")
-	                                .trim();
-	                    }
+	                    
+	                    // Correction synthasique
+	                    converted = CorrectionSynthase.corrigerSynthase(converted);
+	                    
+	                    
+//	                    if (converted != null) {
+//	                        converted = converted
+//	                                .replace('\u00A0', ' ')      // nbsp -> espace
+//	                                .replace('\u2028', '\n')     // séparateur de ligne -> \n
+//	                                .replace('\u2029', '\n')     // séparateur de paragraphe -> \n
+//	                                .replaceAll("[\\r\\n]{3,}", "\n\n")
+//	                                // 1) enlever espaces avant marqueur liste
+//	                                .replaceAll("(?m)^[ \\t]+(?=(?:-\\.|\\*|\\d+\\.)\\s)", "")
+//	                                // 2) aucun espace après marqueur
+//	                                .replaceAll("(?m)^(?:\\s*)(-\\.|\\*|\\d+\\.)\\s+", "$1")
+//	                                .replaceAll("(?is)\\((?:[^()]*[\\\\/]|[^()]*\\b(?:text|file|src|href|path|url)=)[^()]*\\)","")
+//	                                .replaceAll("\\n{2,}", "\n")
+//	                                .trim();
+//	                    }
 	                }
 	            } catch (Exception ex) {
 	                error = ex.getMessage();
