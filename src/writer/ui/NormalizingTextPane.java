@@ -9,7 +9,6 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
-
 @SuppressWarnings("serial")
 public class NormalizingTextPane extends javax.swing.JTextPane {
     private static final Pattern EOL = Pattern.compile("\\r\\r?\\n|\\r");
@@ -17,7 +16,22 @@ public class NormalizingTextPane extends javax.swing.JTextPane {
     // Peut être null au tout début (super() pas fini) → on gère ça dans setDocument(...)
     private List<UndoableEditListener> stickyUndoListeners = new CopyOnWriteArrayList<>();
 
-    
+    // --- NOUVEAU : flag de wrap ---
+    private boolean lineWrapEnabled = false;
+
+    // --- NOUVEAU : setter public ---
+    public void setLineWrap(boolean enabled) {
+        this.lineWrapEnabled = enabled;
+        // Recalcul de la mise en page
+        revalidate();
+        repaint();
+    }
+
+    // (optionnel si tu veux l'utiliser ailleurs)
+    public boolean isLineWrapEnabled() {
+        return lineWrapEnabled;
+    }
+
     private static String norm(String s) {
         return (s == null) ? null : EOL.matcher(s).replaceAll("\n");
     }
@@ -42,26 +56,35 @@ public class NormalizingTextPane extends javax.swing.JTextPane {
 
     @Override
     public void replaceSelection(String content) {
-        // Normalise le texte inséré via replaceSelection (coller, etc.)
         //super.replaceSelection(norm(content));
-   	 super.replaceSelection(content);
+        super.replaceSelection(content);
     }
 
-    @Override
-    public boolean getScrollableTracksViewportWidth() {
-    	// Pour forcer à prendre toute la largeur de l'éditeur
-//    	if (getParent() instanceof javax.swing.JViewport viewport) {
+//    @Override
+//    public boolean getScrollableTracksViewportWidth() {
+//        // Si wrap désactivé (non-voyant) → pas de wrap visuel, scroll horizontal possible
+//        if (!lineWrapEnabled) {
+//            return false;
+//        }
+//
+//        // Si wrap activé → le texte suit la largeur du viewport
+//        if (getParent() instanceof javax.swing.JViewport viewport) {
 //            return getUI().getPreferredSize(this).width <= viewport.getWidth();
 //        }
-        // Désactive le suivi de la largeur du viewport → pas de wrap visuel
-        return false;
+//
+//        return false;
+//    }
+    
+    @Override
+    public boolean getScrollableTracksViewportWidth() {
+        // Si true → le composant suit la largeur du viewport → wrap
+        // Si false → largeur préférée utilisée → scroll horizontal possible
+        return lineWrapEnabled;
     }
 
-    
+
     /**
-     * Nettoie le Document courant en remplaçant son contenu par une version
-     * normalisée (CR/CRLF -> LF). Utile pour rendre offsets et modelToView
-     * cohérents. Appeler avec précaution (peut déclencher DocumentFilter).
+     * Nettoie le Document courant...
      */
     public void normalizeDocumentContent() {
         Document doc = getDocument();
@@ -73,13 +96,9 @@ public class NormalizingTextPane extends javax.swing.JTextPane {
             if (!normalized.equals(original)) {
                 int oldCaret = getCaretPosition();
 
-                // Remplacement "safe" : retirer tout puis insérer la version normalisée
-                // (si tu as un DocumentFilter qui modifie le texte, tu peux devoir
-                // adapter cette approche pour déléguer proprement).
                 doc.remove(0, doc.getLength());
                 doc.insertString(0, normalized, null);
 
-                // Restituer un caret valide
                 int newCaret = Math.max(0, Math.min(oldCaret, doc.getLength()));
                 setCaretPosition(newCaret);
             }
@@ -88,10 +107,6 @@ public class NormalizingTextPane extends javax.swing.JTextPane {
         }
     }
 
-    /**
-     * Installe un DocumentFilter qui normalise toute insertion/remplacement.
-     * Recommandé si tu veux empêcher l'apparition de CR dans le Document.
-     */
     public void installEOLDocumentFilter() {
         Document d = getDocument();
         if (d instanceof AbstractDocument) {
@@ -118,7 +133,6 @@ public class NormalizingTextPane extends javax.swing.JTextPane {
 
     @Override
     public void setDocument(Document newDoc) {
-        // Pendant le super-constructeur, stickyUndoListeners peut être null → on fait simple.
         if (stickyUndoListeners == null) {
             super.setDocument(newDoc);
             return;
@@ -139,7 +153,6 @@ public class NormalizingTextPane extends javax.swing.JTextPane {
     
     public void addStickyUndoableEditListener(UndoableEditListener l) {
         if (l == null) return;
-        // lazy init au cas où (sécurité si constructeur super a déjà appelé setDocument)
         if (stickyUndoListeners == null) stickyUndoListeners = new CopyOnWriteArrayList<>();
         stickyUndoListeners.add(l);
         Document d = getDocument();
@@ -152,5 +165,4 @@ public class NormalizingTextPane extends javax.swing.JTextPane {
         Document d = getDocument();
         if (d != null) d.removeUndoableEditListener(l);
     }
-
 }

@@ -48,6 +48,7 @@ public class BoiteNonVoyant extends JDialog {
                 SwingUtilities.invokeLater(() -> {
                     parent.requestFocus();
                     parent.getEditor().requestFocusInWindow();
+                    parent.getEditor().setLineWrap(false);
                 });
             }
             dispose();
@@ -61,6 +62,7 @@ public class BoiteNonVoyant extends JDialog {
             SwingUtilities.invokeLater(() -> {
                 parent.requestFocus();
                 parent.getEditor().requestFocusInWindow();
+                parent.getEditor().setLineWrap(true);
             });
             dispose();
         });
