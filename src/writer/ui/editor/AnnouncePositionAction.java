@@ -25,7 +25,7 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
     private static final Pattern HEADING_PATTERN =
             Pattern.compile("^#([1-6])\\.\\s+(.+?)\\s*$");
 
-   public AnnouncePositionAction(writer.ui.NormalizingTextPane editor) {
+    public AnnouncePositionAction(writer.ui.NormalizingTextPane editor) {
         super("Position dans le texte");
         this.editor = (NormalizingTextPane) editor;
     }
@@ -35,15 +35,15 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
         final javax.swing.text.Document doc = editor.getDocument();
         final int caretPara = safeParagraphIndexAt(doc, editor.getCaretPosition());
 
-        final HeadingFound above = findEnclosingHeading();       // premier titre au-dessus
+        final HeadingFound above = findEnclosingHeading();         // premier titre au-dessus
         final HeadingFound below = findNextHeadingStrictlyBelow(); // vrai suivant
 
-        // calcul pourcentage de lecture (mots)
+        // --- 1) Calcul du pourcentage global (déjà existant) ---
         int totalWords = 0;
         int wordsBefore = 0;
         try {
-        	String full = doc.getText(0, doc.getLength());
-        	totalWords = WordCounter.countWords(full);
+            String full = doc.getText(0, doc.getLength());
+            totalWords = WordCounter.countWords(full);
             int caretPos = Math.max(0, Math.min(editor.getCaretPosition(), full.length()));
             if (caretPos > 0 && totalWords > 0) {
                 String before = full.substring(0, caretPos);
@@ -53,26 +53,95 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
             // ignore - si erreur on laisse counts à 0
         }
 
+        double pctGlobal = (totalWords == 0) ? 0.0 : (100.0 * wordsBefore / totalWords);
+        pctGlobal = Math.rint(pctGlobal * 10.0) / 10.0;
+
+        // --- 2) Calcul du pourcentage depuis le titre au-dessus ---
+        int sectionWordsTotal = 0;
+        int sectionWordsBefore = 0;
+        double pctSection = 0.0;
+
+        try {
+            if (above != null) {
+                Element root = doc.getDefaultRootElement();
+
+                // paragraphe du titre au-dessus
+                int aboveIdx = Math.max(0, above.paraIndex - 1);
+                if (aboveIdx < root.getElementCount()) {
+                    Element aboveEl = root.getElement(aboveIdx);
+                    int startOffset = aboveEl.getStartOffset();
+
+                    // fin de la section = début du titre suivant, ou fin du doc
+                    int endOffset;
+                    if (below != null) {
+                        int belowIdx = Math.max(0, below.paraIndex - 1);
+                        if (belowIdx < root.getElementCount()) {
+                            Element belowEl = root.getElement(belowIdx);
+                            endOffset = belowEl.getStartOffset();
+                        } else {
+                            endOffset = doc.getLength();
+                        }
+                    } else {
+                        endOffset = doc.getLength();
+                    }
+
+                    endOffset = Math.max(startOffset, Math.min(endOffset, doc.getLength()));
+
+                    if (endOffset > startOffset) {
+                        String sectionText = doc.getText(startOffset, endOffset - startOffset);
+                        sectionWordsTotal = WordCounter.countWords(sectionText);
+
+                        int caret = Math.max(startOffset,
+                                Math.min(editor.getCaretPosition(), endOffset));
+                        if (caret > startOffset && sectionWordsTotal > 0) {
+                            String beforeSection = doc.getText(startOffset, caret - startOffset);
+                            sectionWordsBefore = WordCounter.countWords(beforeSection);
+                            pctSection = 100.0 * sectionWordsBefore / sectionWordsTotal;
+                            pctSection = Math.rint(pctSection * 10.0) / 10.0;
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            // en cas de souci, on laisse pctSection à 0 et on n'affichera rien
+            sectionWordsTotal = 0;
+            sectionWordsBefore = 0;
+        }
+
         String c = "INFO. ";
-
-        double pct = (totalWords == 0) ? 0.0 : (100.0 * wordsBefore / totalWords);
-
         StringBuilder msg = new StringBuilder(256);
+
+        // ligne 1 : pourcentage global
         msg.append(String.format("Lecture réalisée : %.1f%% (%d / %d mots).",
-                Math.rint(pct * 10.0) / 10.0, wordsBefore, totalWords) + " ↓\n");
-        msg.append(c).append("Curseur dans le paragraphe ").append(caretPara).append( " ↓\n");
+                pctGlobal, wordsBefore, totalWords)).append(" ↓\n");
+
+        // ligne 2 : paragraphe courant
+        msg.append(c).append("Curseur dans le paragraphe ").append(caretPara).append(" ↓\n");
+
+        // ligne 3 : titre au-dessus
         msg.append(c).append(formatHeadingLine("Titre au-dessus : ", above)).append(" ↓\n");
+
+        // nouvelle ligne : pourcentage depuis le titre au-dessus (si dispo)
+        if (above != null && sectionWordsTotal > 0) {
+            msg.append(c).append(String.format(
+                    "Lecture depuis ce titre : %.1f%% (%d / %d mots).",
+                    pctSection, sectionWordsBefore, sectionWordsTotal
+            )).append(" ↓\n");
+        }
+
+        // ligne 4 : titre suivant
         msg.append(c).append(formatHeadingLine("Titre suivant : ", below)).append(" ↓\n");
-       
 
         java.awt.Window owner = SwingUtilities.getWindowAncestor(editor);
         dia.InfoDialog.show(owner, "Position dans le texte", msg.toString());
     }
 
     // ---------- Helpers locaux ----------
+
     private static int safeParagraphIndexAt(javax.swing.text.Document doc, int pos) {
         try { return paragraphIndexAt(doc, pos); } catch (Exception ex) { return -1; }
     }
+
     private static int paragraphIndexAt(javax.swing.text.Document doc, int offset) {
         Element root = doc.getDefaultRootElement();
         int idx = root.getElementIndex(Math.max(0, Math.min(offset, doc.getLength())));
@@ -158,7 +227,7 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
      */
     private static String cleanLeadingPiedDeMoucheAndSpaces(String line) {
         if (line == null) return "";
-        // supprime espaces initiaux puis éventuel U+283F et espaces qui suivent
+        // supprime espaces initiaux puis éventuel U+00B6 et espaces qui suivent
         return line.replaceFirst("(?m)^\\s*(?:\\u00B6\\s*)?", "");
     }
 
@@ -166,6 +235,4 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
         if (h == null) return prefix + "Aucun titre détecté.";
         return String.format("%s%s %s (paragraphe %d)", prefix, h.levelLabel, h.text, h.paraIndex);
     }
-
-
 }

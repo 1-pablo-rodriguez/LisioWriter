@@ -333,7 +333,7 @@ public class HtmlBrowserDialog_WIKIPEDIA extends JDialog {
                                 // à nouveau : garantir qu'on n'a pas plus de 2 newlines de suite
                                 .replaceAll("\\n{2,}", "\n")
                                 // suppression des ) orphelines
-                                .replaceAll("(?m)(?<!\\()\\)", "")
+//                                .replaceAll("(?m)(?<!\\()\\)", "")
                                 // remplace les espaces superflux
                         		.replaceAll(" {2,}", " ")
                                 .trim();
@@ -600,7 +600,6 @@ public class HtmlBrowserDialog_WIKIPEDIA extends JDialog {
 
 	    wk.execute();
 	}
-
 	
 	
 	/** Échappe | et \ dans les cellules pour la syntaxe LisioWriter. */

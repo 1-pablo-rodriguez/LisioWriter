@@ -87,8 +87,8 @@ public class KeyboardShortcutManager {
 	     // === AUTRES ===
         addKeyBinding(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK, "toggleEdit", new ToggleEditAction(editorPane));
         addKeyBinding(KeyEvent.VK_F2, 0, "announceHeadingsAround", frame.actAnnouncePosition());
-        addKeyBinding(KeyEvent.VK_F3, 0, "gotoNextHeading", frame.actGotoNextHeading());
-        addKeyBinding(KeyEvent.VK_F4, 0, "gotoPrevHeading", frame.actGotoPrevHeading());
+        addKeyBinding(KeyEvent.VK_F4, 0, "gotoNextHeading", frame.actGotoNextHeading());
+        addKeyBinding(KeyEvent.VK_F3, 0, "gotoPrevHeading", frame.actGotoPrevHeading());
 
         // === ZOOM ===
         addKeyBinding(KeyEvent.VK_PLUS, InputEvent.CTRL_DOWN_MASK, "zoomIn",

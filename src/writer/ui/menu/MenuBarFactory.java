@@ -980,14 +980,14 @@ public final class MenuBarFactory {
         // -------- Titre suivant (F3) --------
         JMenuItem nextHeadingItem = new JMenuItem(ctx.actGotoNextHeading());
         nextHeadingItem.setText("Titre suivant");
-        nextHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
+        nextHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0));
         nextHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
 
         // -------- Titre précédent (Shift+F3 ?) --------
         JMenuItem prevHeadingItem = new JMenuItem(ctx.actGotoPrevHeading());
         prevHeadingItem.setText("Titre précédent");
         // (Tu as mis F4 ici, à vérifier par rapport à ta doc clavier)
-        prevHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0));
+        prevHeadingItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
         prevHeadingItem.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
 
         // --- listeners d’activation / désactivation suivant le contexte ---
@@ -1067,6 +1067,7 @@ public final class MenuBarFactory {
            		});
             }
        });
+
         
         ctx.addItemChangeListener(importWikipedia);
         ctx.addItemChangeListener(importWiktionaire);
