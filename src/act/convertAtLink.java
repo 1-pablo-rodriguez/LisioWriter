@@ -40,7 +40,7 @@ public class convertAtLink extends AbstractAction {
             // Petit feedback
             if (n > 0) {
             	java.awt.Window owner = SwingUtilities.getWindowAncestor(editorPane);
-            	dia.InfoDialog.show(owner, "Conversion des liens", n + " lien(s) converti(s).");
+            	dia.InfoDialog.show(owner, "Conversion des liens", n + " lien(s) converti(s).", frame.getAffichage());
             } else {
                 java.awt.Toolkit.getDefaultToolkit().beep();
             }

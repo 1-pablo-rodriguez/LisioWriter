@@ -38,10 +38,9 @@ public class actCheckWindow extends AbstractAction{
 		       msg += "\n  (2) Ajouter au dictionnaire ou ignoré ;";
 		       msg += "\n  (3) Échappe pour sortir du menu contextuel.";
 
-		       // Boîte modale, lisible par la barre braille, fermeture avec Échap
-		       dia.InfoDialog.show(owner, "Vérification paragraphe terminée", msg);
 		       
-		    	ctx.getEditor().requestFocusInWindow();
+		       ctx.showInfo("Vérification paragraphe terminée", msg);
+		       ctx.getEditor().requestFocusInWindow();
 		    });
 		
 	}

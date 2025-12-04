@@ -16,7 +16,7 @@ public class informationsAffichage {
         try {
             Affiche vue = parent.getAffichage();
 
-            if (vue == Affiche.TEXTE) {
+            if (vue == Affiche.TEXTE1 || vue == Affiche.TEXTE2) {
                 NormalizingTextPane editor = (NormalizingTextPane) parent.getEditor();
                 // on demande au NormalizingTextPane d'assurer l'état normalisé
                 editor.normalizeDocumentContent();
@@ -32,8 +32,10 @@ public class informationsAffichage {
 
                 boolean editable = editor != null && editor.isEditable();
 
-                message.append(c).append("INFO. & STAT. ↓");
-                message.append("\n").append(c).append("Fichier : ").append(fileName).append(" ↓");
+                char c2 = '1';
+                if(vue==Affiche.TEXTE2) c2='2';
+                
+                message.append(c2).append("-").append(c).append("Fichier : ").append(fileName).append(" ↓");
                 message.append("\n").append(c).append("Dossier : ").append(folder).append(" ↓");
                 message.append(editable ? "\n"+c+"Mode éditable. ↓" : "\n"+c+"Mode en lecture seule. ↓");
                 message.append("\nSTATISTIQUES ↓");
@@ -54,12 +56,6 @@ public class informationsAffichage {
                 message.append("\n").append(c).append("Documentation : ALT+A ↓");
                 message.append("\n").append(c).append("Manuel b.book : ALT+C ↓");
                 message.append("\n").append(c).append("Votre fichier : ALT+B");
-            } else if (vue == Affiche.MANUEL) {
-                message.append(c).append("Manuel du b.book. ↓");
-                message.append("\n").append(c).append("Doc. & Aides");
-                message.append("\n").append(c).append("Documentation : ALT+A ↓");
-                message.append("\n").append(c).append("Manuel b.book : ALT+C ↓");
-                message.append("\n").append(c).append("Votre fichier : ALT+B");
             }
 
         } catch (Exception ignore) {
@@ -67,7 +63,7 @@ public class informationsAffichage {
         }
 
         java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(parent);
-        dia.InfoDialog.show(owner, "Information", message.toString());
+        dia.InfoDialog.show(owner, "Information", message.toString(), parent.getAffichage());
     }
 
     // --- Utilitaires statistiques ---

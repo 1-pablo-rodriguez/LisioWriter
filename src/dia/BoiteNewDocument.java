@@ -169,7 +169,7 @@ public class BoiteNewDocument {
 
         if (name.isEmpty()) {
             InfoDialog.show(parent, "Nom de fichier manquant",
-                    "Tu dois saisir un nom pour le nouveau fichier.");
+                    "Tu dois saisir un nom pour le nouveau fichier.", parent.getAffichage());
             textField.requestFocusInWindow();
             return;
         }
@@ -178,7 +178,7 @@ public class BoiteNewDocument {
         if (!FILENAME_PATTERN.matcher(name).matches()) {
             InfoDialog.show(parent, "Nom de fichier invalide",
                     "Le nom de fichier ne peut contenir que des lettres, des chiffres,\n"
-                    + "des espaces, des tirets et des tirets bas.");
+                    + "des espaces, des tirets et des tirets bas.", parent.getAffichage());
             textField.requestFocusInWindow();
             return;
         }

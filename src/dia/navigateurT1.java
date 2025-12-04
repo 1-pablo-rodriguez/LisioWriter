@@ -34,6 +34,7 @@ import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
+import writer.model.Affiche;
 import writer.ui.EditorFrame;
 
 
@@ -238,10 +239,10 @@ public class navigateurT1 extends JFrame{
                     SwingUtilities.invokeLater(() -> {
                         if (deplacerBlocVersHaut(keepGlobal)) {
                         	StringBuilder msg = new StringBuilder("Titre déplacé vers le haut.");
-                        	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
+                        	dia.InfoDialog.show(getOwner(), "Info", msg.toString(),parent.getAffichage());
                         } else {
                         	StringBuilder msg = new StringBuilder("Impossible de déplacer ce titre.");
-                        	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
+                        	dia.InfoDialog.show(getOwner(), "Info", msg.toString(),parent.getAffichage());
                         }
                     });
                 }
@@ -255,10 +256,10 @@ public class navigateurT1 extends JFrame{
                     SwingUtilities.invokeLater(() -> {
                         if (deplacerBlocVersBas(keepGlobal)) {
                         	StringBuilder msg = new StringBuilder("Titre déplacé vers le bas.");
-                        	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
+                        	dia.InfoDialog.show(getOwner(), "Info", msg.toString(),parent.getAffichage());
                         } else {
                         	StringBuilder msg = new StringBuilder("Impossible de déplacer ce titre vers le bas.");
-                        	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
+                        	dia.InfoDialog.show(getOwner(), "Info", msg.toString(),parent.getAffichage());
                         }
                     });
                 }
@@ -519,7 +520,7 @@ public class navigateurT1 extends JFrame{
 	    
 	    java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(list);
 		// Boîte modale, lisible par la barre braille, fermeture avec Échap
-		dia.InfoDialog.show(owner, "Navigateur", msg.toString());
+		dia.InfoDialog.show(owner, "Navigateur", msg.toString(),parent.getAffichage());
 	    
 	}
 
@@ -1232,7 +1233,7 @@ public class navigateurT1 extends JFrame{
 		    }
 		    if (lvl >= 5) {
 		    	StringBuilder msg = new StringBuilder("Ce titre est déjà au niveau maximum cinq.");
-		    	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
+		    	dia.InfoDialog.show(getOwner(), "Info", msg.toString(), parent.getAffichage());
 		        return;
 		    }	    
 		    
@@ -1262,7 +1263,7 @@ public class navigateurT1 extends JFrame{
 		    }
 		    if (maxInBloc >= 5) {
 		    	StringBuilder msg = new StringBuilder("Impossible d'augmenter : un sous-titre est déjà au niveau cinq.");
-		    	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
+		    	dia.InfoDialog.show(getOwner(), "Info", msg.toString(), parent.getAffichage());
 		        return;
 		    }
 
@@ -1376,7 +1377,7 @@ public class navigateurT1 extends JFrame{
 		    }
 		    if (lvl <= 1) {
 		    	StringBuilder msg = new StringBuilder("Ce titre est déjà au niveau minimum.");
-		    	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
+		    	dia.InfoDialog.show(getOwner(), "Info", msg.toString(), parent.getAffichage());
 		        return;
 		    }
 		
@@ -1408,7 +1409,7 @@ public class navigateurT1 extends JFrame{
 		    }
 		    if (minInBloc <= 1) {
 		    	StringBuilder msg = new StringBuilder("Impossible de réduire : un sous-titre est déjà au niveau un.");
-		    	dia.InfoDialog.show(getOwner(), "Info", msg.toString());
+		    	dia.InfoDialog.show(getOwner(), "Info", msg.toString(),parent.getAffichage());
 		        return;
 		    }
 		
@@ -1637,14 +1638,14 @@ public class navigateurT1 extends JFrame{
 		    java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(list);
 		
 		    if (viewIndex < 0 || viewIndex >= viewToGlobal.size()) {
-		        dia.InfoDialog.show(owner, "Information titre", "Aucun titre sélectionné.");
+		        dia.InfoDialog.show(owner, "Information titre", "Aucun titre sélectionné.",parent.getAffichage());
 		        return;
 		    }
 		
 		    selectedGlobalIndex = viewToGlobal.get(viewIndex);
 		    int idx = selectedGlobalIndex;
 		    if (idx < 0 || idx >= titresOrdre.size()) {
-		        dia.InfoDialog.show(owner, "Information titre", "Aucun titre sélectionné.");
+		        dia.InfoDialog.show(owner, "Information titre", "Aucun titre sélectionné.",parent.getAffichage());
 		        return;
 		    }
 		
@@ -1728,7 +1729,7 @@ public class navigateurT1 extends JFrame{
 		    	);
 
 		
-		    dia.InfoDialog.show(owner, "Information titre", message);
+		    dia.InfoDialog.show(owner, "Information titre", message,parent.getAffichage());
 		}
 
 		// Compte tous les sous-titres du bloc (descendants, tous niveaux > au niveau du titre courant)
@@ -1840,8 +1841,10 @@ public class navigateurT1 extends JFrame{
 
 		    int gi = viewToGlobal.get(viewIndex);
 		    String msg = buildNavText(gi);
-
-		    final String prefix = "INFO echap. ";
+		    String prefix = "INFO. ";
+		    if(parent.getAffichage()==Affiche.TEXTE1) prefix="F1. ";
+		    if(parent.getAffichage()==Affiche.TEXTE2) prefix="F2. ";
+		    
 		    if (!msg.startsWith(prefix)) msg = prefix + msg;
 
 		}
@@ -1882,13 +1885,13 @@ public class navigateurT1 extends JFrame{
 		    java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(list);
 
 		    if (idx < 0 || idx >= titresOrdre.size()) {
-		        dia.InfoDialog.show(owner, "Copie", "Aucun titre sélectionné.");
+		        dia.InfoDialog.show(owner, "Copie", "Aucun titre sélectionné.",parent.getAffichage());
 		        return;
 		    }
 
 		    int niveau = titresNiveaux.get(idx);
 		    if (niveau <= 0) {
-		        dia.InfoDialog.show(owner, "Copie", "L'élément sélectionné n'est pas un titre.");
+		        dia.InfoDialog.show(owner, "Copie", "L'élément sélectionné n'est pas un titre.",parent.getAffichage());
 		        return;
 		    }
 
@@ -1916,10 +1919,10 @@ public class navigateurT1 extends JFrame{
 		            if (xsel != null) xsel.setContents(sel, null);
 		        } catch (Throwable ignore) { /* non dispo sur Windows/macOS => ignorer */ }
 
-		        dia.InfoDialog.show(owner, "Copie", "Titre et contenu copiés dans le presse-papiers.");
+		        dia.InfoDialog.show(owner, "Copie", "Titre et contenu copiés dans le presse-papiers.",parent.getAffichage());
 		    } catch (Exception ex) {
 		        ex.printStackTrace();
-		        dia.InfoDialog.show(owner, "Copie", "Échec de la copie dans le presse-papiers.");
+		        dia.InfoDialog.show(owner, "Copie", "Échec de la copie dans le presse-papiers.",parent.getAffichage());
 		    }
 		}
 

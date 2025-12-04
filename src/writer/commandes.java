@@ -1,4 +1,6 @@
 package writer;
+
+import writer.model.Affiche;
 import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
@@ -59,7 +61,8 @@ public class commandes {
     
     public static String version = "1.0";
 	public static node nodeDocumentation = new node();
-    public static node sauvFile = new node();
+    public static node sauvText1File = new node();
+    public static node sauvText2File = new node();
     
     public static boolean audioActif = false;
     public static boolean affichageDocumentationOuverture=true;
@@ -79,7 +82,7 @@ public class commandes {
     public static void initNodeBlindWriter() {
     	
         nodeblindWriter.setNameNode("blindWriter");
-        nodeblindWriter.getAttributs().put("filename", "new document");
+        nodeblindWriter.getAttributs().put("filename", "Nouveau document");
         styles_paragraphe = new node();
         styles_paragraphe.setNameNode("styles_paragraphes");
         
@@ -153,6 +156,17 @@ public class commandes {
     	nodeblindWriter.addEnfant( commandes.bookmarks);
         nodeblindWriter.addEnfant( commandes.contentText);
         
+        
+        sauvText1File = nodeblindWriter;
+        try {
+			sauvText2File = nodeblindWriter.clone();
+			sauvText2File.getAttributs().put("filename", "Texte 2");
+//			sauvText2File.
+			sauvText2File.retourneFirstEnfant("contentText").addContenu("¶ Bienvenu sur la fenêtre 2");
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+        
         listMotsDico.add("blindWriter");
         listMotsDico.add("LisioWriter");
         listMotsDico.add("@saut de page");
@@ -201,14 +215,15 @@ public class commandes {
     }
     
     
-    // Sauvegarde temporaire du node blindWriter
-    public static void sauvFile(NormalizingTextPane editor) {
+    // Sauvegarde temporaire du texte 1
+    public static void sauvTexte1File(NormalizingTextPane editor, Affiche f) {
+    	if(f!= Affiche.TEXTE1) return;
     	commandes.texteDocument = editor.getText();
-    	 sauvFile = new node();
-    	 sauvFile.setNameNode("blindWriter");
-    	 sauvFile.getAttributs().put("filename", commandes.nameFile);
-    	 sauvFile.addNewEnfant("styles_paragraphes");
-    	 sauvFile.addEnfant(styles_paragraphe);
+    	 sauvText1File = new node();
+    	 sauvText1File.setNameNode("blindWriter");
+    	 sauvText1File.getAttributs().put("filename", commandes.nameFile);
+    	 sauvText1File.addNewEnfant("styles_paragraphes");
+    	 sauvText1File.addEnfant(styles_paragraphe);
     	 styles_paragraphe.addEnfant(Tprin);
     	 styles_paragraphe.addEnfant(Tstitre);
     	 styles_paragraphe.addEnfant(T1);
@@ -217,19 +232,52 @@ public class commandes {
     	 styles_paragraphe.addEnfant(T4);
     	 styles_paragraphe.addEnfant(T5);
     	 styles_paragraphe.addEnfant(bodyText);
-    	 sauvFile.addEnfant(styles_page);
+    	 sauvText1File.addEnfant(styles_page);
     	 styles_page.addEnfant(pageDefaut);
     	 styles_page.addEnfant(pageTitre);
-    	 sauvFile.addEnfant(meta);
+    	 sauvText1File.addEnfant(meta);
     	 meta.addEnfant(dateModif);
     	 contentText = new node();
     	 contentText.setNameNode("contentText");
     	 contentText.addContenu(commandes.texteDocument);
-    	 sauvFile.addEnfant(contentText);
+    	 sauvText1File.addEnfant(contentText);
      	// Mise en jour des bookmarks
      	Window win = SwingUtilities.getWindowAncestor(editor);
      	if (win instanceof EditorFrame frame) {
-     		sauvFile.addEnfant(frame.getBookmarks().saveToXml());
+     		sauvText1File.addEnfant(frame.getBookmarks().saveToXml());
+     	}
+    }
+    
+    // Sauvegarde temporaire du texte 2
+    public static void sauvTexte2File(NormalizingTextPane editor, Affiche f) {
+    	if(f!= Affiche.TEXTE2) return;
+    	commandes.texteDocument = editor.getText();
+    	 sauvText2File = new node();
+    	 sauvText2File.setNameNode("blindWriter");
+    	 sauvText2File.getAttributs().put("filename", commandes.nameFile);
+    	 sauvText2File.addNewEnfant("styles_paragraphes");
+    	 sauvText2File.addEnfant(styles_paragraphe);
+    	 styles_paragraphe.addEnfant(Tprin);
+    	 styles_paragraphe.addEnfant(Tstitre);
+    	 styles_paragraphe.addEnfant(T1);
+    	 styles_paragraphe.addEnfant(T2);
+    	 styles_paragraphe.addEnfant(T3);
+    	 styles_paragraphe.addEnfant(T4);
+    	 styles_paragraphe.addEnfant(T5);
+    	 styles_paragraphe.addEnfant(bodyText);
+    	 sauvText2File.addEnfant(styles_page);
+    	 styles_page.addEnfant(pageDefaut);
+    	 styles_page.addEnfant(pageTitre);
+    	 sauvText2File.addEnfant(meta);
+    	 meta.addEnfant(dateModif);
+    	 contentText = new node();
+    	 contentText.setNameNode("contentText");
+    	 contentText.addContenu(commandes.texteDocument);
+    	 sauvText2File.addEnfant(contentText);
+     	// Mise en jour des bookmarks
+     	Window win = SwingUtilities.getWindowAncestor(editor);
+     	if (win instanceof EditorFrame frame) {
+     		sauvText2File.addEnfant(frame.getBookmarks().saveToXml());
      	}
     }
     

@@ -6,9 +6,10 @@ import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.SwingUtilities;
 import javax.swing.text.Element;
 
+import writer.model.Affiche;
+import writer.ui.EditorFrame;
 import writer.ui.NormalizingTextPane;
 import writer.util.WordCounter;
 
@@ -20,14 +21,16 @@ import writer.util.WordCounter;
 @SuppressWarnings("serial")
 public final class AnnouncePositionAction extends AbstractAction implements Action {
     private final NormalizingTextPane editor;
+    private final EditorFrame frame;
 
     // Motif "#<niveau>. <texte>" (appliqué SUR LA LIGNE NETTOYÉE)
     private static final Pattern HEADING_PATTERN =
             Pattern.compile("^#([1-6])\\.\\s+(.+?)\\s*$");
 
-    public AnnouncePositionAction(writer.ui.NormalizingTextPane editor) {
+    public AnnouncePositionAction(EditorFrame frame) {
         super("Position dans le texte");
-        this.editor = (NormalizingTextPane) editor;
+        this.frame = frame;
+        this.editor = frame.getEditor();
     }
 
     @Override
@@ -108,7 +111,9 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
             sectionWordsBefore = 0;
         }
 
-        String c = "INFO. ";
+        String c = "DOC. ";
+        if(frame.getAffichage()==Affiche.TEXTE1) c="F1. ";
+        if(frame.getAffichage()==Affiche.TEXTE2) c="F2. ";
         StringBuilder msg = new StringBuilder(256);
 
         // ligne 1 : pourcentage global
@@ -132,8 +137,8 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
         // ligne 4 : titre suivant
         msg.append(c).append(formatHeadingLine("Titre suivant : ", below)).append(" ↓\n");
 
-        java.awt.Window owner = SwingUtilities.getWindowAncestor(editor);
-        dia.InfoDialog.show(owner, "Position dans le texte", msg.toString());
+        java.awt.Window owner = frame.getWindow();
+        dia.InfoDialog.show(owner, "Position dans le texte", msg.toString(), frame.getAffichage());
     }
 
     // ---------- Helpers locaux ----------

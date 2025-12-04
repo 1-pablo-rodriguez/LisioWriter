@@ -638,7 +638,7 @@ public final class ouvrirODT extends JDialog {
 	        File[] roots = File.listRoots();
 	        
 	        String msg = String.format("Racines système — %d lecteur(s) détecté(s).", roots == null ? 0 : roots.length);
-	        dia.InfoDialog.show(owner, "Information boîte Ouvrir", msg);
+	        dia.InfoDialog.show(owner, "Information boîte Ouvrir", msg, parent.getAffichage());
 	        return;
 	    }
 
@@ -649,7 +649,7 @@ public final class ouvrirODT extends JDialog {
 	        // Pas de parent -> racines système
 	        File[] roots = File.listRoots();
 	        String msg = String.format("Racines système — %d lecteur(s) détecté(s).", roots == null ? 0 : roots.length);
-	        dia.InfoDialog.show(owner, "Information boîte Ouvrir", msg);
+	        dia.InfoDialog.show(owner, "Information boîte Ouvrir", msg, parent.getAffichage());
 	        return;
 	    }
 
@@ -658,7 +658,7 @@ public final class ouvrirODT extends JDialog {
 	    
 	    // Nom lisible (utilise driveDisplayName pour les racines)
 	    String name = (dir.getParentFile() == null) ? driveDisplayName(dir) : dir.getName();
-	    String parent = (dir.getParentFile()== null) ? driveDisplayName(dir) : dir.getParentFile().getName();
+	    String parent2 = (dir.getParentFile()== null) ? driveDisplayName(dir) : dir.getParentFile().getName();
 
 	    // Comptages
 	    int folders = 0, files = 0, bweCount = 0;
@@ -676,10 +676,10 @@ public final class ouvrirODT extends JDialog {
 
 	    String msg = String.format(
 	        "Dossier : %s%nDossier parent : %s%nFichiers .odt : %d%nTotal : %d éléments (%d dossier(s), %d fichier(s))",
-	        name, parent, bweCount, folders + files, folders, files
+	        name, parent2, bweCount, folders + files, folders, files
 	    );
 
-	    dia.InfoDialog.show(owner, "Information boîte Ouvrir", msg);
+	    dia.InfoDialog.show(owner, "Information boîte Ouvrir", msg, parent.getAffichage());
 	}
 
 
@@ -767,7 +767,7 @@ public final class ouvrirODT extends JDialog {
 	    // Récupère les infos
 	    String name = f.getName();
 	    String fullPath = f.getAbsolutePath();
-	    String parent = (f.getParentFile() != null) ? f.getParentFile().getAbsolutePath() : "";
+	    String parent2 = (f.getParentFile() != null) ? f.getParentFile().getAbsolutePath() : "";
 	    long size = f.length();
 	    long modifiedMillis = f.lastModified();
 
@@ -783,10 +783,10 @@ public final class ouvrirODT extends JDialog {
 
 	    // Texte détaillé pour la boîte d'info (multiligne lisible)
 	    String info = String.format("Nom : %s%nChemin : %s%nDossier : %s%nTaille : %s (%d octets)%nDate modification : %s",
-	            name, fullPath, parent, humanSize, size, modified);
+	            name, fullPath, parent2, humanSize, size, modified);
 
 	    java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(fileList);
-	    dia.InfoDialog.show(owner, "Information fichier", info);
+	    dia.InfoDialog.show(owner, "Information fichier", info, parent.getAffichage());
 	}
 	
 	private static String humanReadableByteCount(long bytes) {

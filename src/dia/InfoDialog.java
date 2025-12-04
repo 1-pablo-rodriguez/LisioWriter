@@ -29,6 +29,8 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.Element;
 
+import writer.model.Affiche;
+
 @SuppressWarnings("serial")
 public final class InfoDialog extends JDialog {
     private final JTextArea textArea = new JTextArea();
@@ -176,9 +178,10 @@ public final class InfoDialog extends JDialog {
 
     }
 
-    public static void show(Window owner, String title, String message) {
+    public static void show(Window owner, String title, String message, Affiche f) {
     	StringBuilder msg = new StringBuilder();
-    	String c = "INFO. ";
+    	String c = "F1. ";
+    	if(f==Affiche.TEXTE2) c="F2. ";
     	msg.append(c).append(message).append(" ↓");
         msg.append("\n").append(c).append("Échap ou Entrée.");
         InfoDialog d = new InfoDialog(owner, title, msg.toString());

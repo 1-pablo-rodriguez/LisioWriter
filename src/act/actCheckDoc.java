@@ -41,9 +41,10 @@ public class actCheckDoc extends AbstractAction{
 		       msg += "\n  (3) Échappe pour sortir du menu contextuel.";
 		       
 		       // Boîte modale, lisible par la barre braille, fermeture avec Échap
-		       dia.InfoDialog.show(owner, "Vérification document terminée", msg);
+//		       dia.InfoDialog.show(owner, "Vérification document terminée", msg, ctx.getEditor());
 		       
-		      ctx.getEditor().requestFocusInWindow();
+		       ctx.showInfo("Vérification document terminée", msg);
+		       ctx.getEditor().requestFocusInWindow();
 		
 		    });
 	}

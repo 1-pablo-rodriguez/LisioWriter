@@ -74,8 +74,10 @@ public class EditorFrame extends JFrame implements EditorApi {
   	    "!\\[\\s*Image\\s*:\\s*([^\\]]+)\\]"
   	);
 
-  	private Affiche affichage = Affiche.TEXTE;
-  	public static int positionCurseurSauv = 0;
+  	private Affiche affichage = Affiche.TEXTE1;
+  	public static int positionTexte1CurseurSauv = 0;
+  	public static int positionTexte2CurseurSauv = 0;
+  	
   	// --- Zoom éditeur ---
  	private static String EDITOR_FONT_FAMILY = "Arial";
  	@SuppressWarnings("unused")
@@ -85,7 +87,7 @@ public class EditorFrame extends JFrame implements EditorApi {
   	private final JScrollPane scrollPane;
   	
   	// === ANNONCE LA POSITION DANS LE TEXTE DU CURSEUR ===
-  	private final Action actAnnouncePosition = new writer.ui.editor.AnnouncePositionAction(this.editorPane);
+  	private final Action actAnnouncePosition = new writer.ui.editor.AnnouncePositionAction(this);
 
   	// === Drapeau pour suspendre l'enregistrement de l'historique ===
    	private volatile boolean undoSuspended = false;
@@ -418,7 +420,7 @@ public class EditorFrame extends JFrame implements EditorApi {
 
     @Override
     public void showInfo(String title, String message) {
-        dia.InfoDialog.show(this, title, message);
+        dia.InfoDialog.show(this, title, message, affichage);
     }
 
     @Override
@@ -687,17 +689,25 @@ public class EditorFrame extends JFrame implements EditorApi {
 	}
 
 	@Override
-	public void sauvegardeTemporaire() {
-		if(affichage == Affiche.TEXTE) {
-    		positionCurseurSauv = this.editorPane.getCaretPosition();
-    		commandes.sauvFile(this.editorPane);
+	public void sauvegardeTemporaireTexte1() {
+		if(affichage == Affiche.TEXTE1) {
+    		positionTexte1CurseurSauv = this.editorPane.getCaretPosition();
+    		commandes.sauvTexte1File(editorPane,affichage);
+    	}	
+	}
+	
+	@Override
+	public void sauvegardeTemporaireTexte2() {
+		if(affichage == Affiche.TEXTE2) {
+    		positionTexte2CurseurSauv = this.editorPane.getCaretPosition();
+    		commandes.sauvTexte2File(editorPane,affichage);
     	}	
 	}
 
 	@Override
 	public void AfficheTexte() {
-		if(affichage == Affiche.TEXTE) {
-    		commandes.nodeblindWriter = commandes.sauvFile;
+		if(affichage == Affiche.TEXTE1) commandes.nodeblindWriter = commandes.sauvText1File;
+		if(affichage == Affiche.TEXTE2) commandes.nodeblindWriter = commandes.sauvText2File;
         	if(commandes.nodeblindWriter.retourneFirstEnfant("contentText")!=null) {
         		this.editorPane.setText(commandes.nodeblindWriter.retourneFirstEnfant("contentText").getContenuAvecTousLesContenusDesEnfants());
         	}else {
@@ -714,25 +724,17 @@ public class EditorFrame extends JFrame implements EditorApi {
         	// colorisation
             FastHighlighter.rehighlightAll(this.editorPane); // une passe globale, optionnelle
          	commandes.nameFile = commandes.nodeblindWriter.getAttributs().get("filename");
-         	this.editorPane.setCaretPosition(positionCurseurSauv);
+         	
+         	if(affichage == Affiche.TEXTE1) {
+         		this.editorPane.setCaretPosition(positionTexte1CurseurSauv);
+         	}else if(affichage == Affiche.TEXTE2){
+         		this.editorPane.setCaretPosition(positionTexte2CurseurSauv);
+         	}
         	this.editorPane.getAccessibleContext().setAccessibleName("Affichage de votre texte.");
         	setModified(false);
-    	}
-		
+
 	}
 
-	@Override
-	public void AfficheManuel() {
-		if(affichage == Affiche.MANUEL) {
-			this.editorPane.setText(commandes.manuel.retourneFirstEnfant("contentText").getContenuAvecTousLesContenusDesEnfants());
-        	commandes.nameFile = commandes.manuel.getAttributs().get("filename");
-        	// colorisation
-            FastHighlighter.rehighlightAll(this.editorPane); // une passe globale, optionnelle
-        	this.editorPane.setCaretPosition(0);
-        	this.editorPane.getAccessibleContext().setAccessibleName("Affichage du manuel b.bbok.");
-        	setModified(false);
-    	}
-	}
 
 
 	//======================

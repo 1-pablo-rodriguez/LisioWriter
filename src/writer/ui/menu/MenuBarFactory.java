@@ -70,7 +70,7 @@ public final class MenuBarFactory {
         bar.add(menuImporte(ctx));
         bar.add(menuExporter(ctx));
         bar.add(menuInternet(ctx));
-        bar.add(menuDocumentation(ctx));
+        bar.add(menuFenetres(ctx));
         bar.add(menuPreference(ctx));
         
         return bar;
@@ -253,7 +253,10 @@ public final class MenuBarFactory {
     	// Active/ désactive l'édition
    	 	JMenuItem edition = createMenuItem("Active/désactive édition", KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK, e -> {
             System.out.println("Active désactive édition");
-            new act.ToggleEditAction(ctx.getEditor()).actionPerformed(null);
+            var win = ctx.getWindow();
+            if(win instanceof EditorFrame frame) {
+            	new act.ToggleEditAction(frame).actionPerformed(null);
+            }
         }); 
    	 	
    	
@@ -764,7 +767,7 @@ public final class MenuBarFactory {
                 msg.append("Info. Exportation terminé."
                 		+ "\nFichier : " + commandes.nameFile+".odt"
                 		+ "\nDossier : " + commandes.currentDirectory);
-                dia.InfoDialog.show(owner, "Exportation", msg.toString());
+                ctx.showInfo("Exportation", msg.toString());
             } catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -782,7 +785,7 @@ public final class MenuBarFactory {
                 msg.append("Info. Exportation terminé."
                 		+ "\nFichier : " + commandes.nameFile+".docx"
                 		+ "\nDossier : " + commandes.currentDirectory);
-                dia.InfoDialog.show(owner, "Exportation", msg.toString());
+                ctx.showInfo("Exportation", msg.toString());
             } catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -812,7 +815,7 @@ public final class MenuBarFactory {
             	msg.append("Info. Exportation terminé."
                  		+ "\nFichier : " + commandes.nameFile+".pdf"
                  		+ "\nDossier : " + commandes.currentDirectory);
-            	dia.InfoDialog.show(owner, "Exportation", msg.toString());
+            	ctx.showInfo("Exportation", msg.toString());
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -846,12 +849,10 @@ public final class MenuBarFactory {
                 msg.append("Info. Exportation terminée.")
                    .append("\nFichier : ").append(written.getFileName().toString())
                    .append("\nDossier : ").append(written.getParent() == null ? "<racine>" : written.getParent().toString());
-                dia.InfoDialog.show(owner, "Exportation", msg.toString());
-
+                ctx.showInfo("Exportation", msg.toString());
             } catch (Exception ex) {
                 ex.printStackTrace();
-                java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor());
-                dia.InfoDialog.show(owner, "Erreur export HTML", "L'exportation a échoué : " + ex.getMessage());
+                ctx.showInfo("Erreur export HTML", "L'exportation a échoué : " + ex.getMessage());
             }
         });
 
@@ -937,7 +938,7 @@ public final class MenuBarFactory {
             boolean added = m.toggleHere();
             String message = (added ? "Marque-page ajouté." : "Marque-page supprimé.");
             java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor());
-            dia.InfoDialog.show(owner, "Information", message);
+            ctx.showInfo("Information", message);
             ctx.setModified(true);
         });
 
@@ -1079,8 +1080,8 @@ public final class MenuBarFactory {
     }
     
     // Menu Documentation
-    private static JMenu menuDocumentation(EditorApi ctx) {
-    	JMenu fileDocumentation = new JMenu("Documentation");
+    private static JMenu menuFenetres(EditorApi ctx) {
+    	JMenu fileDocumentation = new JMenu("Fenêtres");
         fileDocumentation.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
         fileDocumentation.setMnemonic('D'); // Utiliser ALT+F pour ouvrir le menu
         // Listener déclenché à l’ouverture du menu
@@ -1105,33 +1106,33 @@ public final class MenuBarFactory {
 			@Override public void menuCanceled(MenuEvent e) {}
         }); 
         
-        JMenuItem afficheDocItem = createMenuItem("Doc. LisioWriter", KeyEvent.VK_A, InputEvent.ALT_DOWN_MASK, e -> {
-	        ctx.sauvegardeTemporaire();             
+        JMenuItem afficheDocItem = createMenuItem("Fenêtre Documentation", KeyEvent.VK_A, InputEvent.ALT_DOWN_MASK, e -> {        
 	        if (ctx instanceof EditorFrame f) {
-	        	if(f.getAffichage() == Affiche.TEXTE){
+	        	if(f.getAffichage() == Affiche.TEXTE1) ctx.sauvegardeTemporaireTexte1(); 
+	        	if(f.getAffichage() == Affiche.TEXTE2) ctx.sauvegardeTemporaireTexte2();
+	        	if(f.getAffichage() != Affiche.DOCUMENTATION){
 		        	f.setAffichage(Affiche.DOCUMENTATION);
-		        	ctx.sauvegardeTemporaire();
 		        	ctx.afficheDocumentation();
 	        	}
 	        }
         });
           
-        JMenuItem afficheTextItem = createMenuItem("Votre document", KeyEvent.VK_B, InputEvent.ALT_DOWN_MASK, e -> {
+        JMenuItem afficheTextItem = createMenuItem("Fenêtre 1 - Texte", KeyEvent.VK_B, InputEvent.ALT_DOWN_MASK, e -> {
         	if (ctx instanceof EditorFrame f) {
-        		if(f.getAffichage()!=Affiche.TEXTE){
-            		f.setAffichage(Affiche.TEXTE);
+	        	if(f.getAffichage() == Affiche.TEXTE2) ctx.sauvegardeTemporaireTexte2();
+        		if(f.getAffichage()!=Affiche.TEXTE1){
+            		f.setAffichage(Affiche.TEXTE1);
             		ctx.AfficheTexte();
         		}
         	}
         });
         
-        JMenuItem afficheManuelItem = createMenuItem("Manuel b.book", KeyEvent.VK_C, InputEvent.ALT_DOWN_MASK, e -> {
-            ctx.sauvegardeTemporaire();
+        JMenuItem afficheManuelItem = createMenuItem("Fenêtre 2 - Texte", KeyEvent.VK_C, InputEvent.ALT_DOWN_MASK, e -> {
             if (ctx instanceof EditorFrame f) {
-            	if(f.getAffichage() == Affiche.TEXTE){
-                	f.setAffichage(Affiche.MANUEL);
-                	ctx.sauvegardeTemporaire();
-                	ctx.AfficheManuel();
+            	if(f.getAffichage() == Affiche.TEXTE1) ctx.sauvegardeTemporaireTexte1(); 
+            	if(f.getAffichage() != Affiche.TEXTE2){
+                	f.setAffichage(Affiche.TEXTE2);
+                	ctx.AfficheTexte();
             	}
             }  
         });
@@ -1260,7 +1261,7 @@ public final class MenuBarFactory {
                 if (!file.exists()) {
                     Toolkit.getDefaultToolkit().beep();
                     Window owner = ctx.getWindow();
-                    dia.InfoDialog.show(owner, "Fichier introuvable",
+                    ctx.showInfo("Fichier introuvable",
                             "Ce fichier n'existe plus :\n" + file.getAbsolutePath());
                     RecentFilesManager.remove(file);
                     rebuildRecentFilesMenu(recentMenu, ctx);
@@ -1285,7 +1286,7 @@ public final class MenuBarFactory {
                         } else {
                             // Extension inconnue
                             Toolkit.getDefaultToolkit().beep();
-                            dia.InfoDialog.show(frame, "Extension non prise en charge",
+                            ctx.showInfo("Extension non prise en charge",
                                     "Impossible d’ouvrir ce fichier récent :\n"
                                   + file.getAbsolutePath()
                                   + "\n\nExtension non reconnue.");
@@ -1299,7 +1300,7 @@ public final class MenuBarFactory {
                     } catch (Exception ex) {
                         ex.printStackTrace();
                         Toolkit.getDefaultToolkit().beep();
-                        dia.InfoDialog.show(frame, "Erreur d’ouverture",
+                        ctx.showInfo("Erreur d’ouverture",
                                 "Une erreur est survenue en ouvrant le fichier :\n"
                               + file.getAbsolutePath()
                               + "\n\n" + ex.getMessage());

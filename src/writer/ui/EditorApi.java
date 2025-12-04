@@ -32,8 +32,8 @@ public interface EditorApi {
     void addItemChangeListener(JMenuItem item);
     void afficheDocumentation();
     void AfficheTexte();
-    void AfficheManuel();
-    void sauvegardeTemporaire();
+    void sauvegardeTemporaireTexte1();
+    void sauvegardeTemporaireTexte2();
     
     void zoomIn();
     void zoomOut();

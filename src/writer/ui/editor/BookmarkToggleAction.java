@@ -47,7 +47,7 @@ public class BookmarkToggleAction extends AbstractAction {
             message = "Marque-page supprimé.";
         }
 
-        InfoDialog.show(owner, title, message);
+        InfoDialog.show(owner, title, message, frame.getAffichage());
         frame.setModified(true);
     }
 }

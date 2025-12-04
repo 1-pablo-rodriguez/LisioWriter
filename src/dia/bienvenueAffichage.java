@@ -1,6 +1,7 @@
 package dia;
 
 import writer.commandes;
+import writer.model.Affiche;
 import writer.ui.EditorFrame;
 import writer.update.UpdateChecker;
 import writer.util.AppInfo;
@@ -12,7 +13,7 @@ public class bienvenueAffichage {
         StringBuilder message = new StringBuilder(128);
 
         writer.ui.NormalizingTextPane editorPane = frame.getEditor();
-        String c = "INFO. : ";
+        String c = "F1. ";
         try {
         	 	String fileName = (commandes.nameFile != null && !commandes.nameFile.isBlank())
                      ? commandes.nameFile + ".bwr" : "Sans nom.bwr";
@@ -31,7 +32,8 @@ public class bienvenueAffichage {
 	                System.out.println("Nouvelle version dispo : " + version);
 	                System.out.println("Nouvelle version url : " + url);
 	                System.out.println("Nouvelle version note : " + notes);
-	                message.append("NOUVELLE VERSION DISPONIBLE : v").append(version).append(" ↓");
+	                
+	                message.append("1. NOUVELLE VERSION DISPONIBLE : v").append(version).append(" ↓");
 	                if(!notes.isBlank()) {
 	                	message.append("\n").append(c).append(notes).append(" ↓");
 	                }
@@ -57,6 +59,6 @@ public class bienvenueAffichage {
         }
         
         java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(editorPane);
-        dia.InfoDialog.show(owner, c+"Bienvenue", message.toString());
+        dia.InfoDialog.show(owner, c+"Bienvenue", message.toString(), Affiche.TEXTE1);
     }
 }

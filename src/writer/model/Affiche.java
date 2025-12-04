@@ -4,7 +4,7 @@ package writer.model;
  * Énumération du type de contenu affiché dans l’éditeur.
  */
 public enum Affiche {
-    TEXTE,
+    TEXTE1,
     DOCUMENTATION,
-    MANUEL;
+    TEXTE2;
 }

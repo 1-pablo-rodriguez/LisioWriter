@@ -84,7 +84,7 @@ public final class UpdateChecker {
 
                     if (info == null || info.version == null || info.version.isBlank()) {
                         Toolkit.getDefaultToolkit().beep();
-                        dia.InfoDialog.show(owner, "Mise à jour", "Impossible de vérifier les mises à jour.");
+                        ctx.showInfo("Mise à jour", "Impossible de vérifier les mises à jour.");
                         return;
                     }
 
@@ -94,17 +94,16 @@ public final class UpdateChecker {
                         dlg.setVisible(true);
                     } else if (cmp == 0) {
                         Toolkit.getDefaultToolkit().beep();
-                        dia.InfoDialog.show(owner, "Mise à jour",
+                        ctx.showInfo("Mise à jour",
                                 "Vous avez déjà la dernière version : " + updater.getCurrentVersion());
                     } else {
                         Toolkit.getDefaultToolkit().beep();
-                        dia.InfoDialog.show(owner, "Mise à jour",
+                        ctx.showInfo("Mise à jour",
                                 "Votre version (" + updater.getCurrentVersion() + ") est plus récente que celle du serveur (" + info.version + ")");
                     }
                 } catch (Exception ex) {
                     Toolkit.getDefaultToolkit().beep();
-                    Window owner = SwingUtilities.getWindowAncestor(ctx.getEditor());
-                    dia.InfoDialog.show(owner, "Mise à jour", "Erreur lors de la vérification : " + ex.getMessage());
+                    ctx.showInfo("Mise à jour", "Erreur lors de la vérification : " + ex.getMessage());
                     ex.printStackTrace();
                 }
             }

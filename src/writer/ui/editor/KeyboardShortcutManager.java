@@ -85,7 +85,7 @@ public class KeyboardShortcutManager {
 //	     editorPane.getActionMap().put("puceTexte.fr", puceAction);
         
 	     // === AUTRES ===
-        addKeyBinding(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK, "toggleEdit", new ToggleEditAction(editorPane));
+        addKeyBinding(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK, "toggleEdit", new ToggleEditAction(frame));
         addKeyBinding(KeyEvent.VK_F2, 0, "announceHeadingsAround", frame.actAnnouncePosition());
         addKeyBinding(KeyEvent.VK_F4, 0, "gotoNextHeading", frame.actGotoNextHeading());
         addKeyBinding(KeyEvent.VK_F3, 0, "gotoPrevHeading", frame.actGotoPrevHeading());
