@@ -31,6 +31,7 @@ import javax.swing.border.LineBorder;
 
 import writer.commandes;
 import writer.enregistre;
+import writer.model.Affiche;
 import writer.ui.EditorFrame;
 
 public class BoiteQuitter {
@@ -121,9 +122,12 @@ public class BoiteQuitter {
         south.setBorder(BorderFactory.createEmptyBorder(0, 24, 20, 24));
         south.setBackground(bg);
         
-        if(commandes.hash!=commandes.nodeblindWriter.hashCode()) {
+        
+        if(parent.getAffichage()==Affiche.TEXTE1 &&         
+        commandes.hash1!=commandes.nodeblindWriter.hashCode()
+        || parent.getAffichage()==Affiche.TEXTE1 &&
+        commandes.hash2!=commandes.nodeblindWriter.hashCode()) {
 
-//        if (modified) {
             JButton saveBtn = new JButton("Enregistrer & Quitter");
             JButton discardBtn = new JButton("Quitter sans enregistrer");
             JButton cancelBtn = new JButton("Annuler");

@@ -31,11 +31,8 @@ public class informationsAffichage {
                                   ? commandes.currentDirectory.getName() : "Dossier inconnu";
 
                 boolean editable = editor != null && editor.isEditable();
-
-                char c2 = '1';
-                if(vue==Affiche.TEXTE2) c2='2';
                 
-                message.append(c2).append("-").append(c).append("Fichier : ").append(fileName).append(" ↓");
+                message.append(c).append("Fichier : ").append(fileName).append(" ↓");
                 message.append("\n").append(c).append("Dossier : ").append(folder).append(" ↓");
                 message.append(editable ? "\n"+c+"Mode éditable. ↓" : "\n"+c+"Mode en lecture seule. ↓");
                 message.append("\nSTATISTIQUES ↓");
@@ -46,16 +43,16 @@ public class informationsAffichage {
                 message.append("\n").append(c).append("Caract. (sans espaces) : ").append(all.charsNoSpaces).append(" ↓");
                 message.append("\n").append(c).append("DOC. & AIDES");
                 message.append("\n").append(c).append("Documentation : ALT+A ↓");
-                message.append("\n").append(c).append("Manuel b.book : ALT+C ↓");
-                message.append("\n").append(c).append("Votre fichier : ALT+B");
+                message.append("\n").append(c).append("Fenêtre 1 : ALT+B ↓");
+                message.append("\n").append(c).append("Fenêtre 2 : ALT+C");
 
             } else if (vue == Affiche.DOCUMENTATION) {
                 message.append(c).append("Documentation de LisioWriter. ↓");
                 message.append("\n").append(c).append("Touch. F6 pour naviguer•↓");
                 message.append("\n").append(c).append("Doc. & Aides");
                 message.append("\n").append(c).append("Documentation : ALT+A ↓");
-                message.append("\n").append(c).append("Manuel b.book : ALT+C ↓");
-                message.append("\n").append(c).append("Votre fichier : ALT+B");
+                message.append("\n").append(c).append("Fenêtre 1 : ALT+B ↓");
+                message.append("\n").append(c).append("Fenêtre 2 : ALT+C");
             }
 
         } catch (Exception ignore) {

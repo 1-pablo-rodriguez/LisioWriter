@@ -1,12 +1,12 @@
 package writer;
 
-import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.undo.UndoManager;
 
+import writer.model.Affiche;
 import writer.ui.EditorFrame;
 import writer.ui.NormalizingTextPane;
 
@@ -17,10 +17,11 @@ public class ChargeNouveauFichier {
         SwingUtilities.invokeLater(() -> {
         	
         	commandes.nameFile = nameFile;
-            commandes.hash=0;
+            if(parent.getAffichage()==Affiche.TEXTE1) commandes.hash1=0;
+            if(parent.getAffichage()==Affiche.TEXTE2) commandes.hash2=0;
             
             commandes.nodeblindWriter.retourneFirstEnfant("contentText").getContenu().clear();
-           	commandes.nodeblindWriter.getAttributs().put("filename","nouveaux fichier LisioWriter");
+           	commandes.nodeblindWriter.getAttributs().put("filename","nouveaux document");
             
             commandes.defaultStyles();
         	
@@ -73,26 +74,9 @@ public class ChargeNouveauFichier {
                 try { parent.getRedoAction().setEnabled(false); } catch (Throwable ignore) {}
 
                 
-//                // -> insère le caractère braille début de paragraphe 
-//                if (parent instanceof EditorFrame) {
-//                    ((EditorFrame) parent).ensureLeadingBrailleMarkOnAllParagraphs();
-//                }
+                if(parent.getAffichage()==Affiche.TEXTE1)commandes.hash1 = commandes.nodeblindWriter.hashCode();
+                if(parent.getAffichage()==Affiche.TEXTE2)commandes.hash2 = commandes.nodeblindWriter.hashCode();
                 
-//                // Appliquer la colorisation/surlignage si possible (TextHighlighter.apply attend un JTextPane)
-//                try {
-//                    if (editorComp instanceof JTextPane tp) {
-//                        writer.ui.editor.TextHighlighter.apply(tp);
-//                        // si la colorisation a généré des edits, on vide l'historique à nouveau
-//                        try {
-//                            UndoManager um2 = parent.getUndoManager();
-//                            if (um2 != null) um2.discardAllEdits();
-//                        } catch (Throwable ignore) {}
-//                    }
-//                } catch (Throwable t) {
-//                    // ne bloque pas le chargement si le highlighter échoue
-//                    t.printStackTrace();
-//                }
-
                 // final : revalidate / repaint / focus
                 editorComp.revalidate();
                 editorComp.repaint();

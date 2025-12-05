@@ -49,6 +49,7 @@ import writer.ui.editor.FastHighlighter;
 //import writer.ui.editor.WrapEditorKit;
 import writer.ui.editor.enableCopyPasteVisibleTabs;
 import writer.util.IconLoader;
+import xml.node;
 
 
 @SuppressWarnings("serial")
@@ -706,31 +707,50 @@ public class EditorFrame extends JFrame implements EditorApi {
 
 	@Override
 	public void AfficheTexte() {
+		if(affichage == Affiche.TEXTE1 || affichage == Affiche.TEXTE2) commandes.nodeblindWriter = new node(); else return;
 		if(affichage == Affiche.TEXTE1) commandes.nodeblindWriter = commandes.sauvText1File;
 		if(affichage == Affiche.TEXTE2) commandes.nodeblindWriter = commandes.sauvText2File;
-        	if(commandes.nodeblindWriter.retourneFirstEnfant("contentText")!=null) {
-        		this.editorPane.setText(commandes.nodeblindWriter.retourneFirstEnfant("contentText").getContenuAvecTousLesContenusDesEnfants());
-        	}else {
-        		this.editorPane.setText("");
-        	}
-        	if (commandes.nodeblindWriter.retourneFirstEnfant("bookmarks") != null) {
-                commandes.bookmarks = commandes.nodeblindWriter.retourneFirstEnfant("bookmarks");
-                try {
-					getBookmarks().loadFromXml(commandes.nodeblindWriter.retourneFirstEnfant("bookmarks"));
-				} catch (BadLocationException e) {
-					e.printStackTrace();
-				}
-        	}
-        	// colorisation
-            FastHighlighter.rehighlightAll(this.editorPane); // une passe globale, optionnelle
-         	commandes.nameFile = commandes.nodeblindWriter.getAttributs().get("filename");
-         	
-         	if(affichage == Affiche.TEXTE1) {
-         		this.editorPane.setCaretPosition(positionTexte1CurseurSauv);
-         	}else if(affichage == Affiche.TEXTE2){
-         		this.editorPane.setCaretPosition(positionTexte2CurseurSauv);
-         	}
-        	this.editorPane.getAccessibleContext().setAccessibleName("Affichage de votre texte.");
+		
+		if(commandes.nodeblindWriter.retourneFirstEnfant("contentText")!=null) {
+    		this.editorPane.setText(commandes.nodeblindWriter.retourneFirstEnfant("contentText").getContenuAvecTousLesContenusDesEnfants());
+    	}else {
+    		this.editorPane.setText("¶ ");
+    	}
+		
+		if(commandes.nodeblindWriter.retourneFirstEnfant("styles_paragraphes")!=null) {
+			commandes.styles_paragraphe = commandes.nodeblindWriter.retourneFirstEnfant("styles_paragraphes");
+		}else {
+			commandes.defaultStyles();
+		}
+		
+		if(commandes.nodeblindWriter.retourneFirstEnfant("meta")!=null) {
+			commandes.maj_meta() ;
+		}else {
+			commandes.init_meta();
+		}
+		
+    	if (commandes.nodeblindWriter.retourneFirstEnfant("bookmarks") != null) {
+            commandes.bookmarks = commandes.nodeblindWriter.retourneFirstEnfant("bookmarks");
+            try {
+				getBookmarks().loadFromXml(commandes.nodeblindWriter.retourneFirstEnfant("bookmarks"));
+			} catch (BadLocationException e) {
+				e.printStackTrace();
+			}
+    	}
+    	
+    	
+    	// colorisation
+        FastHighlighter.rehighlightAll(this.editorPane); // une passe globale, optionnelle
+     	commandes.nameFile = commandes.nodeblindWriter.getAttributs().get("filename");
+     	
+     	if(affichage == Affiche.TEXTE1) {
+     		this.editorPane.setCaretPosition(positionTexte1CurseurSauv);
+     		this.editorPane.getAccessibleContext().setAccessibleName("Fenêtre 1");
+     	}else if(affichage == Affiche.TEXTE2){
+     		this.editorPane.setCaretPosition(positionTexte2CurseurSauv);
+     		this.editorPane.getAccessibleContext().setAccessibleName("Fenêtre 2");
+     	}
+        	
         	setModified(false);
 
 	}

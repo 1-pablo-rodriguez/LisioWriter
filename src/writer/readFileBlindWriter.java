@@ -10,6 +10,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.undo.UndoManager;
 
+import writer.model.Affiche;
 import writer.ui.EditorFrame;
 import writer.ui.editor.FastHighlighter;
 import writer.ui.editor.PiedDeMouchePrefixer;
@@ -58,7 +59,6 @@ public class readFileBlindWriter {
             commandes.nameFile = commandes.nodeblindWriter.getAttributs().get("filename");
             commandes.styles_paragraphe = commandes.nodeblindWriter.retourneFirstEnfant("styles_paragraphes");
             commandes.meta = commandes.nodeblindWriter.retourneFirstEnfant("meta");
-            commandes.maj_meta();
             commandes.pageDefaut = commandes.nodeblindWriter.retourneFirstEnfant("pageDefaut");
 
             // Page de titre (crée si absente)
@@ -89,7 +89,8 @@ public class readFileBlindWriter {
             commandes.nodeblindWriter.retourneFirstEnfant("contentText").setContenu(0, commandes.texteDocument);
             
             // Enregistre le hash
-            commandes.hash = commandes.nodeblindWriter == null ? 0 :  commandes.nodeblindWriter.hashCode();
+            if(parent.getAffichage()==Affiche.TEXTE1) commandes.hash1 = commandes.texteDocument.hashCode();
+            if(parent.getAffichage()==Affiche.TEXTE2) commandes.hash2 = commandes.texteDocument.hashCode();
 
             // --- Chargement asynchrone dans l'éditeur (exécuté sur l'EDT) ---
             final String newText = commandes.texteDocument == null ? "" : commandes.texteDocument;

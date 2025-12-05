@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import writer.model.Affiche;
 import writer.ui.EditorFrame;
 import writer.util.RecentFilesManager;
 
@@ -12,8 +13,7 @@ public class enregistre {
 	
 	
     public enregistre(EditorFrame parent) {
-   	 // Sauvegarder le texte du JEditorPane dans un fichier
-    	
+
     	// Suppression des bookmarks
     	commandes.nodeblindWriter.removeAllEnfantWithThisName("bookmarks");
     	// Mise en jour des bookmarks
@@ -44,7 +44,8 @@ public class enregistre {
            commandes.texteDocument=text;
            
            // Hash du node
-           commandes.hash = commandes.nodeblindWriter.hashCode();
+           if(parent.getAffichage()==Affiche.TEXTE1)commandes.hash1 = commandes.nodeblindWriter.hashCode();
+           if(parent.getAffichage()==Affiche.TEXTE2)commandes.hash2 = commandes.nodeblindWriter.hashCode();
            
            // Document propre : marquer non-modifié
            parent.setModified(false);
@@ -87,7 +88,8 @@ public class enregistre {
               commandes.texteDocument=text;
               
               // Hash du node
-              commandes.hash = commandes.nodeblindWriter.hashCode();
+              if(parent.getAffichage()==Affiche.TEXTE1)commandes.hash1 = commandes.nodeblindWriter.hashCode();
+              if(parent.getAffichage()==Affiche.TEXTE2)commandes.hash2 = commandes.nodeblindWriter.hashCode();
               
               // Document propre : marquer non-modifié
               parent.setModified(false);

@@ -32,7 +32,8 @@ public class commandes {
 	public static String affFr = commandes.getPathApp + "\\dic\\fr_FR.aff";
 	
     public static String nameFile = "Nouveau document";
-    public static int hash = 0;
+    public static int hash1 = 0;
+    public static int hash2 = 0;
     public static String texteDocument = "";
     
     public static boolean audio = false;
@@ -41,7 +42,7 @@ public class commandes {
 
     public static node contentText = new node();
     public static node nodeblindWriter = new node();
-    public static node manuel = new node();
+//    public static node manuel = new node();
     public static node styles_paragraphe = new node();
     public static node styles_page = new node();
     public static node Tprin = new node();
@@ -71,15 +72,112 @@ public class commandes {
     public static final java.util.List<String> listMotsDico = new java.util.ArrayList<>();
 
     public static void init() {
-    	initNodeBlindWriter();
-    	defaultStyles();
+    	initLesNodesBlindWriter();
         loadDocumentation();
-        loadManuel();
-        init_meta();
+//        loadManuel();
     }
     
     // Création du node LisioWriter
+    public static void initLesNodesBlindWriter() {
+
+        nodeblindWriter.setNameNode("blindWriter");
+        nodeblindWriter.getAttributs().put("filename", "Nouveau document");
+        styles_paragraphe = new node();
+        styles_paragraphe.setNameNode("styles_paragraphes");
+        
+        Tprin = new node();
+        Tprin.setNameNode("Title");
+        Tprin.getAttributs().put("name", "Title");
+        
+        Tstitre = new node();
+        Tstitre.setNameNode("Subtitle");
+        Tstitre.getAttributs().put("name", "Subtitle");
+        
+        T1 = new node();
+    	T1.setNameNode("Titre1");
+    	T1.getAttributs().put("name", "Titre1");
+    	
+    	T2 = new node();
+    	T2.setNameNode("Titre2");
+    	T2.getAttributs().put("name", "Titre2");
+    	
+    	T3 = new node();
+    	T3.setNameNode("Titre3");
+    	T3.getAttributs().put("name", "Titre3");
+    	
+    	T4 = new node();
+    	T4.setNameNode("Titre4");
+    	T4.getAttributs().put("name", "Titre4");
+    	
+    	T5 = new node();
+    	T5.setNameNode("Titre5");
+    	T5.getAttributs().put("name", "Titre5");
+
+    	bodyText = new node();
+    	bodyText.setNameNode("bodyText");
+    	bodyText.getAttributs().put("name", "Corps de texte");
+    	
+    	styles_page = new node();
+    	styles_page.setNameNode("styles_pages");
+    	
+    	styles_paragraphe.addEnfant(Tprin);
+    	styles_paragraphe.addEnfant(Tstitre);
+    	styles_paragraphe.addEnfant(T1);
+    	styles_paragraphe.addEnfant(T2);
+    	styles_paragraphe.addEnfant(T3);
+    	styles_paragraphe.addEnfant(T4);
+    	styles_paragraphe.addEnfant(T5);
+    	styles_paragraphe.addEnfant(bodyText);
+    	
+    	
+    	pageDefaut = new node();
+    	pageDefaut.setNameNode("pageDefaut");
+    	
+    	pageTitre = new node();
+    	pageTitre.setNameNode("pageTitre");
+    	
+    	styles_page.addEnfant(pageDefaut);
+    	styles_page.addEnfant(pageTitre);
+    	
+    	meta = new node();
+    	meta.setNameNode("meta");   	
+    	init_meta();
+    	
+    	bookmarks = new node();
+    	bookmarks.setNameNode("bookmarks");
+    	bookmarks.getAttributs().put("version", "1");
+    	
+    	contentText = new node();
+    	contentText.setNameNode("contentText"); 
+    	
+    	nodeblindWriter.addEnfant( commandes.meta);
+    	nodeblindWriter.addEnfant( commandes.styles_paragraphe);
+    	nodeblindWriter.addEnfant( commandes.styles_page);
+    	nodeblindWriter.addEnfant( commandes.bookmarks);
+        nodeblindWriter.addEnfant( commandes.contentText);
+        
+        
+        defaultStyles();
+        sauvText1File = nodeblindWriter;
+        
+        
+        try {
+			sauvText2File = nodeblindWriter.clone();
+			sauvText2File.getAttributs().put("filename", "Texte 2");
+			sauvText2File.retourneFirstEnfant("contentText").addContenu("¶ ");
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+
+        listMotsDico.add("blindWriter");
+        listMotsDico.add("LisioWriter");
+        listMotsDico.add("@saut de page");
+        listMotsDico.add("@(");
+    }
+    
+    // Pour la création d'un nouveau fichier
     public static void initNodeBlindWriter() {
+    	nodeblindWriter = new node();
     	
         nodeblindWriter.setNameNode("blindWriter");
         nodeblindWriter.getAttributs().put("filename", "Nouveau document");
@@ -149,28 +247,17 @@ public class commandes {
     	
     	contentText = new node();
     	contentText.setNameNode("contentText"); 
+    	contentText.addContenu("¶ ");
     	
-    	nodeblindWriter.addEnfant( commandes.meta);
-    	nodeblindWriter.addEnfant( commandes.styles_paragraphe);
-    	nodeblindWriter.addEnfant( commandes.styles_page);
-    	nodeblindWriter.addEnfant( commandes.bookmarks);
-        nodeblindWriter.addEnfant( commandes.contentText);
+    	nodeblindWriter.addEnfant( meta);
+    	nodeblindWriter.addEnfant( styles_paragraphe);
+    	nodeblindWriter.addEnfant( styles_page);
+    	nodeblindWriter.addEnfant( bookmarks);
+        nodeblindWriter.addEnfant( contentText);
         
-        
-        sauvText1File = nodeblindWriter;
-        try {
-			sauvText2File = nodeblindWriter.clone();
-			sauvText2File.getAttributs().put("filename", "Texte 2");
-//			sauvText2File.
-			sauvText2File.retourneFirstEnfant("contentText").addContenu("¶ Bienvenu sur la fenêtre 2");
-		} catch (CloneNotSupportedException e) {
-			e.printStackTrace();
-		}
-        
-        listMotsDico.add("blindWriter");
-        listMotsDico.add("LisioWriter");
-        listMotsDico.add("@saut de page");
-        listMotsDico.add("@(");
+        // Mise à jour des styles et des meta
+        defaultStyles();
+        init_meta();
     }
     
     
@@ -202,44 +289,31 @@ public class commandes {
     }
     
     
-    // Chargement de la documentation
-    private static void  loadManuel() {
-    	try {
-            // Lecture du fichier et insertion dans le JTextArea
-    		File selectedFile = new File(pathApp+"/manuel.bwr");
-            String content = new String(Files.readAllBytes(selectedFile.toPath()));
-            new transformeXLMtoNode(content,false,null);
-            commandes.manuel = transformeXLMtoNode.getNodeRoot().retourneFirstEnfant("blindWriter");    
-         } catch (IOException ex) {
-        }
-    }
+//    // Chargement de la documentation
+//    private static void  loadManuel() {
+//    	try {
+//            // Lecture du fichier et insertion dans le JTextArea
+//    		File selectedFile = new File(pathApp+"/manuel.bwr");
+//            String content = new String(Files.readAllBytes(selectedFile.toPath()));
+//            new transformeXLMtoNode(content,false,null);
+//            commandes.manuel = transformeXLMtoNode.getNodeRoot().retourneFirstEnfant("blindWriter");    
+//         } catch (IOException ex) {
+//        }
+//    }
     
     
     // Sauvegarde temporaire du texte 1
     public static void sauvTexte1File(NormalizingTextPane editor, Affiche f) {
     	if(f!= Affiche.TEXTE1) return;
-    	commandes.texteDocument = editor.getText();
     	 sauvText1File = new node();
     	 sauvText1File.setNameNode("blindWriter");
     	 sauvText1File.getAttributs().put("filename", commandes.nameFile);
-    	 sauvText1File.addNewEnfant("styles_paragraphes");
     	 sauvText1File.addEnfant(styles_paragraphe);
-    	 styles_paragraphe.addEnfant(Tprin);
-    	 styles_paragraphe.addEnfant(Tstitre);
-    	 styles_paragraphe.addEnfant(T1);
-    	 styles_paragraphe.addEnfant(T2);
-    	 styles_paragraphe.addEnfant(T3);
-    	 styles_paragraphe.addEnfant(T4);
-    	 styles_paragraphe.addEnfant(T5);
-    	 styles_paragraphe.addEnfant(bodyText);
     	 sauvText1File.addEnfant(styles_page);
-    	 styles_page.addEnfant(pageDefaut);
-    	 styles_page.addEnfant(pageTitre);
     	 sauvText1File.addEnfant(meta);
-    	 meta.addEnfant(dateModif);
-    	 contentText = new node();
+    	 node contentText = new node();
     	 contentText.setNameNode("contentText");
-    	 contentText.addContenu(commandes.texteDocument);
+    	 contentText.addContenu(editor.getText());
     	 sauvText1File.addEnfant(contentText);
      	// Mise en jour des bookmarks
      	Window win = SwingUtilities.getWindowAncestor(editor);
@@ -251,28 +325,15 @@ public class commandes {
     // Sauvegarde temporaire du texte 2
     public static void sauvTexte2File(NormalizingTextPane editor, Affiche f) {
     	if(f!= Affiche.TEXTE2) return;
-    	commandes.texteDocument = editor.getText();
     	 sauvText2File = new node();
     	 sauvText2File.setNameNode("blindWriter");
     	 sauvText2File.getAttributs().put("filename", commandes.nameFile);
-    	 sauvText2File.addNewEnfant("styles_paragraphes");
     	 sauvText2File.addEnfant(styles_paragraphe);
-    	 styles_paragraphe.addEnfant(Tprin);
-    	 styles_paragraphe.addEnfant(Tstitre);
-    	 styles_paragraphe.addEnfant(T1);
-    	 styles_paragraphe.addEnfant(T2);
-    	 styles_paragraphe.addEnfant(T3);
-    	 styles_paragraphe.addEnfant(T4);
-    	 styles_paragraphe.addEnfant(T5);
-    	 styles_paragraphe.addEnfant(bodyText);
     	 sauvText2File.addEnfant(styles_page);
-    	 styles_page.addEnfant(pageDefaut);
-    	 styles_page.addEnfant(pageTitre);
     	 sauvText2File.addEnfant(meta);
-    	 meta.addEnfant(dateModif);
-    	 contentText = new node();
+    	 node contentText = new node();
     	 contentText.setNameNode("contentText");
-    	 contentText.addContenu(commandes.texteDocument);
+    	 contentText.addContenu(editor.getText());
     	 sauvText2File.addEnfant(contentText);
      	// Mise en jour des bookmarks
      	Window win = SwingUtilities.getWindowAncestor(editor);
@@ -366,6 +427,7 @@ public class commandes {
     }
     
     
+    
     public static void init_meta() {
     	meta.removeAllAttributs();
     	meta.removeAllEnfants();
@@ -380,7 +442,6 @@ public class commandes {
     	meta.addEnfant(dateCreation());
     	meta.addEnfant(dateModification());	
     }
-    
     
     
     public static void maj_meta() {

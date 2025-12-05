@@ -27,6 +27,7 @@ import javax.swing.SwingUtilities;
 import act.select_CANCEL;
 import act.select_OK;
 import writer.commandes;
+import writer.model.Affiche;
 import writer.ui.EditorFrame;
 
 public class BoiteNewDocument {
@@ -189,11 +190,14 @@ public class BoiteNewDocument {
         //
         // Version "document vierge" (comme ton code de bouton OK) :
         System.out.println("Création d'un document vierge : " + name);
+        commandes.initNodeBlindWriter();
+        commandes.nodeblindWriter.getAttributs().put("filename", name);
         commandes.nameFile = name;
-        commandes.hash = 0;
-
+        if(parent.getAffichage()==Affiche.TEXTE1) commandes.hash1 = 0;
+        if(parent.getAffichage()==Affiche.TEXTE2) commandes.hash2 = 0;
+        
         if (parent != null && parent.getEditor() != null) {
-            parent.getEditor().setText("¶ ");
+            parent.getEditor().setText(commandes.nodeblindWriter.retourneFirstEnfant("contentText").getContenuAvecTousLesContenusDesEnfants());
             parent.getEditor().setCaretPosition(2);
         }
 

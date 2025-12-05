@@ -24,6 +24,7 @@ import javax.swing.text.Position;
 
 import Import.DocxReader;
 import writer.commandes;
+import writer.model.Affiche;
 import writer.ui.EditorFrame;
 import writer.ui.editor.FastHighlighter;
 import writer.util.RecentFilesManager;
@@ -722,8 +723,9 @@ public final class ouvrirDOCX extends JDialog {
     	
     	 commandes.texteDocument = contenu;
          
-         commandes.hash = commandes.texteDocument.hashCode();
-         
+         if(parent.getAffichage()==Affiche.TEXTE1) commandes.hash1 = commandes.texteDocument.hashCode();
+         if(parent.getAffichage()==Affiche.TEXTE2) commandes.hash2 = commandes.texteDocument.hashCode();
+
          parent.getEditor().setText(commandes.texteDocument);
          
          // colorisation

@@ -761,7 +761,6 @@ public final class MenuBarFactory {
             try {
             	writer.spell.SpellCheckLT spell = ctx.getSpell();
             	if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
-            	java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor());
             	MarkdownOdfExporter.export(ctx.getEditor().getText(), new File(commandes.currentDirectory + "/" + commandes.nameFile+".odt"));
             	StringBuilder msg = new StringBuilder();
                 msg.append("Info. Exportation terminé."
@@ -779,7 +778,6 @@ public final class MenuBarFactory {
             try {
             	writer.spell.SpellCheckLT spell = ctx.getSpell();
             	if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
-            	java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor());
             	MarkdownOOXMLExporter.export(ctx.getEditor().getText(), new File(commandes.currentDirectory + "/" + commandes.nameFile+".docx"));
             	StringBuilder msg = new StringBuilder();
                 msg.append("Info. Exportation terminé."
@@ -810,8 +808,7 @@ public final class MenuBarFactory {
 				    t.printStackTrace();
 				}
 				
-				java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor());
-            	StringBuilder msg = new StringBuilder();
+				StringBuilder msg = new StringBuilder();
             	msg.append("Info. Exportation terminé."
                  		+ "\nFichier : " + commandes.nameFile+".pdf"
                  		+ "\nDossier : " + commandes.currentDirectory);
@@ -844,7 +841,6 @@ public final class MenuBarFactory {
                 Path written = HtmlExporter.exportHtml(html, outPath, false);
 
                 // Message d'information pour l'utilisateur
-                java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor());
                 StringBuilder msg = new StringBuilder();
                 msg.append("Info. Exportation terminée.")
                    .append("\nFichier : ").append(written.getFileName().toString())
@@ -937,7 +933,6 @@ public final class MenuBarFactory {
             }
             boolean added = m.toggleHere();
             String message = (added ? "Marque-page ajouté." : "Marque-page supprimé.");
-            java.awt.Window owner = javax.swing.SwingUtilities.getWindowAncestor(ctx.getEditor());
             ctx.showInfo("Information", message);
             ctx.setModified(true);
         });
@@ -1081,11 +1076,11 @@ public final class MenuBarFactory {
     
     // Menu Documentation
     private static JMenu menuFenetres(EditorApi ctx) {
-    	JMenu fileDocumentation = new JMenu("Fenêtres");
-        fileDocumentation.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
-        fileDocumentation.setMnemonic('D'); // Utiliser ALT+F pour ouvrir le menu
+    	JMenu fileFenetre = new JMenu("Fenêtres");
+    	fileFenetre.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
+    	fileFenetre.setMnemonic('D'); // Utiliser ALT+F pour ouvrir le menu
         // Listener déclenché à l’ouverture du menu
-        fileDocumentation.addMenuListener(new MenuListener() {
+    	fileFenetre.addMenuListener(new MenuListener() {
             @Override public void menuSelected(MenuEvent e) {
                 // Laisse Swing ouvrir le menu, puis enlève l’item armé
                 SwingUtilities.invokeLater(() -> {
@@ -1136,18 +1131,17 @@ public final class MenuBarFactory {
             	}
             }  
         });
-        afficheManuelItem.getAccessibleContext().setAccessibleName("Manuel b.book");
-        
+         
         ctx.addItemChangeListener(afficheDocItem);
 		ctx.addItemChangeListener(afficheTextItem);
 		ctx.addItemChangeListener(afficheManuelItem);
 
-        fileDocumentation.add(afficheDocItem);
-        fileDocumentation.add(afficheTextItem);
-        fileDocumentation.add(afficheManuelItem);
+		fileFenetre.add(afficheDocItem);
+		fileFenetre.add(afficheTextItem);
+		fileFenetre.add(afficheManuelItem);
 
         
-        return fileDocumentation;
+        return fileFenetre;
     }
     
     //Menu Préférence
@@ -1260,7 +1254,6 @@ public final class MenuBarFactory {
                 // ouverture du fichier récent
                 if (!file.exists()) {
                     Toolkit.getDefaultToolkit().beep();
-                    Window owner = ctx.getWindow();
                     ctx.showInfo("Fichier introuvable",
                             "Ce fichier n'existe plus :\n" + file.getAbsolutePath());
                     RecentFilesManager.remove(file);

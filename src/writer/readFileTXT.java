@@ -12,6 +12,7 @@ import java.nio.file.Path;
 
 import javax.swing.SwingUtilities;
 
+import writer.model.Affiche;
 import writer.ui.EditorFrame;
 import writer.ui.editor.FastHighlighter;
 import writer.ui.editor.PiedDeMouchePrefixer;
@@ -46,7 +47,9 @@ public final class readFileTXT {
             // Nom de fichier sans extension
             String baseName = stripExt(f.getName());
             commandes.nameFile = baseName;
-            commandes.hash = 0;
+            if(parent.getAffichage()==Affiche.TEXTE1) commandes.hash1 = 0;
+            if(parent.getAffichage()==Affiche.TEXTE2) commandes.hash2 = 0;
+
 
             // (optionnel) mémoriser le chemin réel
             if (commandes.nodeblindWriter != null) {

@@ -33,7 +33,7 @@ public class bienvenueAffichage {
 	                System.out.println("Nouvelle version url : " + url);
 	                System.out.println("Nouvelle version note : " + notes);
 	                
-	                message.append("1. NOUVELLE VERSION DISPONIBLE : v").append(version).append(" ↓");
+	                message.append("NOUVELLE VERSION DISPONIBLE : v").append(version).append(" ↓");
 	                if(!notes.isBlank()) {
 	                	message.append("\n").append(c).append(notes).append(" ↓");
 	                }
