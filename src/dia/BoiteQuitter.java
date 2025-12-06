@@ -122,11 +122,14 @@ public class BoiteQuitter {
         south.setBorder(BorderFactory.createEmptyBorder(0, 24, 20, 24));
         south.setBackground(bg);
         
+        Affiche f = parent.getAffichage();
+        commandes.maj_nodeBlindWriter(parent);
+        int hashNodeBlindWriter = commandes.nodeblindWriter.hashCode();
         
-        if(parent.getAffichage()==Affiche.TEXTE1 &&         
-        commandes.hash1!=commandes.nodeblindWriter.hashCode()
-        || parent.getAffichage()==Affiche.TEXTE1 &&
-        commandes.hash2!=commandes.nodeblindWriter.hashCode()) {
+        if(f == Affiche.TEXTE1 &&         
+        commandes.hash1 != hashNodeBlindWriter
+        || f == Affiche.TEXTE2 &&
+        commandes.hash2 != hashNodeBlindWriter) {
 
             JButton saveBtn = new JButton("Enregistrer & Quitter");
             JButton discardBtn = new JButton("Quitter sans enregistrer");

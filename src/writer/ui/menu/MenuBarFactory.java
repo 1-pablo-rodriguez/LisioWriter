@@ -759,13 +759,14 @@ public final class MenuBarFactory {
             System.out.println("Export au format ODF Writer"); // Debugger
             //ExportODFWriter();
             try {
-            	writer.spell.SpellCheckLT spell = ctx.getSpell();
-            	if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
+//            	writer.spell.SpellCheckLT spell = ctx.getSpell();
+//            	if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
             	MarkdownOdfExporter.export(ctx.getEditor().getText(), new File(commandes.currentDirectory + "/" + commandes.nameFile+".odt"));
             	StringBuilder msg = new StringBuilder();
-                msg.append("Info. Exportation terminé."
-                		+ "\nFichier : " + commandes.nameFile+".odt"
-                		+ "\nDossier : " + commandes.currentDirectory);
+                msg.append("Exportation terminé. ↓")
+                		.append("\n• Fichier : ").append(commandes.nameFile).append(".docx").append(" ↓")
+                		.append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓")
+                		.append("\n• Chemin : ").append(commandes.currentDirectory.toString());
                 ctx.showInfo("Exportation", msg.toString());
             } catch (Exception e1) {
 				e1.printStackTrace();
@@ -776,13 +777,16 @@ public final class MenuBarFactory {
             System.out.println("Export au format DOCX Word"); // Debugger
             //ExportODFWriter();
             try {
-            	writer.spell.SpellCheckLT spell = ctx.getSpell();
-            	if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
             	MarkdownOOXMLExporter.export(ctx.getEditor().getText(), new File(commandes.currentDirectory + "/" + commandes.nameFile+".docx"));
+            	 File dossierParent = commandes.currentDirectory.getParentFile();
+                 String nomDossier = (dossierParent != null) ? dossierParent.getName() : null;
+                 commandes.nomDossierCourant = nomDossier;
+            	
             	StringBuilder msg = new StringBuilder();
-                msg.append("Info. Exportation terminé."
-                		+ "\nFichier : " + commandes.nameFile+".docx"
-                		+ "\nDossier : " + commandes.currentDirectory);
+                msg.append("Exportation terminé. ↓")
+                		.append("\n• Fichier : ").append(commandes.nameFile).append(".docx").append(" ↓")
+                		.append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓")
+                		.append("\n• Chemin : ").append(commandes.currentDirectory.toString());
                 ctx.showInfo("Exportation", msg.toString());
             } catch (Exception e1) {
 				e1.printStackTrace();
@@ -792,8 +796,8 @@ public final class MenuBarFactory {
         JMenuItem exportPDFItem = createSimpleMenuItem("Exporter en .PDF", e -> {
             System.out.println("Export au format PDF"); // Debugger
 			try {
-				writer.spell.SpellCheckLT spell = ctx.getSpell();
-				if (spell != null) { spell.clearHighlights(); ctx.getEditor().requestFocusInWindow(); }
+//				writer.spell.SpellCheckLT spell = ctx.getSpell();
+//				if (spell != null) {  ctx.getEditor().requestFocusInWindow(); }
 				String html = PdfExporter.convertMarkupToHtml(ctx.getEditor().getText());
 				
 				// construire proprement le chemin de sortie
@@ -809,10 +813,11 @@ public final class MenuBarFactory {
 				}
 				
 				StringBuilder msg = new StringBuilder();
-            	msg.append("Info. Exportation terminé."
-                 		+ "\nFichier : " + commandes.nameFile+".pdf"
-                 		+ "\nDossier : " + commandes.currentDirectory);
-            	ctx.showInfo("Exportation", msg.toString());
+                msg.append("Exportation terminé. ↓")
+                		.append("\n• Fichier : ").append(commandes.nameFile).append(".docx").append(" ↓")
+                		.append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓")
+                		.append("\n• Chemin : ").append(commandes.currentDirectory.toString());
+                ctx.showInfo("Exportation", msg.toString());
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -844,7 +849,8 @@ public final class MenuBarFactory {
                 StringBuilder msg = new StringBuilder();
                 msg.append("Info. Exportation terminée.")
                    .append("\nFichier : ").append(written.getFileName().toString())
-                   .append("\nDossier : ").append(written.getParent() == null ? "<racine>" : written.getParent().toString());
+                   .append("\nDossier : ").append(written.getParent() == null ? "<racine>" : written.getParent().toString())
+                	.append("\n• Chemin : ").append(commandes.currentDirectory.toString());
                 ctx.showInfo("Exportation", msg.toString());
             } catch (Exception ex) {
                 ex.printStackTrace();

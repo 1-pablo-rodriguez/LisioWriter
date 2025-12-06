@@ -289,7 +289,7 @@ public class commandes {
     }
     
     
-//    // Chargement de la documentation
+//    // Chargement du manuel b.book
 //    private static void  loadManuel() {
 //    	try {
 //            // Lecture du fichier et insertion dans le JTextArea
@@ -300,6 +300,31 @@ public class commandes {
 //         } catch (IOException ex) {
 //        }
 //    }
+    
+    // mise à jour du nodeBlindWriter pour enregister ou pour quitter et vérifier le hash
+    // mise à jour sans hash
+    public static void maj_nodeBlindWriter(EditorFrame parent) {
+    	// Suppression des bookmarks
+    	commandes.nodeblindWriter.removeAllEnfantWithThisName("bookmarks");
+    	// Mise en jour des bookmarks
+    	commandes.nodeblindWriter.addEnfant(parent.getBookmarks().saveToXml());
+    	
+       String text = parent.getEditor().getText(); // récupération du texte.
+       commandes.contentText.getContenu().clear(); // RAZ du node contentText
+       commandes.nodeblindWriter.retourneFirstEnfant("contentText").getContenu().clear(); // RAZ du node contentText
+       
+       commandes.nodeblindWriter.getAttributs().put("filename", commandes.nameFile); // Mise à jour de nom du fichier
+       commandes.nodeblindWriter.retourneFirstEnfant("contentText").addContenu(text); // ajout du contenu textuel
+       //commandes.defaultStyles();       
+      
+       // mise à jour de la date de modification
+       if(commandes.nodeblindWriter.containChildByName("date_modification")) {
+    	   commandes.nodeblindWriter.retourneFirstEnfant("date_modification").getAttributs().put("date", commandes.dateNow());
+       };
+       
+    }
+    
+    
     
     
     // Sauvegarde temporaire du texte 1
