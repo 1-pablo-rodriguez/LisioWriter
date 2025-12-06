@@ -42,7 +42,6 @@ public class commandes {
 
     public static node contentText = new node();
     public static node nodeblindWriter = new node();
-//    public static node manuel = new node();
     public static node styles_paragraphe = new node();
     public static node styles_page = new node();
     public static node Tprin = new node();

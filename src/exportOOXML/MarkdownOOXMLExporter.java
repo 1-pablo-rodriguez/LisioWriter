@@ -18,6 +18,7 @@ import org.apache.poi.xwpf.usermodel.XWPFNumbering;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRelation;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.XWPFStyle;
 import org.apache.poi.xwpf.usermodel.XWPFStyles;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
@@ -27,8 +28,10 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTLvl;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STNumberFormat;
 
 import writer.commandes;
+import writer.ui.EditorFrame;
 import writer.ui.editor.TableSyntax;
 import writer.ui.text.PiedDeMoucheCleaner;
+
 
 public final class MarkdownOOXMLExporter {
 
@@ -65,14 +68,18 @@ public final class MarkdownOOXMLExporter {
     private static final Pattern IMG_ANY_WITH_WS =
         Pattern.compile("(?m)[ \\t]*!\\[[^\\]]*\\](?:\\([^)]*\\)|\\[[^\\]]*\\])?[ \\t]*");
 
+    private static EditorFrame editor;
     
     private enum ListKind { NONE, ORDERED, UNORDERED }
     
 
     // ---------- API ----------
     /** Exporte la chaîne « LisioWriter-Markdown » vers un .docx. */
-    public static void export(String src, File outFile) throws Exception {
+    public static boolean export(EditorFrame frame, File outFile) throws Exception {
         try (XWPFDocument doc = new XWPFDocument()) {
+        	editor = frame;
+        	
+        	String src = editor.getEditor().getText();
         	ensureWordBuiltinStyles(doc);
             applyMetadata(doc);
 
@@ -153,11 +160,18 @@ public final class MarkdownOOXMLExporter {
                     if (!txt.isEmpty()) {
                         XWPFParagraph p = doc.createParagraph();
                         p.setStyle("Title");
-                        if (pageBreakForNextParagraph) { p.setPageBreak(true); pageBreakForNextParagraph = false; }
+                        if (pageBreakForNextParagraph) { 
+                            p.setPageBreak(true); 
+                            pageBreakForNextParagraph = false; 
+                        }
                         appendInlineRuns(doc, p, txt, footBox);
+
+                        // 🔹 applique les paramètres du node Title (Tprin)
+                        applyTitleDirectFormatting(p);
                     }
                     continue;
                 }
+
 
                 // #S. -> Subtitle (pas de setNumID)
                 m = H_S.matcher(line);
@@ -167,8 +181,14 @@ public final class MarkdownOOXMLExporter {
                     if (!txt.isEmpty()) {
                         XWPFParagraph p = doc.createParagraph();
                         p.setStyle("Subtitle");
-                        if (pageBreakForNextParagraph) { p.setPageBreak(true); pageBreakForNextParagraph = false; }
+                        if (pageBreakForNextParagraph) {
+                            p.setPageBreak(true);
+                            pageBreakForNextParagraph = false;
+                        }
                         appendInlineRuns(doc, p, txt, footBox);
+
+                        // 🔹 applique les paramètres du node Subtitle (Tstitre)
+                        applySubtitleDirectFormatting(p);
                     }
                     continue;
                 }
@@ -187,11 +207,29 @@ public final class MarkdownOOXMLExporter {
                     if (txt != null && !txt.isEmpty()) {
                         XWPFParagraph p = doc.createParagraph();
                         p.setStyle("Heading" + headingLevel); // "Heading1"..."Heading5"
-                        if (pageBreakForNextParagraph) { p.setPageBreak(true); pageBreakForNextParagraph = false; }
+                        if (pageBreakForNextParagraph) {
+                            p.setPageBreak(true);
+                            pageBreakForNextParagraph = false;
+                        }
+
                         appendInlineRuns(doc, p, txt, footBox);
+
+                        if (headingLevel == 1) {
+                            applyTitre1DirectFormatting(p);
+                        } else if (headingLevel == 2) {
+                            applyTitre2DirectFormatting(p);
+                        } else if (headingLevel == 3) {
+                            applyTitre3DirectFormatting(p);
+                        } else if (headingLevel == 4) {
+                            applyTitre4DirectFormatting(p);
+                        } else if (headingLevel == 5) {
+                            applyTitre5DirectFormatting(p);
+                        }
+
                     }
                     continue;
                 }
+
 
                 // Liste numérotée -> ICI on pose numIdOrdered
                 m = OL.matcher(line);
@@ -222,13 +260,32 @@ public final class MarkdownOOXMLExporter {
                 // Paragraphe normal (PAS de setNumID)
                 listState = ListKind.NONE;
                 XWPFParagraph p = doc.createParagraph();
+                p.setStyle("Normal");
                 if (pageBreakForNextParagraph) { p.setPageBreak(true); pageBreakForNextParagraph = false; }
                 appendInlineRuns(doc, p, line.trim(), footBox);
+                applyBodyTextDirectFormatting(p);
             }
 
-            try (FileOutputStream fos = new FileOutputStream(outFile)) {
-                doc.write(fos);
+            try {
+                try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                    doc.write(fos);
+                }
+            } catch (java.io.FileNotFoundException e) {
+                // Fichier verrouillé / déjà ouvert (cas typique : Word)
+                dia.InfoDialog.show(
+                    null,  // ou la fenêtre parente si tu l’as sous la main
+                    "Fichier déjà ouvert",
+                    "Impossible d’enregistrer le fichier : "
+                  + outFile.getName()+ " ↓\n"
+                  + "Le fichier semble déjà ouvert dans une autre application "
+                  + "(par exemple Microsoft Word). ↓\n"
+                  + "Ferme ce fichier puis relance l’export.",
+                  editor.getAffichage()
+                );
+                // on sort proprement de export(...)
+                return false;
             }
+            return true;
         }
     }
 
@@ -485,8 +542,13 @@ public final class MarkdownOOXMLExporter {
         styles.addStyle(style);
     }
 
-    /** Injecte Title, Subtitle, Heading1..5 si absents */
+    /** Injecte Title, Subtitle, Normal, Heading1..5 si absents
+     *  et applique la config blindWriter sur quelques styles.
+     */
     private static void ensureWordBuiltinStyles(XWPFDocument doc) {
+        // 🔹 On garantit que le style "Normal" existe dans le document
+        ensureParaStyle(doc, "Normal",  "Normal",  null);
+
         ensureParaStyle(doc, "Title",    "Title",    null);
         ensureParaStyle(doc, "Subtitle", "Subtitle", null);
         ensureParaStyle(doc, "Heading1", "heading 1", 0);
@@ -494,7 +556,19 @@ public final class MarkdownOOXMLExporter {
         ensureParaStyle(doc, "Heading3", "heading 3", 2);
         ensureParaStyle(doc, "Heading4", "heading 4", 3);
         ensureParaStyle(doc, "Heading5", "heading 5", 4);
+
+        applyHeadingConfigFromBlindWriter(doc, "Normal", "bodyText");
+        
+        applyHeadingConfigFromBlindWriter(doc, "Title",   "Title");
+        applyHeadingConfigFromBlindWriter(doc, "Subtitle","Subtitle");
+
+        applyHeadingConfigFromBlindWriter(doc, "Heading1", "Titre1");
+        applyHeadingConfigFromBlindWriter(doc, "Heading2", "Titre2");
+        applyHeadingConfigFromBlindWriter(doc, "Heading3", "Titre3");
+        applyHeadingConfigFromBlindWriter(doc, "Heading4", "Titre4");
+        applyHeadingConfigFromBlindWriter(doc, "Heading5", "Titre5");
     }
+
 
     /** Version “stylée” : applique bold/italic/underline/verticalAlign à chaque fragment + aux tabs. */
     private static void appendStyledTextWithTabs(XWPFParagraph p, String text, boolean bold, boolean italic, 
@@ -606,7 +680,306 @@ public final class MarkdownOOXMLExporter {
 		
     }
 
+ // ---- Utilitaires de conversion ----
+    private static Integer parsePtToTwips(String v) {
+        if (v == null || v.isBlank()) return null;
+        v = v.trim().toLowerCase(java.util.Locale.ROOT);
+
+        boolean isCm = false;
+
+        if (v.endsWith("cm")) {
+            isCm = true;
+            v = v.substring(0, v.length() - 2).trim();
+        } else if (v.endsWith("pt")) {
+            v = v.substring(0, v.length() - 2).trim();
+        }
+
+        v = v.replace(',', '.');
+
+        try {
+            double val = Double.parseDouble(v);
+            double twips;
+            if (isCm) {
+                // 1 cm ≈ 567 twips
+                twips = val * 567.0;
+            } else {
+                // 1 pt = 20 twips
+                twips = val * 20.0;
+            }
+            return (int) Math.round(twips);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+
+    private static Integer parseFontSizeToHalfPoints(String v) {
+        if (v == null || v.isBlank()) return null;
+        v = v.trim().toLowerCase(java.util.Locale.ROOT);
+        if (v.endsWith("pt")) v = v.substring(0, v.length() - 2).trim();
+        v = v.replace(',', '.');
+        try {
+            double pt = Double.parseDouble(v);
+            return (int) Math.round(pt * 2.0); // 1 pt = 2 half-points
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private static Integer parseLineToTwips(String v) {
+        if (v == null || v.isBlank()) return null;
+        v = v.trim().toLowerCase(java.util.Locale.ROOT);
+        v = v.replace(',', '.');
+        try {
+            double factor = Double.parseDouble(v); // 1, 1.15, 1.5, 2…
+            return (int) Math.round(factor * 240.0); // 1 ligne = 240 (Word)
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 
     
+    private static void applyHeadingConfigFromBlindWriter(XWPFDocument doc,
+            String styleId,
+            String nodeName) {
+		// Récupère le nœud de config (Titre1, Titre2, …)
+		var titreNode = commandes.nodeblindWriter.retourneFirstEnfant(nodeName);
+		if (titreNode == null) return;
+		
+		String fontName    = titreNode.getAttributs("police");
+		String fontSize    = titreNode.getAttributs("size");
+		String align       = titreNode.getAttributs("alignement");
+		String lineSpace   = titreNode.getAttributs("interligne");
+		String spaceBefore = titreNode.getAttributs("espacement_au_dessus");
+		String spaceAfter  = titreNode.getAttributs("espacement_en_dessous");
+		String keepNext    = titreNode.getAttributs("keep-with-next");
+		
+		// Styles Word
+		XWPFStyles styles = doc.getStyles();
+		if (styles == null) styles = doc.createStyles();
+		
+		XWPFStyle style = styles.getStyle(styleId);
+		if (style == null) return;
+		
+		org.openxmlformats.schemas.wordprocessingml.x2006.main.CTStyle ctStyle =
+		style.getCTStyle();
+		
+		// ----- Propriétés de paragraphe -----
+		org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPPrGeneral pPr =
+		ctStyle.isSetPPr() ? ctStyle.getPPr() : ctStyle.addNewPPr();
+		
+		// Alignement
+		if (align != null && !align.isBlank()) {
+		align = align.trim().toLowerCase(java.util.Locale.ROOT);
+		
+		org.openxmlformats.schemas.wordprocessingml.x2006.main.CTJc jc =
+		pPr.isSetJc() ? pPr.getJc() : pPr.addNewJc();
+		
+		switch (align) {
+		case "left":
+		case "gauche":
+		jc.setVal(
+		org.openxmlformats.schemas.wordprocessingml.x2006.main.STJc.LEFT);
+		break;
+		case "right":
+		case "droite":
+		jc.setVal(
+		org.openxmlformats.schemas.wordprocessingml.x2006.main.STJc.RIGHT);
+		break;
+		case "center":
+		case "centre":
+		jc.setVal(
+		org.openxmlformats.schemas.wordprocessingml.x2006.main.STJc.CENTER);
+		break;
+		case "justify":
+		case "justifie":
+		jc.setVal(
+		org.openxmlformats.schemas.wordprocessingml.x2006.main.STJc.BOTH);
+		break;
+		default:
+		// on laisse l’alignement par défaut
+		}
+		}
+		
+		// Espacements & interligne
+		org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSpacing spacing =
+		pPr.isSetSpacing() ? pPr.getSpacing() : pPr.addNewSpacing();
+		
+		Integer beforeTwips = parsePtToTwips(spaceBefore);
+		if (beforeTwips != null) {
+		spacing.setBefore(java.math.BigInteger.valueOf(beforeTwips));
+		}
+		
+		Integer afterTwips = parsePtToTwips(spaceAfter);
+		if (afterTwips != null) {
+		spacing.setAfter(java.math.BigInteger.valueOf(afterTwips));
+		}
+		
+		Integer lineTwips = parseLineToTwips(lineSpace);
+		if (lineTwips != null) {
+		spacing.setLine(java.math.BigInteger.valueOf(lineTwips));
+		spacing.setLineRule(
+		org.openxmlformats.schemas.wordprocessingml.x2006.main.STLineSpacingRule.AUTO);
+		}
+		
+		// keep-with-next (garder avec le paragraphe suivant)
+		boolean keep = "true".equalsIgnoreCase(keepNext) || "1".equals(keepNext);
+		if (keep) {
+		if (!pPr.isSetKeepNext()) {
+		pPr.addNewKeepNext();
+		}
+		}
+		
+		// ----- Propriétés de run (police, taille) -----
+        // ----- Propriétés de run (police, taille) -----
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRPr rPr =
+                ctStyle.isSetRPr() ? ctStyle.getRPr() : ctStyle.addNewRPr();
 
-}
+        // Police
+        if (fontName != null && !fontName.isBlank()) {
+            org.openxmlformats.schemas.wordprocessingml.x2006.main.CTFonts fonts =
+                    rPr.addNewRFonts();   // 👉 pas de getRFonts(), on crée simplement
+
+            fonts.setAscii(fontName);
+            fonts.setHAnsi(fontName);
+            fonts.setCs(fontName);
+        }
+
+        // Taille (en half-points)
+        Integer hps = parseFontSizeToHalfPoints(fontSize);
+        if (hps != null) {
+            java.math.BigInteger val = java.math.BigInteger.valueOf(hps);
+
+            org.openxmlformats.schemas.wordprocessingml.x2006.main.CTHpsMeasure sz =
+                    rPr.addNewSz();       // 👉 pas de getSz(), on crée
+            sz.setVal(val);
+
+            org.openxmlformats.schemas.wordprocessingml.x2006.main.CTHpsMeasure szCs =
+                    rPr.addNewSzCs();     // idem
+            szCs.setVal(val);
+        }
+
+	}
+
+	 	// Applique directement la config d'un style TitreN (Titre1, Titre2, ...) sur un paragraphe Word
+		private static void applyTitreDirectFormatting(XWPFParagraph p, String nodeName) {
+		    var titreNode = commandes.nodeblindWriter.retourneFirstEnfant(nodeName);
+		    if (titreNode == null) return;
+		
+		    String fontName    = titreNode.getAttributs("police");
+		    String fontSize    = titreNode.getAttributs("size");
+		    String align       = titreNode.getAttributs("alignement");
+		    String lineSpace   = titreNode.getAttributs("interligne");
+		    String spaceBefore = titreNode.getAttributs("espacement_au_dessus");
+		    String spaceAfter  = titreNode.getAttributs("espacement_en_dessous");
+		    String keepNext    = titreNode.getAttributs("keep-with-next");
+		
+		    // ---------- Alignement paragraphe ----------
+		    if (align != null && !align.isBlank()) {
+		        align = align.trim().toLowerCase(java.util.Locale.ROOT);
+		        org.apache.poi.xwpf.usermodel.ParagraphAlignment pa = null;
+		        switch (align) {
+		            case "left", "gauche", "start" -> pa = org.apache.poi.xwpf.usermodel.ParagraphAlignment.LEFT;
+		            case "right", "droite"         -> pa = org.apache.poi.xwpf.usermodel.ParagraphAlignment.RIGHT;
+		            case "center", "centre"        -> pa = org.apache.poi.xwpf.usermodel.ParagraphAlignment.CENTER;
+		            case "justify", "justifie"     -> pa = org.apache.poi.xwpf.usermodel.ParagraphAlignment.BOTH;
+		        }
+		        if (pa != null) p.setAlignment(pa);
+		    }
+		
+		    // ---------- Espacements avant / après ----------
+		    Integer beforeTwips = parsePtToTwips(spaceBefore); // 1pt = 20
+		    if (beforeTwips != null) {
+		        p.setSpacingBefore(beforeTwips);
+		    }
+		
+		    Integer afterTwips = parsePtToTwips(spaceAfter);
+		    if (afterTwips != null) {
+		        p.setSpacingAfter(afterTwips);
+		    }
+		
+		    // ---------- Interligne ----------
+		    if (lineSpace != null && !lineSpace.isBlank()) {
+		        String ls = lineSpace.trim().replace(',', '.');
+		        try {
+		            // "115%" / "150%" / "1.5" → on tolère les deux
+		            if (ls.endsWith("%")) {
+		                ls = ls.substring(0, ls.length() - 1).trim();
+		                double percent = Double.parseDouble(ls);   // ex: 115
+		                double factor = percent / 100.0;          // 1.15
+		                p.setSpacingBetween(factor, org.apache.poi.xwpf.usermodel.LineSpacingRule.AUTO);
+		            } else {
+		                double factor = Double.parseDouble(ls);    // ex: 1, 1.5, 2
+		                p.setSpacingBetween(factor, org.apache.poi.xwpf.usermodel.LineSpacingRule.AUTO);
+		            }
+		        } catch (NumberFormatException ignore) { }
+		    }
+		
+		    // ---------- keep-with-next ----------
+		    boolean keep = "true".equalsIgnoreCase(keepNext)
+		                || "1".equals(keepNext)
+		                || "always".equalsIgnoreCase(keepNext);
+		    if (keep) {
+		        var ctp = p.getCTP();
+		        var pPr = ctp.isSetPPr() ? ctp.getPPr() : ctp.addNewPPr();
+		        if (!pPr.isSetKeepNext()) {
+		            pPr.addNewKeepNext();
+		        }
+		    }
+		
+		    // ---------- Police / taille sur les runs ----------
+		    Integer fontSizePt = null;
+		    if (fontSize != null && !fontSize.isBlank()) {
+		        String fs = fontSize.trim().toLowerCase(java.util.Locale.ROOT);
+		        if (fs.endsWith("pt")) fs = fs.substring(0, fs.length() - 2).trim();
+		        fs = fs.replace(',', '.');
+		        try {
+		            double pt = Double.parseDouble(fs);
+		            fontSizePt = (int) Math.round(pt); // XWPFRun.setFontSize attend des points
+		        } catch (NumberFormatException ignore) { }
+		    }
+		
+		    for (XWPFRun run : p.getRuns()) {
+		        if (fontName != null && !fontName.isBlank()) {
+		            run.setFontFamily(fontName);
+		        }
+		        if (fontSizePt != null) {
+		            run.setFontSize(fontSizePt);
+		        }
+		    }
+		}
+		
+		// wrappers pratiques
+		private static void applyTitre1DirectFormatting(XWPFParagraph p) {
+		    applyTitreDirectFormatting(p, "Titre1");
+		}
+		
+		private static void applyTitre2DirectFormatting(XWPFParagraph p) {
+		    applyTitreDirectFormatting(p, "Titre2");
+		}
+	    
+		private static void applyTitre3DirectFormatting(XWPFParagraph p) {
+		    applyTitreDirectFormatting(p, "Titre3");
+		}
+
+		private static void applyTitre4DirectFormatting(XWPFParagraph p) {
+		    applyTitreDirectFormatting(p, "Titre4");
+		}
+
+		private static void applyTitre5DirectFormatting(XWPFParagraph p) {
+		    applyTitreDirectFormatting(p, "Titre5");
+		}
+
+		private static void applyBodyTextDirectFormatting(XWPFParagraph p) {
+		    applyTitreDirectFormatting(p, "bodyText");
+		}
+		
+		private static void applyTitleDirectFormatting(XWPFParagraph p) {
+		    applyTitreDirectFormatting(p, "Title");
+		}
+		
+		private static void applySubtitleDirectFormatting(XWPFParagraph p) {
+		    applyTitreDirectFormatting(p, "Subtitle");
+		}
+	
+	}

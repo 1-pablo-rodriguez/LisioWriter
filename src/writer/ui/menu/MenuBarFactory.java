@@ -777,17 +777,22 @@ public final class MenuBarFactory {
             System.out.println("Export au format DOCX Word"); // Debugger
             //ExportODFWriter();
             try {
-            	MarkdownOOXMLExporter.export(ctx.getEditor().getText(), new File(commandes.currentDirectory + "/" + commandes.nameFile+".docx"));
-            	 File dossierParent = commandes.currentDirectory.getParentFile();
-                 String nomDossier = (dossierParent != null) ? dossierParent.getName() : null;
-                 commandes.nomDossierCourant = nomDossier;
-            	
-            	StringBuilder msg = new StringBuilder();
-                msg.append("Exportation terminé. ↓")
-                		.append("\n• Fichier : ").append(commandes.nameFile).append(".docx").append(" ↓")
-                		.append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓")
-                		.append("\n• Chemin : ").append(commandes.currentDirectory.toString());
-                ctx.showInfo("Exportation", msg.toString());
+            	var win = ctx.getWindow();
+            	if (win instanceof EditorFrame frame) {
+            		boolean exportReussit = MarkdownOOXMLExporter.export(frame, new File(commandes.currentDirectory + "/" + commandes.nameFile+".docx"));
+               	 	if(exportReussit) {
+	               	 	File dossierParent = commandes.currentDirectory.getParentFile();
+	                    String nomDossier = (dossierParent != null) ? dossierParent.getName() : null;
+	                    commandes.nomDossierCourant = nomDossier;
+	               	
+	                    StringBuilder msg = new StringBuilder();
+	                    msg.append("Exportation terminé. ↓")
+	                   		.append("\n• Fichier : ").append(commandes.nameFile).append(".docx").append(" ↓")
+	                   		.append("\n• Dossier : ").append(commandes.nomDossierCourant).append(" ↓")
+	                   		.append("\n• Chemin : ").append(commandes.currentDirectory.toString());
+	                    ctx.showInfo("Exportation", msg.toString());
+               	 	}
+            	}
             } catch (Exception e1) {
 				e1.printStackTrace();
 			}

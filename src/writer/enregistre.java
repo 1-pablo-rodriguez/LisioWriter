@@ -14,17 +14,19 @@ public class enregistre {
 	
     public enregistre(EditorFrame parent) {
     	
-    	// mise à jour du node blindWriter
-    	commandes.maj_nodeBlindWriter(parent);
+    	
     	
        File fichier = new File(commandes.currentDirectory, commandes.nameFile + ".bwr");
        
        try (FileWriter writer = new FileWriter(fichier)) {
     	   
+    	   // mise à jour du node blindWriter
+    	   commandes.maj_nodeBlindWriter(parent);
+    	   
            // Écrit du contenu dans le fichier
            writer.write(commandes.nodeblindWriter.ecritureXML().toString());
            commandes.texteDocument=commandes.nodeblindWriter.ecritureXML().toString();
-            
+        
            Affiche f = parent.getAffichage();
            int hashNodeBlindWriter = commandes.nodeblindWriter.hashCode();
            if(f == Affiche.TEXTE1 ) commandes.hash1 = hashNodeBlindWriter;

@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -569,73 +568,139 @@ private boolean nodeClose = false;
 	
 	
 
+	private int cachedHash = 0;
+	private boolean hashDirty = true;
+
 	@Override
 	public int hashCode() {
-		int a = nameNode.hashCode();
-		int b = 0;
-		int c = 0 ;
-//		int h = 0;
-		if(parent!=null) {
-			c = this.parent.getAllNameParents().hashCode();
-//			h = this.parent.enfants.indexOf(this);
-		}
-		int d = level;
-		int e = attributs.hashCode();
-		int f = contenu.hashCode();
-		int  g = 0;
-		String hashG = "";
-		for(node child : enfants) {
-			hashG = hashG + String.valueOf(child.hashCode());
-		}
-		if(!hashG.isEmpty()) g = hashG.hashCode();
-		
-		
-		
-		
-		String H = (String.valueOf(a)+String.valueOf(b)+String.valueOf(c)
-		+String.valueOf(d)+String.valueOf(e)+String.valueOf(f)+String.valueOf(g));
-		
-		return H.hashCode();
+	    if (!hashDirty) {
+	        return cachedHash;
+	    }
+
+	    int h = 17;
+
+	    // --- partie locale ---
+	    h = 31 * h + (nameNode != null ? nameNode.hashCode() : 0);
+	    h = 31 * h + (attributs != null ? attributs.hashCode() : 0);
+	    h = 31 * h + (contenu != null ? contenu.hashCode() : 0);
+
+	    // --- partie enfants (ordre ignoré) ---
+	    int childrenHash = 1_234_567;
+	    if (enfants != null && !enfants.isEmpty()) {
+	        childrenHash += enfants.size() * 31;
+
+	        for (node child : enfants) {
+	            int ch = (child != null ? child.hashCode() : 0); // utilise aussi le cache
+
+	            // combinaison commutative : somme + mélange
+	            childrenHash += ch;
+	            childrenHash ^= (ch << 16) | (ch >>> 16);
+	        }
+	    }
+
+	    h = 31 * h + childrenHash;
+
+	    cachedHash = h;
+	    hashDirty = false;
+	    return h;
 	}
+
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		node other = (node) obj;
-		return Objects.equals(attributs, other.attributs)
-				&& Objects.equals(contenu, other.contenu)
-				&& Objects.equals(enfants, other.enfants) && level == other.level
-				&& Objects.equals(nameNode, other.nameNode) && Objects.equals(parent, other.parent);
+	    if (this == obj) {
+	        return true;
+	    }
+	    if (obj == null || getClass() != obj.getClass()) {
+	        return false;
+	    }
+
+	    node other = (node) obj;
+
+	    // Comparaison des champs "locaux"
+	    if (level != other.level) return false;
+	    if (!java.util.Objects.equals(nameNode, other.nameNode)) return false;
+	    if (!java.util.Objects.equals(attributs, other.attributs)) return false;
+	    if (!java.util.Objects.equals(contenu, other.contenu)) return false;
+
+	    // Comparaison structurelle des enfants
+	    if (enfants == other.enfants) {
+	        // même référence de liste → OK
+	        return true;
+	    }
+	    if (enfants == null || other.enfants == null) {
+	        // une liste null et pas l'autre → différent
+	        return false;
+	    }
+	    if (enfants.size() != other.enfants.size()) {
+	        return false;
+	    }
+
+	    for (int i = 0; i < enfants.size(); i++) {
+	        node c1 = enfants.get(i);
+	        node c2 = other.enfants.get(i);
+	        if (!java.util.Objects.equals(c1, c2)) {
+	            return false;
+	        }
+	    }
+
+	    return true;
 	}
 
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public node clone() throws CloneNotSupportedException {
-		node b = (node) super.clone();
-		b.enfants = (ArrayList<node>) this.enfants.clone();
-		b.setParent(null);
-		
-		if(this.enfants.size()>0) {
-			b.enfants.clear();
-			for(int i = 0 ; i < this.enfants.size();i++) {
-				b.enfants.add(i, this.enfants.get(i).clone());
-			}
-		}
-
-		b.attributs = (LinkedHashMap<String, String>) this.attributs.clone();
-		b.contenu = (ArrayList<String>) this.contenu.clone();
-		
-		b.recalculParent();
-		b.recalculLevel();
-
-		return b;
+	    // Point d'entrée : on clone ce node comme racine détachée
+	    return cloneWithParent(null);
 	}
+
+	private node cloneWithParent(node newParent) throws CloneNotSupportedException {
+	    // 1) Clone superficiel de this
+	    node copy = (node) super.clone();
+
+	    // 2) Parent et niveau : on attache ce node à son nouveau parent
+	    copy.parent = newParent;            // ou copy.setParent(newParent);
+	    if (newParent == null) {
+	        copy.level = this.level;        // ou 0 si tu veux repartir à zéro
+	    } else {
+	        copy.level = newParent.level + 1;
+	    }
+
+	    // 3) Clonage des attributs (Map<String, String>)
+	    if (this.attributs != null) {
+	        copy.attributs = new java.util.LinkedHashMap<>(this.attributs);
+	    } else {
+	        copy.attributs = null;
+	    }
+
+	    // 4) Clonage du contenu (List<String> par ex.)
+	    if (this.contenu != null) {
+	        copy.contenu = new java.util.ArrayList<>(this.contenu);
+	    } else {
+	        copy.contenu = null;
+	    }
+
+	    // 5) Clonage profond des enfants
+	    if (this.enfants != null && !this.enfants.isEmpty()) {
+	        copy.enfants = new java.util.ArrayList<>(this.enfants.size());
+	        for (node child : this.enfants) {
+	            if (child != null) {
+	                node clonedChild = child.cloneWithParent(copy);
+	                copy.enfants.add(clonedChild);
+	            } else {
+	                copy.enfants.add(null);
+	            }
+	        }
+	    } else {
+	        copy.enfants = new java.util.ArrayList<>();
+	    }
+
+	    // 6) Pas besoin de recalculParent() / recalculLevel()
+	    //    -> tout a été mis en place au fur et à mesure dans cloneWithParent
+
+	    return copy;
+	}
+
 
 	public StringBuilder ecritureXML() {
 		
