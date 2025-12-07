@@ -44,19 +44,34 @@ Tout se pilote au clavier, fonctionne avec NVDA ou JAWS, et la mise en forme est
 
 ---
 
-# 📚 Documentation et guide pour les aidants
+# 📚 Guide pour les enseignants & les aidants
 
 Fort de l’expérience d’enseignement, un constat revient souvent : les **concepts de mise en forme et de structuration** (titres hiérarchisés, styles de paragraphe, listes, citations) **sont rarement enseignés** aux apprenants non-voyants. Résultat : la prise en main d’un traitement de texte peut être inutilement difficile.
 
 👉 [Page d'acceuil de la documentation et guide pour les aidants en ligne](https://1-pablo-rodriguez.github.io/LisioWriter/)
 
+![Démonstration de LisioWriter](docs/demo.png)
+
+---
 
 ## Capture d’écran — Import d’un fichier Word
 
 Après import, la structure est explicitée : titres, listes, styles (gras, italique, souligné), indices/exposants, tabulations, notes, images (description + légende), liens et tableaux deviennent des codes LisioWriter.
 Résultat : tout est lisible en braille et navigable au clavier (par ex. le titre principal apparaît avec #P.). 
 
-![Démonstration de LisioWriter](docs/demo.png)
+Ci-dessous, tu peux voir d’un côté la capture d’écran d’un sujet d’examen créé par l’enseignant, et de l’autre exactement le même fichier ouvert dans LisioWriter.
+
+1. **Le lien vers le fichier audio** devient directement cliquable dans LisioWriter :  
+   il suffit d’appuyer sur **Ctrl + Espace** pour l’ouvrir instantanément.
+
+2. **L’image est accessible** grâce au texte de remplacement, dans lequel  
+   l’enseignant a décrit en détail son contenu.
+
+3. **Les questions sont structurées en titres de niveau**, ce qui permet  
+   d’y accéder rapidement avec les touches **F3**, **F4**, etc., pour naviguer  
+   d’un titre à l’autre très facilement.
+
+![Sujet d'examen](docs/img/sujetExamen.png)
 
 
 ---
