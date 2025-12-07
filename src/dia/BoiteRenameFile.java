@@ -56,7 +56,7 @@ public final class BoiteRenameFile extends JDialog {
         // ---- Bandeau d’information court et utile
         String current = (commandes.nameFile == null) ? "" : commandes.nameFile;
         JLabel intro = new JLabel("Nom actuel : " + current);
-        intro.getAccessibleContext().setAccessibleName("Nom actuel " + current);
+//        intro.getAccessibleContext().setAccessibleName("Nom actuel " + current);
         add(intro, BorderLayout.NORTH);
 
         // ---- Centre : étiquette + champ
@@ -69,7 +69,7 @@ public final class BoiteRenameFile extends JDialog {
 
         nameField.setText(current);
         nameField.selectAll();                                    // prêt à renommer
-        nameField.getAccessibleContext().setAccessibleName("Nom de fichier");
+//        nameField.getAccessibleContext().setAccessibleName("Nom de fichier");
 //        nameField.getAccessibleContext().setAccessibleDescription(null);
 
         // Validation par DocumentFilter (meilleur que KeyListener)
@@ -77,7 +77,7 @@ public final class BoiteRenameFile extends JDialog {
                 .setDocumentFilter(new FilteringDocumentFilter());
 
         // zone d’état lisible par SR/braille (courte)
-        status.getAccessibleContext().setAccessibleName(null);
+//        status.getAccessibleContext().setAccessibleName(null);
         status.setFocusable(false);
 
         center.add(nameLabel);
@@ -157,7 +157,7 @@ public final class BoiteRenameFile extends JDialog {
         status.setText(msg);
         Toolkit.getDefaultToolkit().beep();
         // astuce : forcer NVDA à relire le message si identique
-        status.getAccessibleContext().setAccessibleName("Message d'état : " + msg);
+//        status.getAccessibleContext().setAccessibleName("Message d'état : " + msg);
     }
 
     /** Filtre qui refuse toute insertion contenant des caractères non autorisés. */

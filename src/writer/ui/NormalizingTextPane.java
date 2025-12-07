@@ -60,20 +60,6 @@ public class NormalizingTextPane extends javax.swing.JTextPane {
         super.replaceSelection(content);
     }
 
-//    @Override
-//    public boolean getScrollableTracksViewportWidth() {
-//        // Si wrap désactivé (non-voyant) → pas de wrap visuel, scroll horizontal possible
-//        if (!lineWrapEnabled) {
-//            return false;
-//        }
-//
-//        // Si wrap activé → le texte suit la largeur du viewport
-//        if (getParent() instanceof javax.swing.JViewport viewport) {
-//            return getUI().getPreferredSize(this).width <= viewport.getWidth();
-//        }
-//
-//        return false;
-//    }
     
     @Override
     public boolean getScrollableTracksViewportWidth() {
@@ -165,4 +151,6 @@ public class NormalizingTextPane extends javax.swing.JTextPane {
         Document d = getDocument();
         if (d != null) d.removeUndoableEditListener(l);
     }
+    
+    
 }

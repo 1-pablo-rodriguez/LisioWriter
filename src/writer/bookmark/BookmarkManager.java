@@ -457,10 +457,10 @@ public final class BookmarkManager {
 	         javax.swing.BorderFactory.createLineBorder(BORDER, 2),
 	         javax.swing.BorderFactory.createEmptyBorder(6, 6, 6, 6)
 	     ));
-	     areaNote.getAccessibleContext().setAccessibleName("Note du marque-page");
-	     areaNote.getAccessibleContext().setAccessibleDescription(
-	         "Saisissez ou modifiez la note du marque-page. Entrée ou Contrôle+Entrée valide. Échap annule."
-	     );
+//	     areaNote.getAccessibleContext().setAccessibleName("Note du marque-page");
+//	     areaNote.getAccessibleContext().setAccessibleDescription(
+//	         "Saisissez ou modifiez la note du marque-page. Entrée ou Contrôle+Entrée valide. Échap annule."
+//	     );
 
 	     // --- Libellé
 	     javax.swing.JLabel lbl = new javax.swing.JLabel("Note du marque-page :");
@@ -526,10 +526,10 @@ public final class BookmarkManager {
 	     final javax.swing.JDialog dialog = op.createDialog(owner, "Note du marque-page");
 	     dialog.setModal(true);
 	     dialog.setResizable(true);
-	     dialog.getAccessibleContext().setAccessibleName("Dialogue d'édition de la note de marque-page");
-	     dialog.getAccessibleContext().setAccessibleDescription(
-	         "Saisissez la note du marque-page. Tabulation pour aller aux boutons. Entrée valide. Échap annule. Ctrl plus ou Ctrl moins pour ajuster la taille du texte."
-	     );
+//	     dialog.getAccessibleContext().setAccessibleName("Dialogue d'édition de la note de marque-page");
+//	     dialog.getAccessibleContext().setAccessibleDescription(
+//	         "Saisissez la note du marque-page. Tabulation pour aller aux boutons. Entrée valide. Échap annule. Ctrl plus ou Ctrl moins pour ajuster la taille du texte."
+//	     );
 
 	     // --- Appliquer le zoom (police)
 	     final Runnable applyZoom = () -> {

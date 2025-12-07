@@ -28,7 +28,7 @@ public class enregistre {
            commandes.texteDocument=commandes.nodeblindWriter.ecritureXML().toString();
         
            Affiche f = parent.getAffichage();
-           int hashNodeBlindWriter = commandes.nodeblindWriter.hashCode();
+           int hashNodeBlindWriter = commandes.calcul_HashCodeNodeBlindWriter(parent);
            if(f == Affiche.TEXTE1 ) commandes.hash1 = hashNodeBlindWriter;
            if(f == Affiche.TEXTE2 ) commandes.hash2 = hashNodeBlindWriter;
            

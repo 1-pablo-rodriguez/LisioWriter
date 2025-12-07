@@ -87,7 +87,7 @@ public class BoiteSaveAs extends JFrame {
 	    nameLabel.setFont(LV_FONT_STATUS);
 	    nameField.setFont(LV_FONT_LIST);
 	    nameLabel.setLabelFor(nameField);
-	    nameField.getAccessibleContext().setAccessibleName("Nom du fichier");
+//	    nameField.getAccessibleContext().setAccessibleName("Nom du fichier");
 //	    nameField.getAccessibleContext().setAccessibleDescription("Saisir un nom : ");
 
 	    namePanel.add(nameLabel, BorderLayout.WEST);
@@ -97,8 +97,8 @@ public class BoiteSaveAs extends JFrame {
 
 	
 	    // --- Liste + renderer
-	    fileList.getAccessibleContext().setAccessibleName("Liste des dossiers et fichiers.");
-	    fileList.getAccessibleContext().setAccessibleDescription("Affiche la liste des dossiers et fichiers.");
+//	    fileList.getAccessibleContext().setAccessibleName("Liste des dossiers et fichiers.");
+//	    fileList.getAccessibleContext().setAccessibleDescription("Affiche la liste des dossiers et fichiers.");
 	    fileList.setCellRenderer(new FileRenderer());
 	    contentPane.add(new JScrollPane(fileList), BorderLayout.CENTER);   // ✅ une seule fois
 	
@@ -264,7 +264,7 @@ public class BoiteSaveAs extends JFrame {
 
 	    // Accessibilité
 	    nameLabel.setLabelFor(nameField);
-	    nameField.getAccessibleContext().setAccessibleName("Nom du fichier");
+//	    nameField.getAccessibleContext().setAccessibleName("Nom du fichier");
 //	    nameField.getAccessibleContext().setAccessibleDescription("Saisir un nom : ");
 
 	    // Entrée dans le champ => clic sur Enregistrer
@@ -403,8 +403,8 @@ public class BoiteSaveAs extends JFrame {
 
           var ac = getAccessibleContext();
           if (ac != null) {
-            ac.setAccessibleName(txt);
-            ac.setAccessibleDescription(isSelected ? "sélectionné" : "non sélectionné");
+//            ac.setAccessibleName(txt);
+//            ac.setAccessibleDescription(isSelected ? "sélectionné" : "non sélectionné");
           }
         }
         return this;

@@ -489,7 +489,7 @@ public final class ouvrirODT extends JDialog {
 
                 var ac = getAccessibleContext();
                 if (ac != null) {
-                    ac.setAccessibleName(getText());
+//                    ac.setAccessibleName(getText());
 //                    ac.setAccessibleDescription(isSelected ? "sélectionné" : "non sélectionné");
                 }
             }

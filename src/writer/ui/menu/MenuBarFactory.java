@@ -367,7 +367,7 @@ public final class MenuBarFactory {
             @Override public void menuCanceled(MenuEvent e) {}
         });
         
-        JMenuItem importWriter = createMenuItem("Importer fichier LibreOffice Writer", KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK, e -> {
+        JMenuItem importWriter = createMenuItem("Importer fichier Writer", KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK, e -> {
             System.out.println("Ouverture fichier .odt");
             var win = ctx.getWindow();
             if (win instanceof EditorFrame frame) {
@@ -385,13 +385,13 @@ public final class MenuBarFactory {
             }
         });
        
-        JMenuItem importWord = createMenuItem("Importer fichier Microsoft Word", KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK, e -> {
+        JMenuItem importWord = createMenuItem("Importer fichier Word", KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK, e -> {
             System.out.println("Ouverture fichier .docx");
             var win = ctx.getWindow();
             if (win instanceof EditorFrame frame) {
             	  new dia.ouvrirDOCX(frame);
+            	  ctx.setModified(false);
             }
-            ctx.setModified(false);
         });    
         
         JMenuItem importHtml = createSimpleMenuItem("Importer fichier HTML", e -> {

@@ -358,7 +358,7 @@ public class EditorFrame extends JFrame implements EditorApi {
 	  	}
 
 
-  	    this.editorPane.getAccessibleContext().setAccessibleName("Zone de texte.");
+//  	    this.editorPane.getAccessibleContext().setAccessibleName("Zone de texte.");
   	
   	}
     
@@ -745,10 +745,10 @@ public class EditorFrame extends JFrame implements EditorApi {
      	
      	if(affichage == Affiche.TEXTE1) {
      		this.editorPane.setCaretPosition(positionTexte1CurseurSauv);
-     		this.editorPane.getAccessibleContext().setAccessibleName("Fenêtre 1");
+//     		this.editorPane.getAccessibleContext().setAccessibleName("Fenêtre 1");
      	}else if(affichage == Affiche.TEXTE2){
      		this.editorPane.setCaretPosition(positionTexte2CurseurSauv);
-     		this.editorPane.getAccessibleContext().setAccessibleName("Fenêtre 2");
+//     		this.editorPane.getAccessibleContext().setAccessibleName("Fenêtre 2");
      	}
         	
         	setModified(false);

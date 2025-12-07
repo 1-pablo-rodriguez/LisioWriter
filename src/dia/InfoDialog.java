@@ -11,6 +11,7 @@ import java.awt.Window;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 
+import javax.accessibility.AccessibleContext;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
@@ -28,7 +29,6 @@ import javax.swing.UIManager;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.Element;
-
 import writer.model.Affiche;
 
 @SuppressWarnings("serial")
@@ -345,8 +345,6 @@ public final class InfoDialog extends JDialog {
             }
         });
     }
-
-    
     
     
 }

@@ -63,11 +63,11 @@ public class HtmlBrowserDialog_WIKIPEDIA extends JDialog {
 
         // === Boutons bas de fenêtre ===
         JPanel bottomPanel = new JPanel();
-        insertBtn.getAccessibleContext().setAccessibleName("Charger");
+//        insertBtn.getAccessibleContext().setAccessibleName("Charger");
 //        insertBtn.getAccessibleContext().setAccessibleDescription("Insère l'article sélectionné dans le document.");
         bottomPanel.add(insertBtn);
 
-        closeBtn.getAccessibleContext().setAccessibleName("Fermer");
+//        closeBtn.getAccessibleContext().setAccessibleName("Fermer");
 //        closeBtn.getAccessibleContext().setAccessibleDescription("Ferme la fenêtre des résultats Wikipédia.");
         bottomPanel.add(closeBtn);
 

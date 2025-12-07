@@ -94,17 +94,15 @@ public class boiteMeta {
         	});
         langueField.setEditable(true);
         langueField.setFont(font);
-        langueField.getAccessibleContext().setAccessibleName("Langue : liste déroulante, éditable");
-//        langueField.getAccessibleContext().setAccessibleDescription(
-//            "Choisissez ou saisissez la langue du document, par exemple français ou anglais."
-//        );
+//        langueField.getAccessibleContext().setAccessibleName("Langue : liste déroulante, éditable");
+
 
         // valeur par défaut avant override par les métas (si présentes)
         langueField.setSelectedItem("français");
         
         langueField.setEditable(true);
         langueField.setFont(font);
-        langueField.getAccessibleContext().setAccessibleName("Langue : liste, éditable");
+//        langueField.getAccessibleContext().setAccessibleName("Langue : liste, éditable");
         
         // --- Valeurs initiales depuis commandes.meta
         setTextSafe(titreField,      "titre",     "LeTitre");
@@ -200,7 +198,7 @@ public class boiteMeta {
         label.setFont(new Font("Segoe UI", Font.BOLD, 18));
         label.setLabelFor(field);
 
-        field.getAccessibleContext().setAccessibleName(labelText + " Champ d’édition de texte");
+//        field.getAccessibleContext().setAccessibleName(labelText + " Champ d’édition de texte");
 //        field.getAccessibleContext().setAccessibleDescription("Saisissez " + labelText.replace(" :", "").toLowerCase());
 
         gbc.gridx = 0; gbc.gridy = y; gbc.weightx = 0.0;
@@ -216,7 +214,7 @@ public class boiteMeta {
 		label.setLabelFor(area);
 		
 		// Accessibilité
-		area.getAccessibleContext().setAccessibleName(labelText + " Zone de texte multiligne");
+//		area.getAccessibleContext().setAccessibleName(labelText + " Zone de texte multiligne");
 //		area.getAccessibleContext().setAccessibleDescription(
 //		"Saisissez " + labelText.replace(" :", "").toLowerCase()
 //		+ ". Tab pour changer de champ. Ctrl+Entrée pour valider.");
@@ -263,7 +261,7 @@ public class boiteMeta {
         label.setFont(new Font("Segoe UI", Font.BOLD, 18));
         label.setLabelFor(comp);
 
-        comp.getAccessibleContext().setAccessibleName(labelText + " Champ d’édition de texte");
+//        comp.getAccessibleContext().setAccessibleName(labelText + " Champ d’édition de texte");
 //        comp.getAccessibleContext().setAccessibleDescription("Saisissez " + labelText.replace(" :", "").toLowerCase());
 
         gbc.gridx = 0; gbc.gridy = y; gbc.weightx = 0.0;

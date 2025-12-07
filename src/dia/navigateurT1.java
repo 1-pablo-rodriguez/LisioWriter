@@ -99,8 +99,8 @@ public class navigateurT1 extends JFrame{
 		                ? viewToGlobal.get(viewIndex) : -1;
 
 		        // Nom accessible = indicateur [+]/[-] + contenu “propre”
-		        String accessible = (gi >= 0) ? indicatorFor(gi) + buildNavTextBase(gi) : "";
-		        lbl.getAccessibleContext().setAccessibleName(accessible);
+//		        String accessible = (gi >= 0) ? indicatorFor(gi) + buildNavTextBase(gi) : "";
+//		        lbl.getAccessibleContext().setAccessibleName(accessible);
 
 		        String shown = (value == null) ? "" : value.toString();
 			     // ... éventuelles modifs de shown ...
@@ -708,9 +708,9 @@ public class navigateurT1 extends JFrame{
 	    noBtn.setOpaque(true);
 	
 	    // Accessibilité
-	    yesBtn.getAccessibleContext().setAccessibleName("Bouton Oui");
+//	    yesBtn.getAccessibleContext().setAccessibleName("Bouton Oui");
 //	    yesBtn.getAccessibleContext().setAccessibleDescription("Confirme la modification de niveau");
-	    noBtn.getAccessibleContext().setAccessibleName("Bouton Non");
+//	    noBtn.getAccessibleContext().setAccessibleName("Bouton Non");
 //	    noBtn.getAccessibleContext().setAccessibleDescription("Annule la modification de niveau");
 	
 	    // Mnemonics (Alt+O / Alt+N)

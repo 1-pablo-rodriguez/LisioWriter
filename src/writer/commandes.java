@@ -302,28 +302,34 @@ public class commandes {
     
     // mise à jour du nodeBlindWriter pour enregister ou pour quitter et vérifier le hash
     // mise à jour sans hash
-    public static void maj_nodeBlindWriter(EditorFrame parent) {
+    public static void maj_nodeBlindWriter(EditorFrame editorFrame) {
     	// Suppression des bookmarks
-    	commandes.nodeblindWriter.removeAllEnfantWithThisName("bookmarks");
+    	nodeblindWriter.removeAllEnfantWithThisName("bookmarks");
     	// Mise en jour des bookmarks
-    	commandes.nodeblindWriter.addEnfant(parent.getBookmarks().saveToXml());
+    	nodeblindWriter.addEnfant(editorFrame.getBookmarks().saveToXml());
     	
-       String text = parent.getEditor().getText(); // récupération du texte.
-       commandes.contentText.getContenu().clear(); // RAZ du node contentText
-       commandes.nodeblindWriter.retourneFirstEnfant("contentText").getContenu().clear(); // RAZ du node contentText
+       String text = editorFrame.getEditor().getText(); // récupération du texte.
+       contentText.getContenu().clear(); // RAZ du node contentText
+       nodeblindWriter.retourneFirstEnfant("contentText").getContenu().clear(); // RAZ du node contentText
        
-       commandes.nodeblindWriter.getAttributs().put("filename", commandes.nameFile); // Mise à jour de nom du fichier
-       commandes.nodeblindWriter.retourneFirstEnfant("contentText").addContenu(text); // ajout du contenu textuel
+       nodeblindWriter.getAttributs().put("filename", nameFile); // Mise à jour de nom du fichier
+       nodeblindWriter.retourneFirstEnfant("contentText").addContenu(text); // ajout du contenu textuel
        //commandes.defaultStyles();       
       
        // mise à jour de la date de modification
-       if(commandes.nodeblindWriter.containChildByName("date_modification")) {
-    	   commandes.nodeblindWriter.retourneFirstEnfant("date_modification").getAttributs().put("date", commandes.dateNow());
+       if(nodeblindWriter.containChildByName("date_modification")) {
+    	   nodeblindWriter.retourneFirstEnfant("date_modification").getAttributs().put("date", commandes.dateNow());
        };
        
     }
     
-    
+    // Retourne le HashCode du nodeBlindWriter
+    public static int calcul_HashCodeNodeBlindWriter(EditorFrame editorFrame) {
+    	Affiche f = editorFrame.getAffichage();
+    	if(f == Affiche.TEXTE1
+    			|| f == Affiche.TEXTE2) return nodeblindWriter.hashCode();
+    	return 0;
+    }
     
     
     // Sauvegarde temporaire du texte 1
@@ -371,7 +377,7 @@ public class commandes {
 
     	bodyText = commandes.nodeblindWriter.retourneFirstEnfant("bodyText");
         if(!bodyText.isHasAttributs("police")) bodyText.getAttributs().put("police", "Arial");
-        if(!bodyText.isHasAttributs("size")) bodyText.getAttributs().put("size", "22pt");
+        if(!bodyText.isHasAttributs("size")) bodyText.getAttributs().put("size", "12pt");
         if(!bodyText.isHasAttributs("alignement")) bodyText.getAttributs().put("alignement", "justify");
         if(!bodyText.isHasAttributs("interligne")) bodyText.getAttributs().put("interligne", "115%");
         if(!bodyText.isHasAttributs("margin_top")) bodyText.getAttributs().put("espacement_au_dessus", "0.2cm");

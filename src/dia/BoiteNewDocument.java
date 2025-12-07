@@ -103,12 +103,10 @@ public class BoiteNewDocument {
         okButton = new JButton("OK");
         okButton.setFont(baseFont);
         okButton.setMnemonic(KeyEvent.VK_O); // Alt+O
-        okButton.getAccessibleContext().setAccessibleName("Valider");
 
         cancelButton = new JButton("Annuler");
         cancelButton.setFont(baseFont);
         cancelButton.setMnemonic(KeyEvent.VK_A); // Alt+A
-        cancelButton.getAccessibleContext().setAccessibleName("Annuler");
 
         // Action OK
         okButton.addActionListener(e -> valider());

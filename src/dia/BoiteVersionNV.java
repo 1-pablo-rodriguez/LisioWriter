@@ -101,7 +101,7 @@ public final class BoiteVersionNV extends JDialog {
     private void announce(String text, boolean takeFocus) {
         // court et sans préfixe pour maximiser les cellules braille utiles
         status.setText(text);
-        status.getAccessibleContext().setAccessibleName(text);
+//        status.getAccessibleContext().setAccessibleName(text);
         if (takeFocus) {
             // Donner brièvement le focus à la barre pour forcer la lecture
             status.requestFocusInWindow();

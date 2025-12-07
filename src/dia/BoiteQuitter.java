@@ -124,7 +124,7 @@ public class BoiteQuitter {
         
         Affiche f = parent.getAffichage();
         commandes.maj_nodeBlindWriter(parent);
-        int hashNodeBlindWriter = commandes.nodeblindWriter.hashCode();
+        int hashNodeBlindWriter = commandes.calcul_HashCodeNodeBlindWriter(parent);
         
         if(f == Affiche.TEXTE1 &&         
         commandes.hash1 != hashNodeBlindWriter
@@ -145,12 +145,12 @@ public class BoiteQuitter {
             cancelBtn.setMnemonic(KeyEvent.VK_A);
 
             // Accessibles
-            saveBtn.getAccessibleContext().setAccessibleName("Enregistrer et quitter");
-            saveBtn.getAccessibleContext().setAccessibleDescription("Enregistrer le document avant de quitter");
-            discardBtn.getAccessibleContext().setAccessibleName("Quitter sans enregistrer");
-            discardBtn.getAccessibleContext().setAccessibleDescription("Fermer l'application sans sauvegarder");
-            cancelBtn.getAccessibleContext().setAccessibleName("Annuler");
-            cancelBtn.getAccessibleContext().setAccessibleDescription("Revenir à l'éditeur");
+//            saveBtn.getAccessibleContext().setAccessibleName("Enregistrer et quitter");
+//            saveBtn.getAccessibleContext().setAccessibleDescription("Enregistrer le document avant de quitter");
+//            discardBtn.getAccessibleContext().setAccessibleName("Quitter sans enregistrer");
+//            discardBtn.getAccessibleContext().setAccessibleDescription("Fermer l'application sans sauvegarder");
+//            cancelBtn.getAccessibleContext().setAccessibleName("Annuler");
+//            cancelBtn.getAccessibleContext().setAccessibleDescription("Revenir à l'éditeur");
 
             // Actions
             saveBtn.addActionListener(e ->  doSaveAndQuit());

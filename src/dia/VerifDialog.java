@@ -29,7 +29,7 @@ public final class VerifDialog extends JDialog {
         label.setBorder(BorderFactory.createEmptyBorder(14, 16, 8, 16));
         label.setFont(label.getFont().deriveFont(Font.BOLD));
         label.getAccessibleContext().setAccessibleName(message != null ? message : "Vérification en cours…");
-        label.getAccessibleContext().setAccessibleDescription("Vérification du document en cours");
+//        label.getAccessibleContext().setAccessibleDescription("Vérification du document en cours");
 
         bar.setIndeterminate(true);
         bar.setStringPainted(true); // affiche aussi le message dans la barre (plus visible)
