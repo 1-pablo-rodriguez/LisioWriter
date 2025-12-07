@@ -44,13 +44,25 @@ Tout se pilote au clavier, fonctionne avec NVDA ou JAWS, et la mise en forme est
 
 ---
 
-# 📚 Guide pour les enseignants & les aidants
+# 📚 👉 [Guide pour les enseignants & les aidants](https://1-pablo-rodriguez.github.io/LisioWriter/)
 
-Fort de l’expérience d’enseignement, un constat revient souvent : les **concepts de mise en forme et de structuration** (titres hiérarchisés, styles de paragraphe, listes, citations) **sont rarement enseignés** aux apprenants non-voyants. Résultat : la prise en main d’un traitement de texte peut être inutilement difficile.
+Avec l’expérience de l’enseignement, un point revient régulièrement :  
+les notions de **mise en forme** et de **structuration du texte** — titres hiérarchisés, styles de paragraphe, listes, citations, etc. — sont **peu ou pas enseignées** aux apprenants non-voyants.  
 
-👉 [Page d'acceuil de la documentation et guide pour les aidants en ligne](https://1-pablo-rodriguez.github.io/LisioWriter/)
+Conséquence : la prise en main d’un traitement de texte devient plus complexe qu’elle ne devrait l’être, alors qu’une bonne structuration facilite autant l’accessibilité que l’efficacité.
 
-![Démonstration de LisioWriter](docs/demo.png)
+À cela s’ajoute une difficulté souvent sous-estimée : **rédiger des énoncés réellement accessibles**.  
+Pour de nombreux enseignants, produire des consignes adaptées aux non-voyants représente un défi :  
+- il faut veiller à une formulation claire et non ambiguë ;  
+- structurer chaque étape de la consigne pour qu’elle soit navigable à la synthèse vocale ;  
+- fournir des descriptions précises pour les images, schémas ou tableaux ;  
+- éviter les informations uniquement visuelles (couleurs, formes, mise en page) ;  
+- penser à la navigation au clavier et à la logique de lecture linéaire.  
+
+Tout cela demande du temps, une méthodologie et parfois un accompagnement, alors que ce sont des compétences rarement expliquées dans la formation initiale.
+
+
+ ![Démonstration de LisioWriter](docs/demo.png)
 
 ---
 
@@ -61,15 +73,11 @@ Résultat : tout est lisible en braille et navigable au clavier (par ex. le titr
 
 Ci-dessous, tu peux voir d’un côté la capture d’écran d’un sujet d’examen créé par l’enseignant, et de l’autre exactement le même fichier ouvert dans LisioWriter.
 
-1. **Le lien vers le fichier audio** devient directement cliquable dans LisioWriter :  
-   il suffit d’appuyer sur **Ctrl + Espace** pour l’ouvrir instantanément.
+1. **Le lien vers le fichier audio** devient directement cliquable dans LisioWriter : il suffit d’appuyer sur **Ctrl + Espace** pour l’ouvrir instantanément.
 
-2. **L’image est accessible** grâce au texte de remplacement, dans lequel  
-   l’enseignant a décrit en détail son contenu.
+2. **L’image est accessible** grâce au texte de remplacement, dans lequel l’enseignant a décrit en détail son contenu.
 
-3. **Les questions sont structurées en titres de niveau**, ce qui permet  
-   d’y accéder rapidement avec les touches **F3**, **F4**, etc., pour naviguer  
-   d’un titre à l’autre très facilement.
+3. **Les questions sont structurées en titres de niveau**, ce qui permet d’y accéder rapidement avec les touches **F3**, **F4**, etc., pour naviguer d’un titre à l’autre très facilement.
 
 ![Sujet d'examen](docs/img/sujetExamen.png)
 
@@ -118,7 +126,7 @@ Cependant, l’expérimentation menée auprès d’un **seul étudiant non-voyan
 
 ---
 
-## ![Démonstration de LisioWriter](docs/wikipedia.png) Nouvelle fonctionnalité : intégration de Wikipédia
+## ![Démonstration de LisioWriter](docs/wikipedia.png) Intégration de Wikipédia
 
 LisioWriter permet désormais de **rechercher et d’importer directement des articles Wikipédia** sans quitter l’éditeur.  
 L’utilisateur saisit un mot-clé, parcourt les résultats, puis insère l’article sélectionné dans son document.
