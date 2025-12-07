@@ -167,7 +167,7 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de LisioWriter acces
 | Raccourci       | Fonction                    | Description                                                                 |
 |----------------|-----------------------------|---------------------------------------------------|
 | **F1**          | Informations               | Annonce des informations sur la fenêtre en cours ou sur l’ensemble du document. |
-| **F2**          | Position dans le document  | Dans une fenêtre dédiée, l’application annonce :<br>le **pourcentage de lecture** déjà parcouru ;<br>le **numéro du paragraphe** en cours ;<br>le **titre situé au-dessus** ;<br>ainsi que le **titre suivant**.<br>Cette fenêtre offre aux personnes non-voyantes<br>un repère rapide pour se situer dans le document<br>et comprendre immédiatement où elles se trouvent dans la structure du texte. |
+| **F2**          | Position dans le document  | Dans une fenêtre dédiée, l’application annonce :<br>- le **pourcentage de lecture** déjà parcouru ;<br>- le **numéro du paragraphe** en cours ;<br>- le **titre situé au-dessus** ;<br>- ainsi que le **titre suivant**.<br>Cette fenêtre offre aux personnes non-voyantes<br>un repère rapide pour se situer dans le document<br>et comprendre immédiatement où elles se trouvent dans la structure du texte. |
 | **Ctrl+F2**     | Insérer/Supprimer un marque-page | Insère ou supprime un marque-page associé à une note.                  |
 | **F3 / Maj+F3** | Navigation par titres       | Passe rapidement au titre suivant ou au titre précédent.                   |
 | **F4 / Maj+F4** | Navigation par marque-page  | Passe rapidement au marque-page suivant ou au marque-page précédent.       |
