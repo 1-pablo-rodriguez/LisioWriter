@@ -236,7 +236,7 @@ _¨indice¨_                       → Indice
 ## 🔄 Mise à jour automatique
 
 Après la première installation, il est possible à l'utilisateur non-voyante de réaliser des mise à jour automatique.
-Dans le menu **Préférence**, les mises à jour se font via un fichier `updates.json` hébergé sur GitHub :  
+Dans le menu **Paramètres**, les mises à jour se font via un fichier `updates.json` hébergé sur GitHub :  
 > `https://raw.githubusercontent.com/1-pablo-rodriguez/LisioWriter/main/updates.json`
 
 **Les nouvelles versions sont téléchargées et installées automatiquement en mode silencieux** (aucune fenêtre s'affiche).
