@@ -11,11 +11,11 @@
 **LisioWriter** est bien plus qu’un **traitement de texte** pour les personnes **non-voyantes** ou **malvoyantes** : il intègre, au sein même de l’éditeur, un navigateur qui rend tous les articles de Wikipédia en français accessibles, rapidement et très simplement.
 Tout se pilote au clavier, fonctionne avec NVDA ou JAWS, et la mise en forme est exprimée par de petits codes lisibles inspirés du Markdown (ex. #P. , #1. , ^^italique^^, @t, ...), directement dans le texte.
 
-## Pourquoi c’est précieux pour les aidants ?
+## Pourquoi c’est précieux pour les aidants ou enseignants ?
 
 - Moins d’ambiguïtés : la mise en forme n’est pas “cachée” dans un ruban — elle est visible et verbalisable (lecteur d’écran & braille).
 
-- Accompagnement facilité : vous pouvez relire, corriger, guider à distance sans ouvrir un traitement de texte lourd dans lequels l'accessibilité et pensée pour la souris.
+- Accompagnement facilité : vous pouvez relire, corriger, guider sans ouvrir un traitement de texte lourd dans lequels l'accessibilité et pensée pour la souris.
 
 - Transferts fluides : import/export Word, Writer/ODT, HTML, texte brut → pas d’impasse technique dans les échanges avec l’école, l’université ou l’entreprise.
 
