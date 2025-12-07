@@ -66,7 +66,7 @@ Tout cela demande du temps, une méthodologie et parfois un accompagnement, alor
 
 ---
 
-## Capture d’écran — Import d’un énoncé d'un examen au format Ms Word
+## Capture d’écran — Import d'un sujet d'examen au format Ms Word
 
 Après import, la structure est explicitée : titres, listes, styles (gras, italique, souligné), indices/exposants, tabulations, notes, images (description + légende), liens et tableaux deviennent des codes LisioWriter.
 Résultat : tout est lisible en braille et navigable au clavier (par ex. le titre principal apparaît avec #P.). 
