@@ -178,8 +178,8 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de LisioWriter acces
 | **F8**          | Article Wikipédia           | Insère dans l’éditeur des articles Wikipédia structurés<br>avec leur mise en forme et leur hiérarchie. |
 | **Ctrl+F**      | Recherche                   | Outils de recherche intégrant des jokers<br> **?** remplace un caractère<br> **\*** remplace des caractères <br> **==** Case rigoureuse<br> **&&** paragraphe contenant<br> **\#\#** titre contenant<br> **%d** chiffre |
 | **Alt+A**       | Documentation intégrée      | Bacule sur la documentation interne de LisioWriter.|
-| **Alt+B**       | Fenêtre n°1                 | Ouvre la première fenêtre interne de LisioWriter |
-| **Alt+C**       | Fenêtre n°2                 | Ouvre la première fenêtre interne de LisioWriter |
+| **Alt+B**       | Fenêtre n°1                 | Bacule sur la première fenêtre interne de LisioWriter |
+| **Alt+C**       | Fenêtre n°2                 | Bascule sur la première fenêtre interne de LisioWriter |
 
 
 Toutes les fonctions du logiciel sont accessibles **entièrement au clavier, sans souris**.  
