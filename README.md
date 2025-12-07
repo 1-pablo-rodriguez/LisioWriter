@@ -169,15 +169,17 @@ Le tableau ci-dessous illustre quelques fonctions pratiques de LisioWriter acces
 | **F1**          | Informations               | Annonce des informations sur la fenêtre en cours ou sur l’ensemble du document. |
 | **F2**          | Position dans le document  | Dans une fenêtre dédiée, l’application annonce :<br>- le **pourcentage de lecture** déjà parcouru ;<br>- le **numéro du paragraphe** en cours ;<br>- le **titre situé au-dessus** ;<br>- ainsi que le **titre suivant**.<br>Cette fenêtre offre aux personnes non-voyantes<br>un repère rapide pour se situer dans le document<br>et comprendre immédiatement où elles se trouvent dans la structure du texte. |
 | **Ctrl+F2**     | Insérer/Supprimer un marque-page | Insère ou supprime un marque-page associé à une note.                  |
-| **F3 / Maj+F3** | Navigation par titres       | Passe rapidement au titre suivant ou au titre précédent.                   |
-| **F4 / Maj+F4** | Navigation par marque-page  | Passe rapidement au marque-page suivant ou au marque-page précédent.       |
-| **F5**          | Lecture de la note du marque-page | La note du marque page s'affiche dans une fenêtre accessible<br>à la lecture avec la barre de barille.   |
+| **F3** | Navigation par titres       | Passe rapidement au titre précédent<br>(titre au-dessus du curseur).                   |
+| **F4** | Navigation par titre  | Passe rapidement au titre suivant<br>(titre au-dessous du curseur).       |
+| **F5**          | Navigation par marque-page | Passe rapidement sur le marque-page suivant.   |
 | **F6**          | Navigateur de titres        | Ouvre le navigateur pour parcourir la structure du document.               |
 | **F7 / Maj+F7** | Erreur suivante / précédente | Sélectionne le mot ou le texte suivant ou précédent<br>contenant une faute ou une erreur. |
 | **Ctrl+F7**     | Vérification du document    | Lance la vérification orthographique et grammaticale de tout le document.  |
 | **F8**          | Article Wikipédia           | Insère dans l’éditeur des articles Wikipédia structurés<br>avec leur mise en forme et leur hiérarchie. |
 | **Ctrl+F**      | Recherche                   | Outils de recherche intégrant des jokers<br> **?** remplace un caractère<br> **\*** remplace des caractères <br> **==** Case rigoureuse<br> **&&** paragraphe contenant<br> **\#\#** titre contenant<br> **%d** chiffre |
-| **Alt+A**       | Documentation intégrée      | Ouvre la documentation interne de LisioWriter.                             |
+| **Alt+A**       | Documentation intégrée      | Bacule sur la documentation interne de LisioWriter.|
+| **Alt+B**       | Fenêtre n°1                 | Ouvre la première fenêtre interne de LisioWriter |
+| **Alt+C**       | Fenêtre n°2                 | Ouvre la première fenêtre interne de LisioWriter |
 
 
 Toutes les fonctions du logiciel sont accessibles **entièrement au clavier, sans souris**.  
