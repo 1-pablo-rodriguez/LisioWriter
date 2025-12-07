@@ -165,9 +165,9 @@ Une version multiplateforme (Linux, macOS) pourra être envisagée plus tard.
 Le tableau ci-dessous illustre quelques fonctions pratiques de LisioWriter accessibles au clavier :
 
 | Raccourci       | Fonction                    | Description                                                                 |
-|-----------------|-----------------------------|-----------------------------------------------------------------------------|
-| **F1**          | Informations                | Annonce des informations sur la fenêtre en cours ou sur l’ensemble du document. |
-| **F2**          | Lecture de titre            | Dans une fenêtre, annonce le titre du paragraphe et le titre suivant.      |
+|----------------|-----------------------------|---------------------------------------------------|
+| **F1**          | Informations               | Annonce des informations sur la fenêtre en cours ou sur l’ensemble du document. |
+| **F2**          | Position dans le document  | Dans une fenêtre, annonce le pourcentage de lecture,<br>le numéro du paragraphe, le titre au dessus<br>et le titres suivant.<br>Cette fenêtre permet au personne non-voyantes de se situé dans le document     |
 | **Ctrl+F2**     | Insérer/Supprimer un marque-page | Insère ou supprime un marque-page associé à une note.                  |
 | **F3 / Maj+F3** | Navigation par titres       | Passe rapidement au titre suivant ou au titre précédent.                   |
 | **F4 / Maj+F4** | Navigation par marque-page  | Passe rapidement au marque-page suivant ou au marque-page précédent.       |
