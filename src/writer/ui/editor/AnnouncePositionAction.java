@@ -25,7 +25,7 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
 
     // Motif "#<niveau>. <texte>" (appliqué SUR LA LIGNE NETTOYÉE)
     private static final Pattern HEADING_PATTERN =
-            Pattern.compile("^#([1-6])\\.\\s+(.+?)\\s*$");
+            Pattern.compile("^#([1-6PS])\\.\\s+(.+?)\\s*$");
 
     public AnnouncePositionAction(EditorFrame frame) {
         super("Position dans le texte");
@@ -176,9 +176,9 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
                 String cleaned = cleanLeadingPiedDeMoucheAndSpaces(line);
                 Matcher m = HEADING_PATTERN.matcher(cleaned);
                 if (m.matches()) {
-                    int lvl = Integer.parseInt(m.group(1));
+                    String lvl   = m.group(1); // 1..6 P ou S
                     String tx = m.group(2).trim();
-                    return new HeadingFound("#" + lvl + ". ", tx, i + 1);
+                    return new HeadingFound("Titre " + lvl, tx, i + 1); // 1-based
                 }
             }
         } catch (Exception ignore) {}
@@ -207,9 +207,9 @@ public final class AnnouncePositionAction extends AbstractAction implements Acti
                 String cleaned = cleanLeadingPiedDeMoucheAndSpaces(line);
                 Matcher m = HEADING_PATTERN.matcher(cleaned);
                 if (m.matches()) {
-                    int lvl = Integer.parseInt(m.group(1));
+                    String lvl   = m.group(1); // 1..6 P ou S
                     String tx = m.group(2).trim();
-                    return new HeadingFound("#" + lvl + ". ", tx, i + 1);
+                    return new HeadingFound("Titre " + lvl, tx, i + 1); // 1-based
                 }
             }
         } catch (Exception ignore) {}
