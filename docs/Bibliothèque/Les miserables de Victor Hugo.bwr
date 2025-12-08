@@ -1,6 +1,33 @@
-<blindWriter filename="Les miserables de Victor Hugo"><meta><auteur nom=""></auteur><titre LeTitre=""></titre><sujet LeSujet=""></sujet><coauteur nom="LisioWriter; ..."></coauteur><society nom=""></society><description resume=""></description><motsCles mots=""></motsCles><langue lang=""></langue><date_creation date="2025-12-07T19:40:56"></date_creation><date_modification date="2025-12-08T16:35:28"></date_modification></meta><styles_paragraphes><Title name="Title" police="Arial" size="18pt" alignement="center" interligne="150%" espacement_au_dessus="0.423cm" espacement_en_dessous="0.212cm" keep-with-next="always"></Title><Subtitle name="Subtitle" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Subtitle><Titre1 name="Titre1" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre1><Titre2 name="Titre2" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre2><Titre3 name="Titre3" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre3><Titre4 name="Titre4" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre4><Titre5 name="Titre5" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"></Titre5><bodyText name="Corps de texte" police="Arial" size="22pt" alignement="justify" interligne="115%" espacement_au_dessus="0.2cm" espacement_en_dessous="0.2cm"></bodyText></styles_paragraphes><styles_pages><pageDefaut entete="false" piedpage="false"></pageDefaut><pageTitre couverture="false"></pageTitre></styles_pages><contentText>¶ #P. LES MISERABLES de Victor Hugo.
+<blindWriter filename="Les miserables de Victor Hugo" edition="false" position="36" version="v1.1.21">
+	<meta>
+		<auteur nom=""/>
+		<titre LeTitre=""/>
+		<sujet LeSujet=""/>
+		<coauteur nom="LisioWriter; ..."/>
+		<society nom=""/>
+		<description resume=""/>
+		<motsCles mots=""/>
+		<langue lang=""/>
+		<date_creation date="2025-12-07T19:40:56"/>
+		<date_modification date="2025-12-08T17:07:29"/>
+	</meta>
+	<styles_paragraphes>
+		<Title name="Title" police="Arial" size="18pt" alignement="center" interligne="150%" espacement_au_dessus="0.423cm" espacement_en_dessous="0.212cm" keep-with-next="always"/>
+		<Subtitle name="Subtitle" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
+		<Titre1 name="Titre1" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
+		<Titre2 name="Titre2" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
+		<Titre3 name="Titre3" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
+		<Titre4 name="Titre4" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
+		<Titre5 name="Titre5" police="Arial" size="18pt" alignement="start" interligne="150%" espacement_au_dessus="0.3cm" espacement_en_dessous="0.5cm" keep-with-next="always"/>
+		<bodyText name="Corps de texte" police="Arial" size="22pt" alignement="justify" interligne="115%" espacement_au_dessus="0.2cm" espacement_en_dessous="0.2cm"/>
+	</styles_paragraphes>
+	<styles_pages>
+		<pageDefaut entete="false" piedpage="false"/>
+		<pageTitre couverture="false"/>
+	</styles_pages>
+	<contentText>¶ #P. LES MISERABLES de Victor Hugo.
 ¶ #S. Édition Émile Testard, 1890.
-¶ **En cinq tomes**.
+¶ En cinq tomes.
 ¶ #1. Préface
 ¶ Tant qu’il existera, par le fait des lois et des mœurs, une damnation sociale créant artificiellement, en pleine civilisation, des enfers, et compliquant d’une fatalité humaine la destinée qui est divine ; tant que les trois problèmes du siècle, la dégradation de l’homme par le prolétariat, la déchéance de la femme par la faim, l’atrophie de l’enfant par la nuit, ne seront pas résolus ; tant que, dans de certaines régions, l’asphyxie sociale sera possible ; en d’autres termes, et à un point de vue plus étendu encore, tant qu’il y aura sur la terre ignorance et misère, des livres de la nature de celui-ci pourront ne pas être inutiles. Hauteville-House, 1862.
 ¶ #1. Tome I : Fantine
@@ -10955,4 +10982,6 @@
 ¶ Lon la.
 ¶ La prise d’armes du poste ne fut point sans résultat. La charrette fut conquise, l’ivrogne fut fait prisonnier. L’une fut mise en fourrière ; l’autre fut plus tard un peu poursuivi devant les conseils de guerre comme complice. Le ministère public d’alors fit preuve en cette circonstance de son zèle infatigable pour la défense de la société.
 ¶ L’aventure de Gavroche, restée dans la tradition du quartier du Temple, est un des souvenirs les plus terribles des vieux bourgeois du Marais, et est intitulée dans leur mémoire : Attaque nocturne du poste de l’Imprimerie royale.
-¶ #2. FIN</contentText><bookmarks version="1"></bookmarks></blindWriter>
+¶ #2. FIN</contentText>
+	<bookmarks version="1"/>
+</blindWriter>
