@@ -66,14 +66,12 @@ public class EditorFrame extends JFrame implements EditorApi {
     private BookmarkManager bookmarks;
     
     // --- Motif unique : "#<niveau>. <texte>" strictement en début de ligne ---
-  	private static final Pattern HEADING_PATTERN = Pattern.compile("^(?:¶\\s*)?#([1-6])\\.\\s*(.+?)\\s*$", Pattern.MULTILINE);
+  	private static final Pattern HEADING_PATTERN = Pattern.compile("^(?:¶\\s*)?#([1-6PS])\\.\\s*(.+?)\\s*$", Pattern.MULTILINE);
 
   	
   	// Détecte une image au format ![Image : description]
   	@SuppressWarnings("unused")
-	private static final Pattern IMAGE_PATTERN = Pattern.compile(
-  	    "!\\[\\s*Image\\s*:\\s*([^\\]]+)\\]"
-  	);
+	private static final Pattern IMAGE_PATTERN = Pattern.compile("!\\[\\s*Image\\s*:\\s*([^\\]]+)\\]");
 
   	private Affiche affichage = Affiche.TEXTE1;
   	public static int positionTexte1CurseurSauv = 0;
@@ -537,11 +535,21 @@ public class EditorFrame extends JFrame implements EditorApi {
  	            String line = chompLine(doc.getText(start, end - start));
 
  	            java.util.regex.Matcher m = HEADING_PATTERN.matcher(line);
- 	            if (m.matches()) {
- 	                int lvl   = Integer.parseInt(m.group(1)); // 1..6
- 	                String tx = m.group(2).trim();
- 	                return new HeadingFound("Titre " + lvl, tx, i + 1); // 1-based
- 	            }
+ 	           if (m.matches()) {
+ 	        	    String lvlStr = m.group(1);      // "1".."6" ou "P" ou "S"
+ 	        	    int lvl;
+
+ 	        	    // Si c’est un chiffre entre 1 et 6 → on convertit
+ 	        	    if (lvlStr.matches("[1-6]")) {
+ 	        	        lvl = Integer.parseInt(lvlStr);
+ 	        	    } else {
+ 	        	        // Sinon (#P. ou #S.) → niveau 0
+ 	        	        lvl = 0;
+ 	        	    }
+
+ 	        	    String tx = m.group(2).trim();
+ 	        	    return new HeadingFound("Titre " + lvl, tx, i + 1); // 1-based
+ 	        	}
  	        }
  	    } catch (Exception ignore) {}
  	    return null;
@@ -581,11 +589,21 @@ public class EditorFrame extends JFrame implements EditorApi {
  	            int end   = Math.min(lineEl.getEndOffset(), doc.getLength());
  	            String line = chompLine(doc.getText(start, end - start));
  	            java.util.regex.Matcher m = HEADING_PATTERN.matcher(line);
- 	            if (m.matches()) {
- 	                int lvl   = Integer.parseInt(m.group(1));
- 	                String tx = m.group(2).trim();
- 	                return new HeadingFound("Titre " + lvl, tx, i + 1); // 1-based
- 	            }
+ 	           if (m.matches()) {
+ 	        	    String lvlStr = m.group(1);      // "1".."6" ou "P" ou "S"
+ 	        	    int lvl;
+
+ 	        	    // Si c’est un chiffre entre 1 et 6 → on convertit
+ 	        	    if (lvlStr.matches("[1-6]")) {
+ 	        	        lvl = Integer.parseInt(lvlStr);
+ 	        	    } else {
+ 	        	        // Sinon (#P. ou #S.) → niveau 0
+ 	        	        lvl = 0;
+ 	        	    }
+
+ 	        	    String tx = m.group(2).trim();
+ 	        	    return new HeadingFound("Titre " + lvl, tx, i + 1); // 1-based
+ 	        	}
  	        }
  	    } catch (Exception ignore) {}
  	    return null;
