@@ -7,8 +7,12 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.KeyEvent;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -27,15 +31,17 @@ import writer.ui.EditorFrame;
 public class openReplaceDialog extends JDialog {
 
     // Valeurs mémorisées entre deux ouvertures
-    public static String lastSearch  = "";
-    public static String lastReplace = "";
+    public static String  lastSearch  = "";
+    public static String  lastReplace = "";
+    public static boolean lastRegex   = false;
 
     private final JTextComponent editor;
     private final JTextField fieldSearch;
     private final JTextField fieldReplace;
     private final JLabel lblInfo;
+    private final JCheckBox chkRegex;
 
-    // Position du dernier match dans le texte
+    // Position du dernier match dans le texte (index de début)
     private int lastIndex = -1;
 
     // --- Méthode statique d'ouverture ---
@@ -73,7 +79,7 @@ public class openReplaceDialog extends JDialog {
         fieldSearch = new JTextField(30);
         fieldSearch.setFont(fieldFont);
         fieldSearch.setText(lastSearch != null ? lastSearch : "");
-        lblSearch.setLabelFor(fieldSearch); // pas de descriptionAccessible
+        lblSearch.setLabelFor(fieldSearch);
 
         c.gridx = 0; c.gridy = 0; c.weightx = 0.0;
         center.add(lblSearch, c);
@@ -87,12 +93,20 @@ public class openReplaceDialog extends JDialog {
         fieldReplace = new JTextField(30);
         fieldReplace.setFont(fieldFont);
         fieldReplace.setText(lastReplace != null ? lastReplace : "");
-        lblReplace.setLabelFor(fieldReplace); // toujours pas de descriptionAccessible
+        lblReplace.setLabelFor(fieldReplace);
 
         c.gridx = 0; c.gridy = 1; c.weightx = 0.0;
         center.add(lblReplace, c);
         c.gridx = 1; c.gridy = 1; c.weightx = 1.0;
         center.add(fieldReplace, c);
+
+        // Ligne 3 : case à cocher regex
+        chkRegex = new JCheckBox("Expression régulière (regex)");
+        chkRegex.setFont(labelFont);
+        chkRegex.setSelected(lastRegex);
+
+        c.gridx = 1; c.gridy = 2; c.weightx = 1.0;
+        center.add(chkRegex, c);
 
         add(center, BorderLayout.CENTER);
 
@@ -170,10 +184,10 @@ public class openReplaceDialog extends JDialog {
         );
 
         // Raccourcis Alt (via mnemonics)
-        btnFindNext.setMnemonic('S');  // Alt+S
-        btnReplace.setMnemonic('R');   // Alt+R
+        btnFindNext.setMnemonic('S');   // Alt+S
+        btnReplace.setMnemonic('R');    // Alt+R
         btnReplaceAll.setMnemonic('T'); // Alt+T
-        btnClose.setMnemonic('F');     // Alt+F
+        btnClose.setMnemonic('F');      // Alt+F
 
         // Au moment de l'ouverture : partir de la position du caret
         SwingUtilities.invokeLater(() -> {
@@ -206,7 +220,9 @@ public class openReplaceDialog extends JDialog {
             return;
         }
 
+        boolean useRegex = chkRegex.isSelected();
         lastSearch = search;
+        lastRegex  = useRegex;
 
         String all = getEditorText();
         if (all.isEmpty()) {
@@ -214,47 +230,121 @@ public class openReplaceDialog extends JDialog {
             return;
         }
 
-        int startPos = 0;
-        if (editor != null) {
-            startPos = Math.max(0, editor.getCaretPosition());
-        }
-        if (lastIndex >= 0) {
-            startPos = lastIndex + search.length();
-        }
+        if (!useRegex) {
+            // ====== Mode texte simple (comme avant) ======
+            int startPos = 0;
+            if (editor != null) {
+                startPos = Math.max(0, editor.getCaretPosition());
+            }
+            if (lastIndex >= 0) {
+                startPos = lastIndex + search.length();
+            }
 
-        int idx = all.indexOf(search, startPos);
+            int idx = all.indexOf(search, startPos);
 
-        // Si plus rien après, on boucle depuis le début
-        if (idx < 0) {
-            idx = all.indexOf(search);
-        }
+            // Si plus rien après, on boucle depuis le début
+            if (idx < 0) {
+                idx = all.indexOf(search);
+            }
 
-        if (idx < 0) {
-            lblInfo.setText("Aucune occurrence trouvée.");
-            lastIndex = -1;
+            if (idx < 0) {
+                lblInfo.setText("Aucune occurrence trouvée.");
+                lastIndex = -1;
+                return;
+            }
+
+            lastIndex = idx;
+
+            // sélection dans l'éditeur
+            if (editor != null) {
+                editor.requestFocusInWindow();
+                editor.select(idx, idx + search.length());
+            }
+
+            // calcule nombre total d'occurrences (pour info)
+            int total = 0;
+            int pos = 0;
+            while (true) {
+                int p = all.indexOf(search, pos);
+                if (p < 0) break;
+                total++;
+                pos = p + search.length();
+            }
+
+            lblInfo.setText("Occurrence trouvée. Position " + (idx + 1) + "/" + all.length()
+                            + " – " + total + " occurrence(s) au total.");
             return;
         }
 
-        lastIndex = idx;
+        // ====== Mode REGEX ======
+        try {
+            Pattern pattern = Pattern.compile(search, Pattern.MULTILINE);
+            int startPos;
 
-        // sélectionne dans l'éditeur
-        if (editor != null) {
-            editor.requestFocusInWindow();
-            editor.select(idx, idx + search.length());
+            if (editor != null) {
+                startPos = Math.max(0, editor.getCaretPosition());
+            } else {
+                startPos = 0;
+            }
+            if (lastIndex >= 0) {
+                startPos = lastIndex + 1; // on avance d'au moins 1 caractère
+            }
+
+            Matcher matcher = pattern.matcher(all);
+
+            boolean found = false;
+            int start = -1;
+            int end   = -1;
+
+            // on essaie à partir de startPos
+            if (startPos < all.length()) {
+                matcher.region(startPos, all.length());
+                if (matcher.find()) {
+                    found = true;
+                    start = matcher.start();
+                    end   = matcher.end();
+                }
+            }
+
+            // Si rien trouvé, on boucle depuis le début
+            if (!found) {
+                matcher = pattern.matcher(all);
+                if (matcher.find()) {
+                    found = true;
+                    start = matcher.start();
+                    end   = matcher.end();
+                }
+            }
+
+            if (!found) {
+                lblInfo.setText("Aucune occurrence trouvée (regex).");
+                lastIndex = -1;
+                return;
+            }
+
+            lastIndex = start;
+
+            // sélection dans l'éditeur
+            if (editor != null) {
+                editor.requestFocusInWindow();
+                editor.select(start, end);
+            }
+
+            // compter toutes les occurrences
+            int total = 0;
+            matcher = pattern.matcher(all);
+            while (matcher.find()) {
+                total++;
+            }
+
+            lblInfo.setText("Occurrence (regex) trouvée. Position " + (start + 1) + "/" + all.length()
+                            + " – " + total + " occurrence(s) au total.");
+
+        } catch (PatternSyntaxException ex) {
+            lblInfo.setText("Regex invalide : " + ex.getDescription());
+            fieldSearch.requestFocusInWindow();
+            fieldSearch.selectAll();
         }
-
-        // calcule nombre total d'occurrences (pour info)
-        int total = 0;
-        int pos = 0;
-        while (true) {
-            int p = all.indexOf(search, pos);
-            if (p < 0) break;
-            total++;
-            pos = p + search.length();
-        }
-
-        lblInfo.setText("Occurrence trouvée. Position " + (idx + 1) + "/" + all.length()
-                        + " – " + total + " occurrence(s) au total.");
     }
 
     private void replaceOnce() {
@@ -267,8 +357,10 @@ public class openReplaceDialog extends JDialog {
             return;
         }
 
+        boolean useRegex = chkRegex.isSelected();
         lastSearch  = search;
         lastReplace = replace;
+        lastRegex   = useRegex;
 
         if (editor == null) {
             lblInfo.setText("Aucun éditeur.");
@@ -279,20 +371,34 @@ public class openReplaceDialog extends JDialog {
         int selEnd   = editor.getSelectionEnd();
 
         try {
-            // Si la sélection actuelle ne correspond pas au texte recherché,
-            // on cherche la prochaine occurrence.
-            if (selStart < 0 || selEnd <= selStart ||
-                !editor.getText().regionMatches(selStart, search, 0, search.length())) {
+            String all = editor.getText();
 
+            // Si la sélection actuelle ne correspond pas / est vide, on cherche la prochaine occurrence
+            if (selStart < 0 || selEnd <= selStart) {
                 findNext();
                 selStart = editor.getSelectionStart();
                 selEnd   = editor.getSelectionEnd();
-
                 if (selStart < 0 || selEnd <= selStart) {
                     lblInfo.setText("Rien à remplacer.");
                     return;
                 }
             }
+
+            // En mode texte simple, on vérifie que la sélection correspond bien
+            if (!useRegex) {
+                if (!all.regionMatches(selStart, search, 0, search.length())) {
+                    // pas la bonne sélection => on relance findNext()
+                    findNext();
+                    selStart = editor.getSelectionStart();
+                    selEnd   = editor.getSelectionEnd();
+                    if (selStart < 0 || selEnd <= selStart) {
+                        lblInfo.setText("Rien à remplacer.");
+                        return;
+                    }
+                }
+            }
+            // En mode regex, on remplace simplement la sélection courante par le texte de remplacement
+            // (pas de backrefs $1, $2, etc. pour rester simple).
 
             Document doc = editor.getDocument();
             doc.remove(selStart, selEnd - selStart);
@@ -301,7 +407,7 @@ public class openReplaceDialog extends JDialog {
             // caret après le remplacement
             int newPos = selStart + replace.length();
             editor.setCaretPosition(newPos);
-            lastIndex = newPos - replace.length(); // pour repartir juste après
+            lastIndex = newPos - 1; // pour repartir juste après
 
             lblInfo.setText("Une occurrence remplacée.");
             // On passe directement à la suivante
@@ -323,8 +429,10 @@ public class openReplaceDialog extends JDialog {
             return;
         }
 
+        boolean useRegex = chkRegex.isSelected();
         lastSearch  = search;
         lastReplace = replace;
+        lastRegex   = useRegex;
 
         String all = getEditorText();
         if (all.isEmpty()) {
@@ -332,39 +440,82 @@ public class openReplaceDialog extends JDialog {
             return;
         }
 
-        int count = 0;
-        StringBuilder sb = new StringBuilder();
-        int from = 0;
-        int idx;
 
-        while ((idx = all.indexOf(search, from)) >= 0) {
-            sb.append(all, from, idx);
-            sb.append(replace);
-            from = idx + search.length();
-            count++;
+        if (!useRegex) {
+            // ====== Mode texte simple (comme avant) ======
+            int count = 0;
+            StringBuilder sb = new StringBuilder();
+            int from = 0;
+            int idx;
+
+            while ((idx = all.indexOf(search, from)) >= 0) {
+                sb.append(all, from, idx);
+                sb.append(replace);
+                from = idx + search.length();
+                count++;
+            }
+            sb.append(all.substring(from));
+
+            try {
+                if (editor != null) {
+                    Document doc = editor.getDocument();
+                    doc.remove(0, doc.getLength());
+                    doc.insertString(0, sb.toString(), null);
+                    editor.setCaretPosition(0);
+                }
+
+                lastIndex = -1;
+
+                if (count == 0) {
+                    lblInfo.setText("Aucune occurrence trouvée.");
+                } else {
+                    lblInfo.setText(count + " occurrence(s) remplacée(s).");
+                }
+            } catch (BadLocationException ex) {
+                ex.printStackTrace();
+                lblInfo.setText("Erreur pendant le remplacement global.");
+            }
+            return;
         }
-        sb.append(all.substring(from));
 
+        // ====== Mode REGEX ======
         try {
-            if (editor != null) {
-                Document doc = editor.getDocument();
-                doc.remove(0, doc.getLength());
-                doc.insertString(0, sb.toString(), null);
+            Pattern pattern = Pattern.compile(search, Pattern.MULTILINE);
+            Matcher matcher = pattern.matcher(all);
 
-                // On remet le caret au début
-                editor.setCaretPosition(0);
+            StringBuffer sb = new StringBuffer();
+            int count = 0;
+
+            while (matcher.find()) {
+                count++;
+                // On quote le remplacement pour ne pas interpréter $1, \n, etc.
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(replace));
+            }
+            matcher.appendTail(sb);
+
+            try {
+                if (editor != null) {
+                    Document doc = editor.getDocument();
+                    doc.remove(0, doc.getLength());
+                    doc.insertString(0, sb.toString(), null);
+                    editor.setCaretPosition(0);
+                }
+                lastIndex = -1;
+
+                if (count == 0) {
+                    lblInfo.setText("Aucune occurrence (regex) trouvée.");
+                } else {
+                    lblInfo.setText(count + " occurrence(s) (regex) remplacée(s).");
+                }
+            } catch (BadLocationException ex) {
+                ex.printStackTrace();
+                lblInfo.setText("Erreur pendant le remplacement global (regex).");
             }
 
-            lastIndex = -1;
-
-            if (count == 0) {
-                lblInfo.setText("Aucune occurrence trouvée.");
-            } else {
-                lblInfo.setText(count + " occurrence(s) remplacée(s).");
-            }
-        } catch (BadLocationException ex) {
-            ex.printStackTrace();
-            lblInfo.setText("Erreur pendant le remplacement global.");
+        } catch (PatternSyntaxException ex) {
+            lblInfo.setText("Regex invalide : " + ex.getDescription());
+            fieldSearch.requestFocusInWindow();
+            fieldSearch.selectAll();
         }
     }
 }
