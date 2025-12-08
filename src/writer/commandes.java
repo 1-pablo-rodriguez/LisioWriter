@@ -1,6 +1,5 @@
 package writer;
 
-import writer.model.Affiche;
 import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileSystemView;
 
+import writer.model.Affiche;
 import writer.ui.EditorFrame;
 import writer.ui.NormalizingTextPane;
 import xml.node;
@@ -34,6 +34,7 @@ public class commandes {
     public static String nameFile = "Nouveau document";
     public static int hash1 = 0;
     public static int hash2 = 0;
+    public static boolean ModeEdition = true;
     public static String texteDocument = "";
     
     public static boolean audio = false;
@@ -73,7 +74,6 @@ public class commandes {
     public static void init() {
     	initLesNodesBlindWriter();
         loadDocumentation();
-//        loadManuel();
     }
     
     // Création du node LisioWriter
@@ -81,6 +81,8 @@ public class commandes {
 
         nodeblindWriter.setNameNode("blindWriter");
         nodeblindWriter.getAttributs().put("filename", "Nouveau document");
+        nodeblindWriter.getAttributs().put("edition", "true");
+        nodeblindWriter.getAttributs().put("position", "1");
         styles_paragraphe = new node();
         styles_paragraphe.setNameNode("styles_paragraphes");
         
@@ -313,6 +315,10 @@ public class commandes {
        nodeblindWriter.retourneFirstEnfant("contentText").getContenu().clear(); // RAZ du node contentText
        
        nodeblindWriter.getAttributs().put("filename", nameFile); // Mise à jour de nom du fichier
+       nodeblindWriter.getAttributs().put("edition", String.valueOf(commandes.ModeEdition));
+       nodeblindWriter.getAttributs().put("position", String.valueOf(editorFrame.getEditor().getCaretPosition()));
+       nodeblindWriter.getAttributs().put("version", writer.util.AppInfo.getAppVersion());
+       
        nodeblindWriter.retourneFirstEnfant("contentText").addContenu(text); // ajout du contenu textuel
        //commandes.defaultStyles();       
       

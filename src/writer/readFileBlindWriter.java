@@ -57,6 +57,10 @@ public class readFileBlindWriter {
 
             // --- Sections internes ---
             commandes.nameFile = commandes.nodeblindWriter.getAttributs().get("filename");
+            if(commandes.nodeblindWriter.getAttributs().get("edition")!=null) {
+            	commandes.ModeEdition = Boolean.valueOf(commandes.nodeblindWriter.getAttributs().get("edition"));
+            	parent.getEditor().setEditable(commandes.ModeEdition);
+            }
             commandes.styles_paragraphe = commandes.nodeblindWriter.retourneFirstEnfant("styles_paragraphes");
             commandes.meta = commandes.nodeblindWriter.retourneFirstEnfant("meta");
             commandes.pageDefaut = commandes.nodeblindWriter.retourneFirstEnfant("pageDefaut");
@@ -150,6 +154,10 @@ public class readFileBlindWriter {
 
                     // Ajoute dans la liste des fichiers récents
                     RecentFilesManager.addOpenedFile(selectedFile);
+                    
+                    if(commandes.nodeblindWriter.getAttributs().get("position")!=null) {
+                    	parent.getEditor().setCaretPosition(Integer.valueOf(commandes.nodeblindWriter.getAttributs().get("position")));
+                    }
 
                     // final : revalidate / repaint / focus
                     editorComp.revalidate();
