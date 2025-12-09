@@ -8,7 +8,11 @@ import javax.swing.Action;
 import writer.ui.EditorFrame;
 import writer.ui.NormalizingTextPane;
 import writer.util.TextCleaningUtils;
-
+/**
+ * Class qui permet de supprimer les pargraphe vide.
+ * @author pabr6
+ *
+ */
 @SuppressWarnings("serial")
 public final class RemoveEmptyParagraphsAction extends AbstractAction implements Action {
 
