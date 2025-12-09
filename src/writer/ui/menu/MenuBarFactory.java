@@ -49,6 +49,7 @@ import writer.internets.WiktionarySearchDialog;
 import writer.model.Affiche;
 import writer.ui.EditorApi;
 import writer.ui.EditorFrame;
+import writer.ui.editor.RemoveEmptyParagraphsAction;
 import writer.update.UpdateChecker;
 import writer.util.RecentFilesManager;
 
@@ -216,7 +217,7 @@ public final class MenuBarFactory {
 
     //Menu Edition
     private static JMenu menuEdition(EditorApi ctx) {
-    	JMenu editionMenu = new JMenu("Édition");
+    	JMenu editionMenu = new JMenu("Edition");
     	editionMenu.setFont(new Font("Segoe UI", Font.PLAIN, tailleFont));
     	editionMenu.setMnemonic(KeyEvent.VK_E); // Utiliser ALT+e pour ouvrir le menu
     	editionMenu.getAccessibleContext().setAccessibleName("Édition");
@@ -259,7 +260,15 @@ public final class MenuBarFactory {
             }
         }); 
    	 	
-   	
+	   	// Supprimer les paragraphes vides
+	   	 JMenuItem suppParagraphesVides = createSimpleMenuItem("Supprimer les paragraphes vides", e -> {
+	   	     var win = ctx.getWindow();
+	   	     if (win instanceof EditorFrame frame) {
+	   	         // On crée l'action et on l'exécute
+	   	         new RemoveEmptyParagraphsAction(frame, ctx.getEditor()).actionPerformed(e);
+	   	     }
+	   	 });
+  	 	
    		// Active/ désactive l'édition
 	 	JMenuItem removeLink = createMenuItem("Supprime les liens", KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK|InputEvent.SHIFT_DOWN_MASK, e -> {
             var win = ctx.getWindow();
@@ -315,6 +324,7 @@ public final class MenuBarFactory {
 		 ctx.addItemChangeListener(undoItem);
 		 ctx.addItemChangeListener(redoItem);
 		 ctx.addItemChangeListener(edition);
+		 ctx.addItemChangeListener(suppParagraphesVides);
 		 ctx.addItemChangeListener(convertLink);
 		 ctx.addItemChangeListener(removeLink);
 		 ctx.addItemChangeListener(checkAll);
@@ -327,6 +337,8 @@ public final class MenuBarFactory {
         editionMenu.add(redoItem);
         editionMenu.addSeparator();
         editionMenu.add(edition);
+        editionMenu.addSeparator();
+        editionMenu.add(suppParagraphesVides);
         editionMenu.add(removeLink);
         editionMenu.add(convertLink);
     	editionMenu.addSeparator();
