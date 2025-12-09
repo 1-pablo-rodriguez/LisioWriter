@@ -49,6 +49,7 @@ import writer.internets.WiktionarySearchDialog;
 import writer.model.Affiche;
 import writer.ui.EditorApi;
 import writer.ui.EditorFrame;
+import writer.ui.editor.ApplyCorrectionSynthaseAction;
 import writer.ui.editor.RemoveEmptyParagraphsAction;
 import writer.update.UpdateChecker;
 import writer.util.RecentFilesManager;
@@ -260,6 +261,13 @@ public final class MenuBarFactory {
             }
         }); 
    	 	
+	   	 JMenuItem corrigeSynthaxe = createSimpleMenuItem("Corrige codes LisioWriter", e -> {
+	   	     var win = ctx.getWindow();
+	   	     if (win instanceof EditorFrame frame) {
+	   	    	new ApplyCorrectionSynthaseAction(frame, ctx.getEditor()).actionPerformed(e);
+	   	     }
+	   	 });
+   	 	
 	   	// Supprimer les paragraphes vides
 	   	 JMenuItem suppParagraphesVides = createSimpleMenuItem("Supprimer les paragraphes vides", e -> {
 	   	     var win = ctx.getWindow();
@@ -324,6 +332,7 @@ public final class MenuBarFactory {
 		 ctx.addItemChangeListener(undoItem);
 		 ctx.addItemChangeListener(redoItem);
 		 ctx.addItemChangeListener(edition);
+		 ctx.addItemChangeListener(corrigeSynthaxe);
 		 ctx.addItemChangeListener(suppParagraphesVides);
 		 ctx.addItemChangeListener(convertLink);
 		 ctx.addItemChangeListener(removeLink);
@@ -338,6 +347,7 @@ public final class MenuBarFactory {
         editionMenu.addSeparator();
         editionMenu.add(edition);
         editionMenu.addSeparator();
+        editionMenu.add(corrigeSynthaxe);
         editionMenu.add(suppParagraphesVides);
         editionMenu.add(removeLink);
         editionMenu.add(convertLink);

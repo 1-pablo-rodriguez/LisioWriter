@@ -5,8 +5,11 @@ import java.util.regex.Pattern;
 
 /**
  * Utilitaire de correction pour les synthèses :
- * - force les codes #1., #2., #3., #4. et #5. à commencer
+ * - force les codes #1., #2., #3., #4., #5., #P. et #S. à commencer
  *   en début de paragraphe (ligne nouvelle avec ¶),
+ * - corrige les variantes tapées à la main :
+ *   "#p  texte" → "¶ #P. texte"
+ *   "#s  texte" → "¶ #S. texte",
  * - normalise l'espace entre ¶ et le texte (titres, @t, texte normal) :
  *   ¶ doit être le premier caractère de la ligne, suivi d'un seul espace,
  * - force les marqueurs de tableau @t et @/t à commencer un paragraphe,
@@ -22,10 +25,26 @@ public final class CorrectionSynthase {
 
     /**
      * Titre : début de ligne (MULTILINE), espaces éventuels,
-     * éventuellement "¶" + espaces, puis "#[1-5].".
+     * éventuellement "¶" + espaces, puis "#[1-5PS].".
+     * (ex. "#1.", "#2.", "#P.", "#S.")
      */
     private static final Pattern PATTERN_PAR_TITRE =
-            Pattern.compile("(?m)^\\s*(?:\u00B6\\s*)?#([1-5]\\.)");
+            Pattern.compile("(?mi)^\\s*(?:" + PARAGRAPH_MARK + "\\s*)?#([1-5PS]\\.)");
+
+    /**
+     * Variantes tapées à la main pour les titres #P. et #S.
+     * Exemples de lignes corrigées :
+     *   "#p  Proverbe"      → "¶ #P. Proverbe"
+     *   "#P Proverbe"       → "¶ #P. Proverbe"
+     *   "   ¶ #p Proverbe"  → "¶ #P. Proverbe"
+     *   "#s  Synonyme"      → "¶ #S. Synonyme"
+     *   "#S Synonyme"       → "¶ #S. Synonyme"
+     */
+    private static final Pattern PATTERN_TITRE_P =
+            Pattern.compile("(?mi)^\\s*(?:" + PARAGRAPH_MARK + "\\s*)?#p\\.?\\s+(.*)$");
+
+    private static final Pattern PATTERN_TITRE_S =
+            Pattern.compile("(?mi)^\\s*(?:" + PARAGRAPH_MARK + "\\s*)?#s\\.?\\s+(.*)$");
 
     /**
      * Paragraphe LisioWriter :
@@ -51,13 +70,19 @@ public final class CorrectionSynthase {
             Pattern.compile("(?m)^" + PARAGRAPH_MARK + " (.*?)(\\s+)(@/?t\\b.*)$");
 
     /**
-     * Motif pour repérer un marqueur @saut de page placé en fin de ligne après du texte.
-     * Exemple : "¶ #3. Locution nominale @saut de page" → on veut :
-     *   "¶ #3. Locution nominale"
-     *   "¶ @saut de page"
+     * Motif pour repérer un marqueur @saut / @saut de page placé dans une ligne.
+     *
+     * Exemples gérés :
+     *   "¶ texte1 @saut texte2"
+     *   "¶ texte1 @saut de page texte2"
+     *   "¶ #3. Titre @saut de page"
+     *   "¶ @saut"
+     *   "¶ @SAUT"
      */
     private static final Pattern PATTERN_INLINE_PAGE_BREAK =
-            Pattern.compile("(?m)^" + PARAGRAPH_MARK + " (.*?)(\\s+)(@saut\\s+de\\s+page\\b.*)$");
+            Pattern.compile("(?mi)^" + PARAGRAPH_MARK + " (.*?)\\s*" +
+                            "(@saut(?:\\s+de\\s+page)?)" +
+                            "(?:[ \\t]+([^\\r\\n]+))?$");
 
     private CorrectionSynthase() {
         // utilitaire statique
@@ -65,10 +90,11 @@ public final class CorrectionSynthase {
 
     /**
      * Corrige le texte :
+     *  0) corrige les titres #p / #s en lignes de titres normalisées "¶ #P. ..." / "¶ #S. ...";
      *  1) insère un saut de ligne et le marqueur de paragraphe
-     *     avant les codes #1., #2., #3., #4. et #5. qui ne sont pas
-     *     au début d'un paragraphe ;
-     *  2) normalise les titres "#x." en "¶ #x." en début de ligne ;
+     *     avant les codes #1., #2., #3., #4., #5., #P. et #S. qui ne sont pas
+     *     au début d'un paragraphe (y compris #p / #s, avec ou sans point) ;
+     *  2) normalise les lignes de titres "#x." en "¶ #x." en début de ligne ;
      *  3) normalise tous les paragraphes commençant par ¶ pour
      *     qu'ils aient exactement "¶ " en début de ligne ;
      *  4) force @t et @/t à début de paragraphe (séparation de lignes) ;
@@ -83,7 +109,10 @@ public final class CorrectionSynthase {
             return text;
         }
 
-        // --- 1) Forcer les #x. à début de paragraphe (insertion de "\n¶ ") ---
+        // --- 0) Corriger les titres #p / #s vers #P. / #S. en début de ligne ---
+        text = normaliserTitresPS(text);
+
+        // --- 1) Forcer les #x. (#1..#5, #P/#S avec ou sans point) à début de paragraphe ---
         StringBuilder out = new StringBuilder(text.length() + 128);
         final int len = text.length();
         int i = 0;
@@ -91,21 +120,34 @@ public final class CorrectionSynthase {
         while (i < len) {
             char ch = text.charAt(i);
 
-            // Détection d'un motif #x. (x entre 1 et 5)
-            if (ch == '#' && i + 2 < len) {
-                char digit = text.charAt(i + 1);
-                char dot   = text.charAt(i + 2);
+            if (ch == '#' && i + 1 < len) {
+                char c1 = text.charAt(i + 1);
+                char uc1 = Character.toUpperCase(c1);
 
-                if (digit >= '1' && digit <= '5' && dot == '.') {
-                    // On a un motif #1. .. #5.
+                // --- case 1 : titres numériques #1. .. #5. ---
+                if (c1 >= '1' && c1 <= '5') {
+                    if (i + 2 < len && text.charAt(i + 2) == '.') {
+                        if (!isAtParagraphStart(text, i)) {
+                            out.append('\n').append(PARAGRAPH_MARK).append(' ');
+                        }
+                        out.append('#').append(c1).append('.');
+                        i += 3;
+                        continue;
+                    }
+                    // si pas de point après un chiffre, on laisse tel quel
+                }
+
+                // --- case 2 : #P / #p / #S / #s, avec ou sans point ---
+                if (uc1 == 'P' || uc1 == 'S') {
+                    boolean hasDot = (i + 2 < len && text.charAt(i + 2) == '.');
+
                     if (!isAtParagraphStart(text, i)) {
-                        // pas en début de paragraphe → on insère un saut de paragraphe
                         out.append('\n').append(PARAGRAPH_MARK).append(' ');
                     }
 
-                    // On recopie le motif tel quel
-                    out.append('#').append(digit).append('.');
-                    i += 3;
+                    // on normalise toujours en #P. ou #S.
+                    out.append('#').append(uc1).append('.');
+                    i += hasDot ? 3 : 2; // on saute '#' + lettre (+ éventuellement '.')
                     continue;
                 }
             }
@@ -122,7 +164,7 @@ public final class CorrectionSynthase {
         StringBuffer sb = new StringBuffer(base.length());
 
         while (m.find()) {
-            // Remplacement forcé par : "¶ #$1" (où $1 est "1.", "2.", etc.)
+            // Remplacement forcé par : "¶ #$1" (où $1 est "1.", "2.", "P.", "S.", etc.)
             m.appendReplacement(sb, PARAGRAPH_MARK + " #$1");
         }
         m.appendTail(sb);
@@ -151,6 +193,43 @@ public final class CorrectionSynthase {
     }
 
     /**
+     * Corrige les titres saisis sous la forme "#p texte" ou "#s texte"
+     * (avec ou sans "¶" et avec ou sans ".") en lignes normalisées :
+     *   "¶ #P. texte" ou "¶ #S. texte".
+     */
+    private static String normaliserTitresPS(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+
+        // 1) Titres "#p ..." → "¶ #P. ..."
+        Matcher m = PATTERN_TITRE_P.matcher(text);
+        StringBuffer sb = new StringBuffer(text.length() + 64);
+
+        while (m.find()) {
+            String contenu = m.group(1).trim(); // texte après "#p"
+            String replacement = PARAGRAPH_MARK + " #P. " + contenu;
+            m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+        }
+        m.appendTail(sb);
+
+        text = sb.toString();
+
+        // 2) Titres "#s ..." → "¶ #S. ..."
+        m = PATTERN_TITRE_S.matcher(text);
+        sb = new StringBuffer(text.length() + 64);
+
+        while (m.find()) {
+            String contenu = m.group(1).trim(); // texte après "#s"
+            String replacement = PARAGRAPH_MARK + " #S. " + contenu;
+            m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+        }
+        m.appendTail(sb);
+
+        return sb.toString();
+    }
+
+    /**
      * Normalise tous les paragraphes dont la ligne commence par le caractère ¶ :
      *  - ¶ devient le tout premier caractère de la ligne ;
      *  - exactement un espace après ¶.
@@ -166,12 +245,6 @@ public final class CorrectionSynthase {
 
     /**
      * Force les marqueurs de tableau @t et @/t à début de paragraphe.
-     *
-     * Exemples :
-     *   "¶ un texte @t"   → "¶ un texte\n¶ @t"
-     *   "¶ un texte  @/t" → "¶ un texte\n¶ @/t"
-     *
-     * Si la ligne est déjà "¶ @t" ou "¶ @/t", elle n'est pas modifiée.
      */
     public static String separerMarqueursTableEnDebutParagraphe(String text) {
         if (text == null || text.isEmpty()) {
@@ -179,7 +252,7 @@ public final class CorrectionSynthase {
         }
 
         Matcher m = PATTERN_INLINE_TABLE_MARKER.matcher(text);
-        StringBuffer sb = new StringBuffer(text.length() + 32);
+        StringBuffer sb = new StringBuffer(text.length() + 64);
 
         while (m.find()) {
             String avant    = m.group(1); // texte avant le marqueur
@@ -207,54 +280,73 @@ public final class CorrectionSynthase {
     }
 
     /**
-     * Force le marqueur @saut de page à début de paragraphe.
-     *
-     * Exemple :
-     *   "¶ #3. Locution nominale @saut de page"
-     * devient :
-     *   "¶ #3. Locution nominale"
-     *   "¶ @saut de page"
-     *
-     * Si la ligne est déjà "¶ @saut de page", elle est simplement normalisée.
-     */
-    public static String separerSautDePageEnDebutParagraphe(String text) {
-        if (text == null || text.isEmpty()) {
-            return text;
-        }
-
-        Matcher m = PATTERN_INLINE_PAGE_BREAK.matcher(text);
-        StringBuffer sb = new StringBuffer(text.length() + 32);
-
-        while (m.find()) {
-            String avant    = m.group(1); // texte avant le marqueur
-            String marqueur = m.group(3); // "@saut de page" + éventuel texte
-
-            String replacement;
-            String trimmedAvant   = avant.trim();
-            String trimmedMarker  = marqueur.trim(); // ex : "@saut de page"
-
-            if (trimmedAvant.isEmpty()) {
-                // ligne du type "¶ @saut de page" ou "¶   @saut de page"
-                replacement = PARAGRAPH_MARK + " " + trimmedMarker;
-            } else {
-                // cas "¶ du texte @saut de page" → "¶ du texte\n¶ @saut de page"
-                replacement = PARAGRAPH_MARK + " " + trimmedAvant
-                            + "\n"
-                            + PARAGRAPH_MARK + " " + trimmedMarker;
-            }
-
-            m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
-        }
-        m.appendTail(sb);
-
-        return sb.toString();
-    }
+	 * Force le marqueur @saut / @saut de page à début de paragraphe
+	 * et conserve le texte avant et après sur des paragraphes séparés.
+	 *
+	 * Exemples :
+	 *   "¶ texte1 @saut texte2"
+	 *     → "¶ texte1"
+	 *       "¶ @saut de page."
+	 *       "¶ texte2"
+	 *
+	 *   "¶ #3. Locution nominale @saut de page"
+	 *     → "¶ #3. Locution nominale"
+	 *       "¶ @saut de page."
+	 *
+	 *   "¶ @saut"
+	 *     → "¶ @saut de page."
+	 */
+	public static String separerSautDePageEnDebutParagraphe(String text) {
+	    if (text == null || text.isEmpty()) {
+	        return text;
+	    }
+	
+	    Matcher m = PATTERN_INLINE_PAGE_BREAK.matcher(text);
+	    StringBuffer sb = new StringBuffer(text.length() + 64);
+	
+	    while (m.find()) {
+	        String avant   = m.group(1); // texte avant le marqueur (peut être vide)
+	        @SuppressWarnings("unused")
+			String brutTag = m.group(2); // "@saut", "@saut de page", "@saut de page."
+	        String apres   = m.group(3); // texte après le marqueur (peut être null)
+	
+	        String trimmedAvant = avant == null ? "" : avant.trim();
+	        String trimmedApres = apres == null ? "" : apres.trim();
+	
+	        // Normalisation du marqueur : toujours "@saut de page."
+	        String marker = "@saut de page";
+	
+	        StringBuilder replacement = new StringBuilder();
+	
+	        // 1) texte avant, s'il existe
+	        if (!trimmedAvant.isEmpty()) {
+	            replacement.append(PARAGRAPH_MARK).append(' ')
+	                       .append(trimmedAvant)
+	                       .append('\n');
+	        }
+	
+	        // 2) le paragraphe avec le marqueur
+	        replacement.append(PARAGRAPH_MARK).append(' ')
+	                   .append(marker);
+	
+	        // 3) texte après, s'il existe
+	        if (!trimmedApres.isBlank()) {
+	            replacement.append('\n')
+	                       .append(PARAGRAPH_MARK).append(' ')
+	                       .append(trimmedApres);
+	        }
+	
+	        m.appendReplacement(sb, Matcher.quoteReplacement(replacement.toString()));
+	    }
+	    m.appendTail(sb);
+	
+	    return sb.toString();
+	}
 
     /**
      * Normalise l'espace après "-." :
      *  "-.avoir"    → "-. avoir"
      *  "-.   avoir" → "-. avoir"
-     *  (ne touche pas un "-." tout seul en fin de ligne)
      */
     public static String normaliserEspaceApresTiretPoint(String text) {
         if (text == null || text.isEmpty()) {
@@ -267,14 +359,6 @@ public final class CorrectionSynthase {
 
     /**
      * Sépare les listes numérotées "-." pour que chaque item ait sa propre ligne.
-     *
-     * Exemple :
-     *   "¶ -. mon texte-. Mon autre texte"
-     * devient :
-     *   "¶ -. mon texte"
-     *   "¶ -. Mon autre texte"
-     *
-     * On ne traite que les lignes qui commencent déjà par "¶ -. ".
      */
     public static String separerListesNumerotees(String text) {
         if (text == null || text.isEmpty()) {
@@ -282,17 +366,14 @@ public final class CorrectionSynthase {
         }
 
         String[] lines = text.split("\\r?\\n", -1); // garder les lignes vides
-        StringBuilder sb = new StringBuilder(text.length() + 32);
+        StringBuilder sb = new StringBuilder(text.length() + 64);
         boolean firstOut = true;
 
         final String prefix = PARAGRAPH_MARK + " -. ";
 
         for (String line : lines) {
             if (line.startsWith(prefix)) {
-                // On isole le contenu après "¶ -. "
                 String rest = line.substring(prefix.length());
-
-                // On coupe sur les occurrences de "-." (avec éventuellement des espaces autour)
                 String[] parts = rest.split("\\s*-\\.\\s*", -1);
 
                 boolean emittedAny = false;
@@ -309,7 +390,6 @@ public final class CorrectionSynthase {
                     emittedAny = true;
                 }
 
-                // Si pour une raison quelconque on n'a rien émis, on garde la ligne telle quelle
                 if (!emittedAny) {
                     if (!firstOut) {
                         sb.append('\n');
@@ -319,7 +399,6 @@ public final class CorrectionSynthase {
                 }
 
             } else {
-                // ligne normale, inchangée
                 if (!firstOut) {
                     sb.append('\n');
                 }
@@ -332,42 +411,21 @@ public final class CorrectionSynthase {
     }
 
     /**
-     * Nettoie les séquences de codes de mise en forme sans texte :
-     *  - ^^^, ^^^^, etc. (3 ^ ou plus)
-     *  - ****, *****, etc. (4 * ou plus)
-     *  - _**_
-     *  - _^^_
-     *  - "^^   ^^" (deux paires de ^^ séparées uniquement par des blancs)
-     *  - "**   **" (deux paires de ** séparées uniquement par des blancs)
+     * Nettoie les séquences de codes de mise en forme sans texte.
      */
     public static String nettoyerCodesVides(String text) {
         if (text == null || text.isEmpty()) {
             return text;
         }
         
-        // 1) Séquences de 3 ^ ou plus : "^^^", "^^^^", etc.
-        // (n'affecte pas "^^texte^^" qui n'a que 2 ^ de chaque côté)
-        text = text.replaceAll("\\^{3,}", "");
-
-        // 2) Séquences de 4 * ou plus : "****", "*****", etc.
-        // (n'affecte pas "**gras**" qui n'a jamais 4 * de suite)
-        text = text.replaceAll("\\*{4,}", "");
-
-        // 3) motifs stricts _**_ et _^^_ (balises sans contenu)
-        text = text.replaceAll("_\\*{2}_", "");
-        text = text.replaceAll("_\\^{2}_", "");
-
-        // 4) cas comme "^^   ^^" : deux paires de ^^ séparées uniquement par des blancs
-        text = text.replaceAll("\\^\\^(\\s*)\\^\\^", "");
-
-        // 5) cas comme "**   **" : deux paires de ** séparées uniquement par des blancs
-        text = text.replaceAll("\\*\\*(\\s*)\\*\\*", "");
-        
-        //Supprimer les blocs entre *...*, ^...^, _..._, quand il n'y a QUE espaces ou balises dedans
-        text = text.replaceAll("(\\*|\\^|_)([\\s\\*\\^_]*)(\\1)","");
-
-        // 6) On peut en profiter pour nettoyer les espaces multiples créés par ces suppressions
-        text = text.replaceAll(" {2,}", " ");
+        text = text.replaceAll("\\^{3,}", "");     // ^^^, ^^^^, ...
+        text = text.replaceAll("\\*{4,}", "");     // ****, *****, ...
+        text = text.replaceAll("_\\*{2}_", "");    // _**_
+        text = text.replaceAll("_\\^{2}_", "");    // _^^_
+        text = text.replaceAll("\\^\\^(\\s*)\\^\\^", "");  // ^^   ^^
+        text = text.replaceAll("\\*\\*(\\s*)\\*\\*", "");  // **   **
+        text = text.replaceAll("(\\*|\\^|_)([\\s\\*\\^_]*)(\\1)", ""); // *   *, ^   ^, _ * ^ _
+        text = text.replaceAll(" {2,}", " ");      // espaces multiples → un seul
 
         return text;
     }
@@ -376,38 +434,32 @@ public final class CorrectionSynthase {
      * Indique si la position donnée (indice du '#') est en début de paragraphe.
      */
     private static boolean isAtParagraphStart(String text, int pos) {
-        // Si on est au tout début du texte
         if (pos == 0) {
             return true;
         }
 
-        // Chercher le dernier saut de ligne avant pos
         int lineStart = pos - 1;
         while (lineStart >= 0) {
             char c = text.charAt(lineStart);
             if (c == '\n' || c == '\r') {
-                lineStart++; // début logique de la ligne = après \n ou \r
+                lineStart++;
                 break;
             }
             lineStart--;
         }
 
-        // Si aucun \n/\r trouvé, début de ligne = 0
         if (lineStart < 0) {
             lineStart = 0;
         }
 
-        // Vérifier s'il n'y a que des blancs et/ou un ¶ avant le '#'
         for (int i2 = lineStart; i2 < pos; i2++) {
             char c = text.charAt(i2);
 
             if (c == PARAGRAPH_MARK) {
-                // On autorise ¶ dans la marge
                 continue;
             }
 
             if (!Character.isWhitespace(c)) {
-                // Vrai texte trouvé → pas début de paragraphe
                 return false;
             }
         }
