@@ -67,7 +67,6 @@ public class EditorFrame extends JFrame implements EditorApi {
     
     // --- Motif unique : "#<niveau>. <texte>" strictement en début de ligne ---
   	private static final Pattern HEADING_PATTERN = Pattern.compile("^(?:¶\\s*)?#([1-6PS])\\.\\s*(.+?)\\s*$", Pattern.MULTILINE);
-
   	
   	// Détecte une image au format ![Image : description]
   	@SuppressWarnings("unused")
@@ -219,9 +218,10 @@ public class EditorFrame extends JFrame implements EditorApi {
         am.put("bw-delete-paragraph-backward",
               new writer.ui.editor.DeleteParagraphBackwardAction(this.editorPane));
         
-        // Récupère l’action Backspace par défaut (supprime le caractère précédent)
-        Action defaultBackspace = this.editorPane.getActionMap().get(DefaultEditorKit.deletePrevCharAction);
-        
+        // Actions par défaut de l’EditorKit
+        Action defaultBackspace = editorPane.getActionMap().get(DefaultEditorKit.deletePrevCharAction);
+        Action defaultDelete    = editorPane.getActionMap().get(DefaultEditorKit.deleteNextCharAction);
+
         // Filtre automatique pour que toute tabulation soit une comme [Tab] dans l'éditeur.
         enableCopyPasteVisibleTabs.enableVisibleTabs(this.editorPane);
 
@@ -289,10 +289,16 @@ public class EditorFrame extends JFrame implements EditorApi {
             new writer.ui.editor.SmartBackspaceAction(editorPane, defaultBackspace));
         
         // Remappe Delete vers notre action intelligente
+        // Remappe BACK_SPACE vers notre action intelligente
+        this.editorPane.getInputMap().put(KS_BSP, "bw-smart-backspace");
+        this.editorPane.getActionMap().put("bw-smart-backspace",
+            new writer.ui.editor.SmartBackspaceAction(editorPane, defaultBackspace));
+
+        // Remappe DELETE vers notre action intelligente
         this.editorPane.getInputMap().put(KS_DEL, "bw-smart-delete");
         this.editorPane.getActionMap().put("bw-smart-delete",
-            new writer.ui.editor.SmartDeleteAction(editorPane, defaultBackspace));      
-    
+            new writer.ui.editor.SmartDeleteAction(editorPane, defaultDelete));
+        
         // Colorisation - installer le highlighter sans invokeLater inutile
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
             FastHighlighter.install(this.editorPane);
